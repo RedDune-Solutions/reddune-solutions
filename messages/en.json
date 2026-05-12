@@ -13,12 +13,50 @@
     },
     "HomePage": {
         "Hero": {
-            "title": "The Right Answer to Your IT Needs",
-            "description": "Customized IT solutions for each client. At Reddune Solutions, we provide an integrated and complete service for both individuals and companies. Our focus is on trust, efficiency and transparency. Everything with your complete satisfaction in mind.",
+            "eyebrow": "Reddune Solutions · Fuseta, Algarve",
+            "title": "The right answer for your technology.",
+            "description": "Tech support, PC builds, web development and data recovery. For individuals and businesses who want to work with confidence.",
             "cta": {
-                "contactUs": "Get in touch",
-                "seeWork": "See our work"
-            } 
+                "primary": "Get in touch",
+                "secondary": "See services"
+            }
+        },
+        "TrustStrip": {
+            "tagline": "More than 10 years solving technology problems in the Algarve.",
+            "stats": [
+                { "value": "10+", "label": "Years of experience" },
+                { "value": "100+", "label": "Projects delivered" },
+                { "value": "24h", "label": "Response time" },
+                { "value": "3 years", "label": "Warranty on new equipment" }
+            ]
+        },
+        "Process": {
+            "eyebrow": "How we work",
+            "title": "Three steps. No detours.",
+            "subtitle": "Clear process from first contact to delivery.",
+            "steps": {
+                "step1": {
+                    "number": "01",
+                    "title": "Conversation",
+                    "description": "We listen to the problem or idea. No jargon, no pressure. We assess what makes sense for you."
+                },
+                "step2": {
+                    "number": "02",
+                    "title": "Proposal",
+                    "description": "You receive a transparent quote, realistic deadlines and the path explained step by step."
+                },
+                "step3": {
+                    "number": "03",
+                    "title": "Delivery",
+                    "description": "We execute with rigour, test everything and deliver with warranty. We stay available afterwards."
+                }
+            }
+        },
+        "Testimonials": {
+            "eyebrow": "Clients",
+            "title": "What people say",
+            "subtitle": "Some of the people and businesses who trusted us.",
+            "quotes": []
         },
         "ServicesSection": {
             "title": "Our Services",
@@ -55,9 +93,11 @@
             "description": "RedDune Solutions is a technology and digital innovation company, focused on providing complete solutions for computer maintenance, electronic equipment repair, and modern and efficient website creation. We combine technical knowledge, creativity, and commitment to ensure quality results tailored to each client's needs. Our goal is to simplify technology and help people and businesses make the most of the digital world."
         },
         "ContactCTA": {
-            "title": "Have a project in mind?",
-            "description": "Talk to us and we'll find the right solution for you. We're always available to help.",
-            "cta": "Get in touch"
+            "eyebrow": "Next step",
+            "title": "Ready to solve your problem?",
+            "description": "Tell us your problem or idea. We respond within 24 hours.",
+            "cta": "Start conversation",
+            "secondaryCta": "See pricing"
         },
         "ContactSection": {
             "title": "Get in Touch",
@@ -250,7 +290,13 @@
         "rights": "All rights reserved.",
         "contactButton": "Contacts",
         "warrantyPolicy": "Warranty Policy",
-        "privacyPolicy": "Privacy Policy"
+        "privacyPolicy": "Privacy Policy",
+        "tagline": "Computer repair, web development and data recovery in Fuseta, Algarve. Personalised service for individuals and businesses.",
+        "address": "Fuseta · Algarve · Portugal",
+        "col1Title": "Services",
+        "col2Title": "Contact",
+        "col3Title": "Legal",
+        "copyMicrocopy": "Technology solutions in the Algarve"
     },
     "WarrantyPolicyPage": {
         "metaTitle": "Warranty Policy — RedDune Solutions | New and Refurbished Equipment",

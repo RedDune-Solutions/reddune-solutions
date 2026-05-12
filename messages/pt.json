@@ -13,12 +13,50 @@
     },
     "HomePage": {
         "Hero": {
-            "title": "A Resposta Certa para as suas necessidades Informáticas",
-            "description": "Soluções informáticas personalizadas para cada cliente. Na Reddune Solutions, disponibilizamos um serviço integrado e completo, tanto para particulares como para empresas. O nosso foco está na confiança, eficiência e transparência. Tudo a pensar na total satisfação dos nossos clientes.",
+            "eyebrow": "Reddune Solutions · Fuseta, Algarve",
+            "title": "A resposta certa para a tua tecnologia.",
+            "description": "Assistência técnica, montagem de PCs, desenvolvimento web e recuperação de dados. Para particulares e empresas que querem trabalhar com confiança.",
             "cta": {
-                "contactUs": "Entre em contacto",
-                "seeWork": "Veja o nosso trabalho"
-            } 
+                "primary": "Falar connosco",
+                "secondary": "Ver serviços"
+            }
+        },
+        "TrustStrip": {
+            "tagline": "Há mais de 10 anos a resolver problemas de tecnologia no Algarve.",
+            "stats": [
+                { "value": "10+", "label": "Anos de experiência" },
+                { "value": "100+", "label": "Projetos concluídos" },
+                { "value": "24h", "label": "Tempo de resposta" },
+                { "value": "3 anos", "label": "Garantia em equipamento novo" }
+            ]
+        },
+        "Process": {
+            "eyebrow": "Como trabalhamos",
+            "title": "Três passos. Sem rodeios.",
+            "subtitle": "Processo claro do primeiro contacto à entrega.",
+            "steps": {
+                "step1": {
+                    "number": "01",
+                    "title": "Conversa",
+                    "description": "Ouvimos o problema ou ideia. Sem jargão, sem pressão. Avaliamos o que faz sentido para ti."
+                },
+                "step2": {
+                    "number": "02",
+                    "title": "Proposta",
+                    "description": "Recebes orçamento transparente, prazos realistas e o caminho explicado passo-a-passo."
+                },
+                "step3": {
+                    "number": "03",
+                    "title": "Entrega",
+                    "description": "Executamos com rigor, testamos tudo e entregamos com garantia. Continuamos disponíveis depois."
+                }
+            }
+        },
+        "Testimonials": {
+            "eyebrow": "Clientes",
+            "title": "O que dizem de nós",
+            "subtitle": "Algumas das pessoas e empresas que confiaram em nós.",
+            "quotes": []
         },
         "ServicesSection": {
             "title": "Os Nossos Serviços",
@@ -55,9 +93,11 @@
             "description": "A Reddune Solutions é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites modernos e eficientes. Combinamos conhecimento técnico, criatividade e compromisso para garantir resultados de qualidade, adaptados às necessidades de cada cliente. O nosso objetivo é simplificar a tecnologia e ajudar pessoas e negócios a tirarem o máximo proveito do mundo digital."
         },
         "ContactCTA": {
-            "title": "Tem um projeto em mente?",
-            "description": "Fale connosco e encontramos a solução certa para si. Estamos sempre disponíveis para ajudar.",
-            "cta": "Entre em contacto"
+            "eyebrow": "Próximo passo",
+            "title": "Pronto para resolver o teu problema?",
+            "description": "Conta-nos o teu problema ou ideia. Respondemos em 24 horas.",
+            "cta": "Iniciar conversa",
+            "secondaryCta": "Ver preços"
         },
         "ContactSection": {
             "title": "Entre em contacto",
@@ -250,7 +290,13 @@
         "rights": "Todos os direitos reservados.",
         "contactButton": "Contactos",
         "warrantyPolicy": "Política de Garantia",
-        "privacyPolicy": "Política de Privacidade"
+        "privacyPolicy": "Política de Privacidade",
+        "tagline": "Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas.",
+        "address": "Fuseta · Algarve · Portugal",
+        "col1Title": "Serviços",
+        "col2Title": "Contacto",
+        "col3Title": "Legal",
+        "copyMicrocopy": "Soluções tecnológicas no Algarve"
     },
     "WarrantyPolicyPage": {
         "metaTitle": "Política de Garantia — RedDune Solutions | Equipamentos Novos e Recondicionados",
