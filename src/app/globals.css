@@ -189,11 +189,165 @@
 }
 
 /* ============================================================
-   Oasis keyframes — placeholders.
-   Full keyframes (pulse, fadeUp, rise, sunfloat, morph1-3, drift,
-   glow, ctapulse) will be added in Phase 7 along with section CSS.
-   Kept minimal for now to avoid noise.
+   Oasis keyframes — ported EXACT from design-handoff/project/site/styles.css.
+   These power the motion primitives in src/components/motion/:
+     • pulse      → hero kicker dot
+     • fadeUp     → hero kicker / subtitle / CTA row
+     • rise       → hero title rows (slide up from below)
+     • sunfloat   → hero sun (radial glow disc)
+     • morph1..3  → dune SVG path morphs
+     • drift      → spark embers
+     • glow       → stats-row ambient halo
+     • ctapulse   → CTA-wave radial pulse
+   Tailwind already ships accordion-down/up keyframes via tailwind.config.ts
+   — those live in the `theme.keyframes` block and do NOT conflict here.
    ============================================================ */
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 66, 42, 0.6); }
+  50%      { box-shadow: 0 0 0 10px rgba(214, 66, 42, 0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rise {
+  to { transform: translateY(0); }
+}
+
+@keyframes sunfloat {
+  0%, 100% { transform: translate(-50%, 0)    scale(1);    }
+  50%      { transform: translate(-50%, 30px) scale(1.08); }
+}
+
+@keyframes morph1 {
+  0%, 100% { d: path('M 0 380 C 200 320, 400 410, 700 360 C 900 320, 1100 400, 1400 350 C 1600 320, 1800 380, 1920 360 L 1920 600 L 0 600 Z'); }
+  50%      { d: path('M 0 360 C 220 300, 420 390, 720 340 C 920 300, 1120 380, 1420 330 C 1620 300, 1820 360, 1920 340 L 1920 600 L 0 600 Z'); }
+}
+
+@keyframes morph2 {
+  0%, 100% { d: path('M 0 440 C 250 380, 480 460, 800 410 C 1080 370, 1300 450, 1600 400 C 1750 380, 1850 420, 1920 410 L 1920 600 L 0 600 Z'); }
+  50%      { d: path('M 0 420 C 270 360, 500 440, 820 390 C 1100 350, 1320 430, 1620 380 C 1770 360, 1870 400, 1920 390 L 1920 600 L 0 600 Z'); }
+}
+
+@keyframes morph3 {
+  0%, 100% { d: path('M 0 510 C 300 460, 600 530, 1000 490 C 1300 460, 1600 520, 1920 500 L 1920 600 L 0 600 Z'); }
+  50%      { d: path('M 0 490 C 320 440, 620 510, 1020 470 C 1320 440, 1620 500, 1920 480 L 1920 600 L 0 600 Z'); }
+}
+
+@keyframes drift {
+  0%   { opacity: 0;   transform: translateY(0)      translateX(0);    }
+  15%  { opacity: 0.8;                                                 }
+  100% { opacity: 0;   transform: translateY(-300px) translateX(100px); }
+}
+
+@keyframes glow {
+  0%, 100% { transform: scale(1);   opacity: 0.3; }
+  50%      { transform: scale(1.1); opacity: 0.5; }
+}
+
+@keyframes ctapulse {
+  0%, 100% { transform: translateX(-50%) scale(1);    opacity: 0.5; }
+  50%      { transform: translateX(-50%) scale(1.15); opacity: 0.8; }
+}
+
+/* ============================================================
+   Oasis classes — paired with the keyframes above and consumed by the
+   motion primitives in src/components/motion/.
+   ============================================================ */
+
+/* Reveal — IntersectionObserver-driven fade/slide on enter */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity   1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Sun — radial glow disc, anchored to its parent via absolute positioning
+   provided by the consuming section (e.g. .hero-scene). */
+.sun {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 63, 0.55) 0%,
+    rgba(232, 153, 104, 0.3) 35%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  animation: sunfloat 12s ease-in-out infinite;
+}
+.sun.sun-sm {
+  width: 320px;
+  height: 320px;
+}
+
+/* Dune SVG — full-width morphing background; parallax (translateX) is applied
+   inline by DuneBackground.tsx on desktop. */
+.dune-bg-svg {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 60%;
+}
+.dune-blob          { transition: d 1.5s ease-in-out; }
+.dune-blob.b1       { animation: morph1 18s ease-in-out infinite; }
+.dune-blob.b2       { animation: morph2 22s ease-in-out infinite; }
+.dune-blob.b3       { animation: morph3 26s ease-in-out infinite; }
+
+/* Sparks — drifting ember particles inside a .sparks container */
+.sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--apricot);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--apricot);
+  opacity: 0;
+  animation: drift linear infinite;
+}
+
+/* Hero kicker pulse dot — small ember pip with expanding shadow */
+.hero-kicker .pulse {
+  width: 8px;
+  height: 8px;
+  background: var(--ember);
+  border-radius: 50%;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+/* Hero title row — starts shifted below its overflow:hidden row, slides up */
+.hero-title .row {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0;
+}
+.hero-title .row > span {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
 /* ============================================================
    Reduced motion — HANDOFF claims this is already in styles.css
