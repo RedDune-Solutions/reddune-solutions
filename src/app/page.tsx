@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
+import { TrustStrip } from "@/components/sections/TrustStrip";
 import { Services } from "@/components/sections/Services";
 import { Portfolio } from "@/components/sections/Portfolio";
+import { StatsRow } from "@/components/sections/StatsRow";
 import { About } from "@/components/sections/About";
-import { ContactCTA } from "@/components/sections/ContactCTA";
+import { CTAWave } from "@/components/sections/CTAWave";
 import { getAllPortfolioItems } from "@/lib/mongodb/portfolio";
 import { getLocale } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
@@ -51,14 +53,16 @@ export default async function Home() {
   const portfolioItems = await getAllPortfolioItems();
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow">
+      <main id="main" className="flex-grow">
         <Hero />
+        <TrustStrip />
         <Services />
         <Portfolio items={portfolioItems} />
+        <StatsRow />
         <About />
-        <ContactCTA />
+        <CTAWave />
       </main>
       <Footer />
     </div>

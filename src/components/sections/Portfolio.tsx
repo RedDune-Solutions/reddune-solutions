@@ -1,57 +1,136 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { ArrowUpRight, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
+import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import type { PortfolioItem } from "@/types/portfolio";
-import Link from "next/link";
 
-type Props = {
-  items: PortfolioItem[];
-};
+type Props = { items: PortfolioItem[] };
 
-function PortfolioCard({ item, locale }: { item: PortfolioItem; locale: "pt" | "en" }) {
+/**
+ * Portfolio — Phase 4 Oasis portfolio preview.
+ *
+ * Direct port of `#portfolio-preview` from
+ * `design-handoff/project/site/index.html` (lines 112-133).
+ *
+ * Each card is a 4:5 ratio tile with a dune-tinted background, an uppercase
+ * mono tag pill (top-left), and an info block (h4 + sub) anchored at the
+ * bottom. On hover the card lifts and the dune motif shifts (parallax depth).
+ */
+
+// 3 fallback variants for cards without uploaded media yet — palette matches
+// the `pf-build / pf-web / pf-hw` variants in the design.
+const FALLBACK_BACKGROUNDS = [
+  "radial-gradient(circle at 30% 30%, #ff8a5c, var(--ember) 40%, var(--dune-deep) 80%)",
+  "linear-gradient(135deg, #ecdfc2, #b88a5c 50%, #5a3a26)",
+  "radial-gradient(circle at 70% 30%, #f4a76a, #b3221c 50%, #2a0805 90%)",
+] as const;
+
+const FALLBACK_TAGS = ["Hardware", "Web · App", "Diagnóstico"] as const;
+
+function PortfolioCard({
+  item,
+  locale,
+  fallbackIndex,
+}: {
+  item: PortfolioItem;
+  locale: "pt" | "en";
+  fallbackIndex: number;
+}) {
   const image = item.imageUrl;
+  const tag = FALLBACK_TAGS[fallbackIndex % FALLBACK_TAGS.length];
 
   return (
-    <Card className="overflow-hidden group transition-shadow duration-300 hover:shadow-2xl rounded-lg">
-      <Link href={item.url} target="_blank" aria-label={item.title[locale]}>
-        <CardContent className="p-0 relative aspect-[3/2]">
-          {image === "" ? (
-            <div className="w-full h-full flex items-center justify-center bg-secondary/50 text-muted-foreground">
-              <ImageOff className="h-12 w-12" aria-hidden="true" />
-            </div>
-          ) : (
-            <Image
-              src={image}
-              alt={item.title[locale]}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
+    <Link
+      href={item.url || "/contacto?from=home"}
+      target={item.url ? "_blank" : undefined}
+      aria-label={item.title[locale]}
+      className={cn(
+        "group relative block aspect-[4/5] overflow-hidden rounded-[28px]",
+        "shadow-warm transition-all duration-700 ease-oasis",
+        "hover:-translate-y-2.5 hover:scale-[1.015] hover:shadow-warm-lg",
+        "no-underline text-ink",
+      )}
+      style={{
+        background: image
+          ? "var(--cream-deep)"
+          : FALLBACK_BACKGROUNDS[fallbackIndex % FALLBACK_BACKGROUNDS.length],
+      }}
+    >
+      {/* Image or fallback dune gradient */}
+      {image ? (
+        <Image
+          src={image}
+          alt={item.title[locale]}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className={cn(
+            "absolute inset-0 object-cover transition-transform duration-700 ease-oasis",
+            "group-hover:scale-[1.08]",
           )}
+        />
+      ) : null}
 
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity"
-            aria-hidden="true"
-          />
+      {/* Bottom darkening gradient */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "absolute inset-0 transition-opacity duration-500",
+          "bg-gradient-to-b from-transparent via-transparent to-ink/75",
+        )}
+      />
 
-          <div className="absolute bottom-0 left-0 p-6">
-            <h3 className="font-headline text-xl font-bold text-white">{item.title[locale]}</h3>
-          </div>
+      {/* Tag pill (top-left) */}
+      <span
+        className={cn(
+          "absolute left-[18px] top-[18px] z-[3]",
+          "rounded-btn border border-white/30 bg-white/60 backdrop-blur",
+          "px-3 py-1.5",
+          "font-mono text-[10px] uppercase tracking-[0.18em] text-ink",
+          "transition-all duration-500 ease-oasis",
+          "group-hover:bg-apricot group-hover:translate-x-0.5 group-hover:-translate-y-1",
+        )}
+      >
+        {tag}
+      </span>
 
-          <div
-            className="absolute top-4 right-4 bg-accent text-accent-foreground p-2 rounded-full transform scale-0 group-hover:scale-100 transition-transform duration-300 ease-in-out"
-            aria-hidden="true"
-          >
-            <ArrowUpRight className="h-5 w-5" />
-          </div>
-        </CardContent>
-      </Link>
-    </Card>
+      {/* Info block (bottom) */}
+      <div
+        className={cn(
+          "absolute inset-x-6 bottom-6 z-[4] text-cream",
+          "transition-transform duration-500 ease-oasis",
+          "group-hover:-translate-y-2",
+        )}
+      >
+        <h4
+          className={cn(
+            "font-display text-[22px] font-semibold leading-[1.1] tracking-[-0.01em] mb-1.5",
+          )}
+        >
+          {item.title[locale]}
+        </h4>
+        <p
+          className={cn(
+            "text-[13px] opacity-85 text-cream-deep",
+          )}
+        >
+          {tag}
+        </p>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "mt-3.5 inline-flex items-center gap-2",
+            "font-mono text-[11px] uppercase tracking-[0.15em] text-apricot",
+            "opacity-0 translate-y-3 transition-all duration-500 ease-oasis",
+            "group-hover:opacity-100 group-hover:translate-y-0",
+          )}
+        >
+          Ver projeto →
+        </span>
+      </div>
+    </Link>
   );
 }
 
@@ -61,24 +140,90 @@ export function Portfolio({ items }: Props) {
   const locale = rawLocale === "en" ? "en" : "pt";
 
   return (
-    <section id="portfolio" className="py-12 md:py-24 bg-secondary/50">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="font-headline text-3xl md:text-4xl font-bold">{t("title")}</h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            {t("description")}
-          </p>
+    <section
+      id="portfolio-preview"
+      className="relative mx-auto w-full max-w-content px-8 py-[120px]"
+    >
+      <Reveal>
+        <span
+          className={cn(
+            "inline-flex items-center gap-[10px]",
+            "rounded-btn border border-ember/20 bg-ember/[0.08]",
+            "px-[14px] py-[6px] mb-7",
+            "font-mono text-[11px] uppercase tracking-[0.2em] text-ember",
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className="block h-1.5 w-1.5 rounded-sm bg-ember"
+          />
+          {t.has("eyebrow") ? t("eyebrow") : "O nosso portfólio"}
+        </span>
+      </Reveal>
+      <Reveal>
+        <h2
+          className={cn(
+            "font-display font-bold text-ink",
+            "max-w-[1000px] mb-6",
+            "text-[clamp(42px,5.5vw,88px)] leading-none tracking-[-0.035em]",
+            "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
+          )}
+          style={{ fontVariationSettings: '"opsz" 88' }}
+        >
+          {t.rich("title", {
+            accent: (chunks) => <em>{chunks}</em>,
+          })}
+        </h2>
+      </Reveal>
+      <Reveal>
+        <p
+          className={cn(
+            "max-w-[640px] mb-[60px]",
+            "text-[19px] leading-[1.55] text-ink-soft",
+          )}
+        >
+          {t("description")}
+        </p>
+      </Reveal>
+
+      {items.length === 0 ? (
+        <p className="text-center text-ink-mute">{t("emptyState")}</p>
+      ) : (
+        <div
+          className={cn(
+            "grid gap-5",
+            "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+          )}
+        >
+          {items.slice(0, 3).map((item, index) => (
+            <Reveal key={item.id}>
+              <PortfolioCard
+                item={item}
+                locale={locale}
+                fallbackIndex={index}
+              />
+            </Reveal>
+          ))}
         </div>
-        {items.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">{t("emptyState")}</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <PortfolioCard key={item.id} item={item} locale={locale} />
-            ))}
-          </div>
-        )}
-      </div>
+      )}
+
+      <Reveal>
+        <div className="mt-12 text-center">
+          <Link
+            href="/contacto?from=home"
+            className={cn(
+              "inline-flex items-center gap-2",
+              "font-mono text-[13px] uppercase tracking-[0.18em] text-ember",
+              "transition-colors duration-300 hover:text-dune",
+            )}
+          >
+            {t.has("fullPortfolioCta")
+              ? t("fullPortfolioCta")
+              : "Conversar sobre o teu projeto"}
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </Reveal>
     </section>
   );
 }

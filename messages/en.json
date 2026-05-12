@@ -14,20 +14,25 @@
     "HomePage": {
         "Hero": {
             "eyebrow": "Reddune Solutions · Fuseta, Algarve",
-            "title": "The right answer for your technology.",
-            "description": "Tech support, PC builds, web development and data recovery. For individuals and businesses who want to work with confidence.",
+            "title": "<row>The right</row><row><accent>answer</accent>.</row><row>For any problem.</row>",
+            "description": "Custom IT solutions for individuals and businesses — technical support, web and data recovery. With the trust, efficiency and transparency you expect.",
             "cta": {
-                "primary": "Get in touch",
-                "secondary": "See services"
+                "primary": "See services",
+                "secondary": "Visit shop"
             }
         },
         "TrustStrip": {
-            "tagline": "More than 10 years solving technology problems in the Algarve.",
+            "tagline": "/ who we work for",
+            "audiences": [
+                "Individuals",
+                "Businesses",
+                "Anyone with a problem"
+            ],
             "stats": [
                 { "value": "10+", "label": "Years of experience" },
                 { "value": "100+", "label": "Projects delivered" },
                 { "value": "24h", "label": "Response time" },
-                { "value": "3 years", "label": "Warranty on new equipment" }
+                { "value": "3", "label": "Years of warranty" }
             ]
         },
         "Process": {
@@ -59,29 +64,32 @@
             "quotes": []
         },
         "ServicesSection": {
-            "title": "Our Services",
-            "description": "We offer a complete range of services to address your needs.",
+            "eyebrow": "Our services",
+            "title": "A <accent>complete</accent> range, tailored to what you need.",
+            "description": "From a laptop that won't turn on to your company's website that needs an upgrade. We work with individuals and businesses, always with the same transparency.",
             "services": {
                 "tecAssist": {
-                    "title": "Technical Support",
-                    "description": "Specialized technical support for computers, consoles and other electronic equipment. We diagnose and resolve issues quickly and accurately, ensuring your device works at peak performance, with the transparency you expect from a professional team."
+                    "title": "Technical <accent>Support</accent>",
+                    "description": "Diagnosis and repair of computers, consoles and electronic equipment. Speed, precision and total transparency — we explain what we'll do before we do it."
                 },
                 "webDigital": {
-                    "title": "Web and Digital Services",
-                    "description": "We offer a variety of digital solutions, including modern websites, e-commerce and custom systems."
+                    "title": "Web & <accent>Digital</accent>",
+                    "description": "Modern websites, e-commerce and custom systems. Designed to work on any screen, quick to load and easy for your client to use."
                 },
                 "dataRecovery": {
-                    "title": "Software and Recovery",
-                    "description": "Installation and configuration of software, drivers and operating systems, as well as basic data recovery from lost files. We ensure your equipment returns to working stably, updated and optimized, with all essential programs ready to use and your files recovered whenever possible."
+                    "title": "Software & <accent>Recovery</accent>",
+                    "description": "Installation and configuration of operating systems, drivers and essential software. Recovery of lost data — photos, documents, projects."
                 }
             },
-            "cta": "View Pricing",
-            "quote": "Didn't find what you were looking for? Our passion is creating tailored solutions. <contactLink>Talk to us</contactLink> and we'll turn your idea into reality."
+            "cta": "Talk to us",
+            "quote": "Didn't find what you were looking for? Our passion is creating <accent>tailored solutions</accent>. <contactLink>Tell us your idea</contactLink> and we'll turn it into reality."
         },
         "PortfolioSection": {
-            "title": "Our Portfolio",
-            "description": "A glimpse into our world of solutions and professionalism.",
+            "eyebrow": "Our portfolio",
+            "title": "A glimpse into our world of <accent>solutions</accent>.",
+            "description": "Selected cases from our three areas — from computers built piece by piece to websites delivered in under a week.",
             "emptyState": "Coming soon.",
+            "fullPortfolioCta": "Talk about your project",
             "cards" : {
                 "portfolioCard-1": "Computer Building",
                 "portfolioCard-2": "Website Development",
@@ -89,15 +97,22 @@
             }
         },
         "AboutUsSection": {
-            "title": "About Us",
-            "description": "RedDune Solutions is a technology and digital innovation company, focused on providing complete solutions for computer maintenance, electronic equipment repair, and modern and efficient website creation. We combine technical knowledge, creativity, and commitment to ensure quality results tailored to each client's needs. Our goal is to simplify technology and help people and businesses make the most of the digital world."
+            "eyebrow": "About us",
+            "badge": "Fuseta · Algarve",
+            "placeLabel": "Our home.",
+            "title": "Technology and <accent>digital innovation</accent> — with feet planted in the sand.",
+            "description": "<strong>RedDune Solutions</strong> is a technology and digital innovation company, focused on providing complete solutions for computer maintenance, electronic equipment repair, and modern, efficient websites.",
+            "description2": "We combine <strong>technical knowledge, trust and commitment</strong> to ensure quality results tailored to each client's needs. Our goal is to simplify technology and help people and businesses make the most of the digital world.",
+            "value1": "Trust",
+            "value2": "Efficiency",
+            "value3": "Transparency"
         },
         "ContactCTA": {
             "eyebrow": "Next step",
-            "title": "Ready to solve your problem?",
-            "description": "Tell us your problem or idea. We respond within 24 hours.",
-            "cta": "Start conversation",
-            "secondaryCta": "See pricing"
+            "title": "<accent>Solutions</accent><br></br>for your problems.",
+            "description": "Talk to us and we'll find the right solution. We're always available to help — in person in Fuseta or remotely anywhere in the country.",
+            "cta": "Get in touch",
+            "secondaryCta": "See services"
         },
         "ContactSection": {
             "title": "Get in Touch",

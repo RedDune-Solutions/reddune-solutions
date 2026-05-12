@@ -14,20 +14,25 @@
     "HomePage": {
         "Hero": {
             "eyebrow": "Reddune Solutions · Fuseta, Algarve",
-            "title": "A resposta certa para a tua tecnologia.",
-            "description": "Assistência técnica, montagem de PCs, desenvolvimento web e recuperação de dados. Para particulares e empresas que querem trabalhar com confiança.",
+            "title": "<row>A resposta</row><row><accent>certa</accent>.</row><row>Para qualquer problema.</row>",
+            "description": "Soluções informáticas personalizadas para particulares e empresas — assistência técnica, web e recuperação de dados. Com a confiança, eficiência e transparência que esperas.",
             "cta": {
-                "primary": "Falar connosco",
-                "secondary": "Ver serviços"
+                "primary": "Ver serviços",
+                "secondary": "Visitar loja"
             }
         },
         "TrustStrip": {
-            "tagline": "Há mais de 10 anos a resolver problemas de tecnologia no Algarve.",
+            "tagline": "/ para quem trabalhamos",
+            "audiences": [
+                "Particulares",
+                "Empresas",
+                "Qualquer pessoa com um problema"
+            ],
             "stats": [
                 { "value": "10+", "label": "Anos de experiência" },
                 { "value": "100+", "label": "Projetos concluídos" },
                 { "value": "24h", "label": "Tempo de resposta" },
-                { "value": "3 anos", "label": "Garantia em equipamento novo" }
+                { "value": "3", "label": "Anos de garantia" }
             ]
         },
         "Process": {
@@ -59,29 +64,32 @@
             "quotes": []
         },
         "ServicesSection": {
-            "title": "Os Nossos Serviços",
-            "description": "Oferecemos uma gama completa de serviços para dar resposta aos seus problemas.",
+            "eyebrow": "Os nossos serviços",
+            "title": "Uma gama <accent>completa</accent>, à medida do que precisas.",
+            "description": "De um portátil que não liga ao site da tua empresa que precisa de upgrade. Trabalhamos com particulares e empresas, sempre com a mesma transparência.",
             "services": {
                 "tecAssist": {
-                    "title": "Assistência Técnica",
-                    "description": "Assistência técnica especializada para computadores, consolas e outros equipamentos eletrónicos. Diagnosticamos e resolvemos problemas com rapidez e precisão, garantindo que o seu dispositivo volte a funcionar no máximo desempenho, com a transparência que esperas de uma equipa profissional."
+                    "title": "Assistência <accent>Técnica</accent>",
+                    "description": "Diagnóstico e reparação de computadores, consolas e equipamentos eletrónicos. Rapidez, precisão e total transparência — explicamos o que vamos fazer antes de o fazer."
                 },
                 "webDigital": {
-                    "title": "Web e Serviços Digitais",
-                    "description": "Oferecemos uma variedade de soluções digitais, incluindo websites modernos, e-commerce e sistemas personalizados."
+                    "title": "Web & <accent>Digital</accent>",
+                    "description": "Websites modernos, e-commerce e sistemas personalizados. Pensados para funcionarem em qualquer ecrã, rápidos a abrir e fáceis para o teu cliente usar."
                 },
                 "dataRecovery": {
-                    "title": "Software e Recuperação",
-                    "description": "Instalação e configuração de software, drivers e sistemas operativos, bem como recuperação básica de dados perdidos. Garantimos que o seu equipamento volta a funcionar de forma estável, atualizada e otimizada, com todos os programas essenciais prontos a usar e os seus ficheiros recuperados sempre que possível."
+                    "title": "Software & <accent>Recuperação</accent>",
+                    "description": "Instalação e configuração de sistemas operativos, drivers e software essencial. Recuperação de dados perdidos — fotos, documentos, projetos."
                 }
             },
-            "cta": "Ver Preços",
-            "quote": "Não encontrou o que procurava? A nossa paixão é criar soluções à medida. <contactLink>Fale connosco</contactLink> e vamos transformar a sua ideia em realidade."
+            "cta": "Fala connosco",
+            "quote": "Não encontraste o que procuravas? A nossa paixão é criar <accent>soluções à medida</accent>. <contactLink>Conta-nos a tua ideia</contactLink> e vamos transformá-la em realidade."
         },
         "PortfolioSection": {
-            "title": "O Nosso Portfólio",
-            "description": "Um vislumbre do nosso mundo de soluções e profissionalismo.",
+            "eyebrow": "O nosso portfólio",
+            "title": "Um vislumbre do nosso mundo de <accent>soluções</accent>.",
+            "description": "Casos selecionados das nossas três áreas — desde computadores construídos peça a peça a websites entregues em menos de uma semana.",
             "emptyState": "Brevemente disponível.",
+            "fullPortfolioCta": "Conversar sobre o teu projeto",
             "cards" : {
                 "portfolioCard-1": "Construção de computadores",
                 "portfolioCard-2": "Desenvolvimento de website",
@@ -89,15 +97,22 @@
             }
         },
         "AboutUsSection": {
-            "title": "Sobre a Reddune Solutions",
-            "description": "A Reddune Solutions é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites modernos e eficientes. Combinamos conhecimento técnico, criatividade e compromisso para garantir resultados de qualidade, adaptados às necessidades de cada cliente. O nosso objetivo é simplificar a tecnologia e ajudar pessoas e negócios a tirarem o máximo proveito do mundo digital."
+            "eyebrow": "Sobre nós",
+            "badge": "Fuseta · Algarve",
+            "placeLabel": "A nossa casa.",
+            "title": "Tecnologia e <accent>inovação digital</accent> — com pés assentes na areia.",
+            "description": "A <strong>RedDune Solutions</strong> é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites modernos e eficientes.",
+            "description2": "Combinamos <strong>conhecimento técnico, confiança e compromisso</strong> para garantir resultados de qualidade, adaptados às necessidades de cada cliente. O nosso objetivo é simplificar a tecnologia e ajudar pessoas e negócios a tirarem o máximo proveito do mundo digital.",
+            "value1": "Confiança",
+            "value2": "Eficiência",
+            "value3": "Transparência"
         },
         "ContactCTA": {
             "eyebrow": "Próximo passo",
-            "title": "Pronto para resolver o teu problema?",
-            "description": "Conta-nos o teu problema ou ideia. Respondemos em 24 horas.",
-            "cta": "Iniciar conversa",
-            "secondaryCta": "Ver preços"
+            "title": "<accent>Soluções</accent><br></br>para os teus problemas.",
+            "description": "Fala connosco e encontramos a solução certa. Estamos sempre disponíveis para ajudar — em pessoa em Fuseta ou em remoto para qualquer ponto do país.",
+            "cta": "Entrar em contacto",
+            "secondaryCta": "Ver serviços"
         },
         "ContactSection": {
             "title": "Entre em contacto",
