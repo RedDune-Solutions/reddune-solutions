@@ -348,6 +348,23 @@
   transform: translateY(110%);
   animation: rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+/* Staggered delays per row — ports design source styles.css L154-156 */
+.hero-title .row:nth-child(1) > span { animation-delay: 0.30s; }
+.hero-title .row:nth-child(2) > span { animation-delay: 0.42s; }
+.hero-title .row:nth-child(3) > span { animation-delay: 0.54s; }
+
+/* Em accent inside hero title — gradient ember→apricot clipped to text.
+   Ports design source styles.css L158-168. */
+.hero-title em {
+  font-family: var(--font-serif), Newsreader, Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  background: linear-gradient(120deg, var(--ember) 30%, var(--apricot) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 
 /* ============================================================
    Reduced motion — HANDOFF claims this is already in styles.css

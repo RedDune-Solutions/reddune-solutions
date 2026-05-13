@@ -46,6 +46,7 @@ function PortfolioCard({
     <Link
       href={item.url || "/contacto?from=home"}
       target={item.url ? "_blank" : undefined}
+      rel={item.url ? "noopener noreferrer" : undefined}
       aria-label={item.title[locale]}
       className={cn(
         "group relative block aspect-[4/5] overflow-hidden rounded-[28px]",

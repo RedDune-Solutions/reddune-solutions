@@ -1,11 +1,8 @@
 import { EmailTemplate } from "@/components/templates/email-template";
-import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { validateContact, SUBJECT_LABELS } from "@/lib/validation";
-import { serverEnv } from "@/lib/env";
 import { businessEmail } from "@/config/contact";
-
-const resend = new Resend(serverEnv.RESEND_API_KEY);
+import { getResend } from "@/lib/resend";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -28,7 +25,7 @@ export async function POST(request: Request) {
       EmailTemplate({ name, email, subject: subjectLabel, message })
     );
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: "Website Form <onboarding@resend.dev>",
       to: businessEmail,
       subject: `Contacto: ${subjectLabel}`,
