@@ -1,0 +1,90 @@
+{
+  "slug": "web-digital",
+  "eyebrow": "Websites · e-commerce · systems",
+  "title": "Digital presence <em>that converts</em> into customers.",
+  "lead": "We build websites, online stores and custom systems. Modern technology (Next.js, React) with focus on speed, SEO and conversion.",
+  "overview": {
+    "eyebrow": "Overview",
+    "title": "More than a <em>website</em> — a business tool.",
+    "lead": "A beautiful website that doesn't sell isn't worth it. We design every project around your business goal: attract customers, sell products, book appointments. Everything we ship is mobile-optimised, fast to load and ready for local SEO."
+  },
+  "items": {
+    "eyebrow": "Included services",
+    "title": "Web, e-commerce and <em>systems</em>.",
+    "lead": "Average price by project type. The final value depends on scope, page count, integrations and content. Detailed quote after a kick-off meeting.",
+    "list": [
+      {
+        "title": "Landing Page (1 page)",
+        "description": "Single page for a campaign, lead capture, product or event launch. Goes up with integrations (CRM/email) and multilingual support.",
+        "price": "<b>200€ – 750€</b>"
+      },
+      {
+        "title": "Institutional site",
+        "description": "Home, About, Services, Contact and anything else that makes sense. Goes up with more pages, multilingual, full SEO and content.",
+        "price": "<b>500€ – 2.000€</b>"
+      },
+      {
+        "title": "Online Store (E-commerce)",
+        "description": "Catalogue, cart, payments, shipping, invoicing. Goes up with many products, variants, ERP/stock integrations and complex shipping.",
+        "price": "<b>1.000€ – 3.500€+</b>"
+      },
+      {
+        "title": "Bespoke site or app",
+        "description": "Portal, members area, ground-up custom features. Typically priced by scope, integrations and specific functionality.",
+        "price": "<b>3.000€+</b>"
+      },
+      {
+        "title": "Maintenance & support",
+        "description": "Backups, updates, monitoring and small content edits. Monthly or yearly, defined with the client.",
+        "price": "<b>By quote</b> · recurring"
+      },
+      {
+        "title": "Domains, hosting & extras",
+        "description": "Anything that's a monthly or yearly expense — domain, hosting, SSL, email. Defined separately with the client.",
+        "price": "<b>Separate</b> · agreed price"
+      }
+    ],
+    "note": "<em>What raises the price:</em> rush fee, integrations (CRM, email, ERP/stock), more elaborate copy, premium design, multilingual, more pages and broader SEO. Rush work accepted subject to availability, with an extra fee.",
+    "noteCta": "Talk about the project",
+    "noteCtaMessage": "Hi! I'd like to discuss a project."
+  },
+  "stats": [
+    { "value": "200€+", "label": "Landing", "sub": "1 page" },
+    { "value": "500€+", "label": "Institutional", "sub": "up to ~6 pages" },
+    { "value": "1k€+", "label": "E-commerce", "sub": "online store" },
+    { "value": "3k€+", "label": "Bespoke", "sub": "portal / app" }
+  ],
+  "faqs": {
+    "eyebrow": "Frequently asked questions",
+    "title": "The most <em>common</em> doubts.",
+    "list": [
+      {
+        "q": "How much does a website cost for my business?",
+        "a": "Institutional sites typically range from 500€ to 2.000€ (depending on number of pages, multilingual, SEO and content). Landing pages between 200€ and 750€. Online stores from 1.000€. We always ask for a short meeting to understand your business before quoting."
+      },
+      {
+        "q": "How long until it's ready?",
+        "a": "An institutional site is ready in 2-3 weeks. E-commerce in 4-6 weeks. We always give you a concrete date in the quote."
+      },
+      {
+        "q": "Can I edit the site myself afterwards?",
+        "a": "Yes. We deliver with a simple management panel where you can edit text, images and products. Training is included."
+      },
+      {
+        "q": "Will the site appear on Google?",
+        "a": "We deliver with base SEO configured (meta tags, schema, sitemap, optimised performance). For competitive searches, we recommend our continued SEO package."
+      },
+      {
+        "q": "Do you handle hosting and the domain?",
+        "a": "Yes, we handle everything — domain, hosting, SSL, email. These costs are monthly or yearly and are defined separately with the client, with full transparency. You can also keep your existing setup if you prefer."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to <em>solve it</em>?",
+    "lead": "Describe the problem on WhatsApp and you'll have a quote within 24h.",
+    "primary": "WhatsApp",
+    "primaryMessage": "Hi! I came from the Web & Digital page.",
+    "secondary": "See other services"
+  }
+}

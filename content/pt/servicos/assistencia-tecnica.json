@@ -1,0 +1,82 @@
+{
+  "slug": "assistencia-tecnica",
+  "eyebrow": "Reparação · upgrade · diagnóstico",
+  "title": "Assistência <em>técnica</em> que faz sentido.",
+  "lead": "Reparamos computadores, portáteis, consolas e periféricos. Sempre com diagnóstico prévio e orçamento transparente — só avançamos com a tua autorização.",
+  "overview": {
+    "eyebrow": "Visão geral",
+    "title": "Do <em>diagnóstico</em> à entrega — em tempo recorde.",
+    "lead": "Quando um equipamento falha, perdes tempo, dinheiro e paciência. A nossa missão é simples: devolver-te o equipamento a funcionar como novo, no mais curto espaço de tempo possível, com a fatura clara e a garantia incluída."
+  },
+  "items": {
+    "eyebrow": "Serviços incluídos",
+    "title": "Hardware e <em>manutenção</em> física.",
+    "lead": "Tabela de referência — o valor final depende do equipamento, do número de componentes e da complexidade. Damos sempre orçamento antes de avançar.",
+    "list": [
+      {
+        "title": "Diagnóstico de avaria",
+        "description": "Identificação do problema no equipamento. Inclui relatório técnico e orçamento de reparação.",
+        "price": "<b>25€</b> · abatido se reparares"
+      },
+      {
+        "title": "Limpeza básica",
+        "description": "Limpeza de ventoinhas e dissipadores sem desmontar componentes — só pelas janelas do gabinete.",
+        "price": "Desktop <b>20–30€</b> · Portátil <b>25–35€</b>"
+      },
+      {
+        "title": "Limpeza profunda",
+        "description": "Desmontagem total — gráfica, fonte, dissipadores. Inclui massa térmica de alta qualidade. Varia com tamanho do PC.",
+        "price": "Desktop <b>35–50€</b> · Portátil <b>50–75€</b>"
+      },
+      {
+        "title": "Limpeza química",
+        "description": "Banho de ultrassons, descontaminação da board, troca de pastas térmicas (CPU, chipset, gráfica) e almofadas térmicas. Remove manchas e sujidades difíceis.",
+        "price": "Desktop <b>60–90€</b> · Portátil <b>80–150€</b>"
+      },
+      {
+        "title": "Instalação de componentes",
+        "description": "RAM, SSD, placa gráfica e outros. Inclui configuração e teste do componente.",
+        "price": "Desktop <b>15–30€</b>/comp. · Portátil <b>sob orçamento</b>"
+      },
+      {
+        "title": "Montagem de PC",
+        "description": "Montagem física, gestão de cabos, atualização de BIOS, instalação de SO, drivers e stress test. Inclui perfis XMP/EXPO e curvas de ventoinhas em builds mais complexas.",
+        "price": "Office <b>60–75€</b> · Gaming <b>85–110€</b> · High-End <b>120–160€</b>"
+      }
+    ],
+    "note": "<em>Extras:</em> Taxa de urgência (<48h) <b>25€</b> · Deslocação ao domicílio <b>0,80€/km</b> · Orçamentos sempre transparentes antes de qualquer trabalho.",
+    "noteCta": "Pedir orçamento",
+    "noteCtaMessage": "Olá! Quero um orçamento."
+  },
+  "stats": [
+    { "value": "25€", "label": "Diagnóstico", "sub": "abatido se reparares" },
+    { "value": "<48h", "label": "Urgência", "sub": "taxa de 25€" },
+    { "value": "0,80€/km", "label": "Deslocação", "sub": "ao domicílio" },
+    { "value": "90 dias", "label": "Garantia", "sub": "em todas as reparações" }
+  ],
+  "faqs": {
+    "eyebrow": "Perguntas frequentes",
+    "title": "As dúvidas mais <em>comuns</em>.",
+    "list": [
+      {
+        "q": "Cobram pelo orçamento?",
+        "a": "O orçamento é gratuito. O diagnóstico técnico (25€) é abatido no valor do orçamento se decidires avançar com a reparação — só fica como custo final se desistires."
+      },
+      {
+        "q": "Têm garantia?",
+        "a": "Sim, 30 dias em todas as reparações de mão-de-obra. Peças seguem a garantia do fabricante."
+      },
+      {
+        "q": "Atendem ao domicílio?",
+        "a": "Sim. A deslocação ao domicílio é cobrada a 0,80€/km a partir da Fuseta."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Pronto para <em>resolver</em>?",
+    "lead": "Descreve-nos o problema no WhatsApp e tens orçamento em 24h.",
+    "primary": "WhatsApp",
+    "primaryMessage": "Olá! Vim da página Assistência Técnica.",
+    "secondary": "Ver outros serviços"
+  }
+}

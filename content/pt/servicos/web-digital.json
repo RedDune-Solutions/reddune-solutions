@@ -1,0 +1,90 @@
+{
+  "slug": "web-digital",
+  "eyebrow": "Websites · e-commerce · sistemas",
+  "title": "Presença digital <em>que converte</em> em clientes.",
+  "lead": "Construímos websites, lojas online e sistemas personalizados. Tecnologia moderna (Next.js, React) com foco em velocidade, SEO e conversão.",
+  "overview": {
+    "eyebrow": "Visão geral",
+    "title": "Mais do que um <em>site</em> — uma ferramenta de negócio.",
+    "lead": "Um site bonito que não vende não serve. Desenhamos cada projeto a partir do objetivo do teu negócio: captar clientes, vender produtos, agendar marcações. Tudo o que fazemos é otimizado para mobile, rápido a carregar, e pronto para SEO local."
+  },
+  "items": {
+    "eyebrow": "Serviços incluídos",
+    "title": "Web, e-commerce e <em>sistemas</em>.",
+    "lead": "Preço médio por tipo de projeto. O valor final depende do escopo, número de páginas, integrações e conteúdo. Orçamento detalhado após reunião.",
+    "list": [
+      {
+        "title": "Landing Page (1 página)",
+        "description": "Página única para campanha, captação de leads, lançamento de produto ou evento. Sobe com integrações (CRM/email) e multilíngua.",
+        "price": "<b>200€ – 750€</b>"
+      },
+      {
+        "title": "Site institucional",
+        "description": "Home, Sobre, Serviços, Contactos e o que mais fizer sentido. Sobe com mais páginas, multilíngua, SEO completo e conteúdos.",
+        "price": "<b>500€ – 2.000€</b>"
+      },
+      {
+        "title": "Loja Online (E-commerce)",
+        "description": "Catálogo, carrinho, pagamentos, envios, faturação. Sobe com muitos produtos, variações, integrações ERP/stock e envios complexos.",
+        "price": "<b>1.000€ – 3.500€+</b>"
+      },
+      {
+        "title": "Site ou app à medida",
+        "description": "Portal, área de membros, funcionalidades feitas \"de raiz\". Normalmente orçado por escopo, integrações e funcionalidades específicas.",
+        "price": "<b>3.000€+</b>"
+      },
+      {
+        "title": "Manutenção & suporte",
+        "description": "Backups, atualizações, monitorização e pequenas alterações de conteúdo. Mensal ou anual, definido com o cliente.",
+        "price": "<b>Sob orçamento</b> · recorrente"
+      },
+      {
+        "title": "Domínios, alojamento & extras",
+        "description": "Tudo o que sejam despesas mensais ou anuais — domínio, alojamento, SSL, emails. Definido à parte com o cliente.",
+        "price": "<b>À parte</b> · valor combinado"
+      }
+    ],
+    "note": "<em>O que faz subir o preço:</em> taxa de urgência, integrações (CRM, email, ERP/stock), textos mais elaborados, design premium, multilíngua, mais páginas e SEO mais completo. Urgências aceites sob disponibilidade, com taxa extra.",
+    "noteCta": "Falar sobre o projeto",
+    "noteCtaMessage": "Olá! Quero conversar sobre um projeto."
+  },
+  "stats": [
+    { "value": "200€+", "label": "Landing", "sub": "1 página" },
+    { "value": "500€+", "label": "Institucional", "sub": "até ~6 páginas" },
+    { "value": "1k€+", "label": "E-commerce", "sub": "loja online" },
+    { "value": "3k€+", "label": "À medida", "sub": "portal / app" }
+  ],
+  "faqs": {
+    "eyebrow": "Perguntas frequentes",
+    "title": "As dúvidas mais <em>comuns</em>.",
+    "list": [
+      {
+        "q": "Quanto custa um site para a minha empresa?",
+        "a": "Sites institucionais ficam tipicamente entre 500€ e 2.000€ (depende do número de páginas, multilíngua, SEO e conteúdos). Landing pages entre 200€ e 750€. Lojas online a partir de 1.000€. Pedimos sempre uma reunião curta para entender o teu negócio antes de orçamentar."
+      },
+      {
+        "q": "Em quanto tempo está pronto?",
+        "a": "Um site institucional fica pronto em 2-3 semanas. E-commerce em 4-6 semanas. Damos-te sempre uma data concreta no orçamento."
+      },
+      {
+        "q": "Posso editar o site sozinho depois?",
+        "a": "Sim. Entregamos com um painel de gestão simples onde podes editar textos, imagens e produtos. Damos formação incluída."
+      },
+      {
+        "q": "O site vai aparecer no Google?",
+        "a": "Entregamos com SEO base configurado (meta tags, schema, sitemap, performance otimizada). Para procuras competitivas, recomendamos o nosso pacote SEO continuado."
+      },
+      {
+        "q": "Tratam do alojamento e domínio?",
+        "a": "Sim, tratamos de tudo — domínio, alojamento, SSL, emails. Estas despesas são mensais ou anuais e ficam definidas à parte com o cliente, com transparência total. Podes também manter os teus existentes se preferires."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Pronto para <em>resolver</em>?",
+    "lead": "Descreve-nos o problema no WhatsApp e tens orçamento em 24h.",
+    "primary": "WhatsApp",
+    "primaryMessage": "Olá! Vim da página Web & Digital.",
+    "secondary": "Ver outros serviços"
+  }
+}

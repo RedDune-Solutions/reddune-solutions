@@ -150,6 +150,50 @@
             }
         }
     },
+    "ServicosPage": {
+        "hub": {
+            "hero": {
+                "eyebrow": "Três áreas · uma só equipa",
+                "title": "Tudo o que <accent>precisas</accent> num só sítio.",
+                "lead": "Assistência técnica, desenvolvimento web e recuperação de dados. Atendemos particulares e empresas, presencial ou remoto."
+            },
+            "intro": {
+                "eyebrow": "O que fazemos",
+                "title": "Três pilares, ligados pela mesma <accent>filosofia</accent>.",
+                "lead": "Confiança, eficiência e transparência. Todos os trabalhos passam pelos mesmos três crivos — não importa se é um portátil empenado ou um e-commerce de raiz."
+            },
+            "cards": {
+                "assistencia-tecnica": {
+                    "title": "Assistência <accent>Técnica</accent>",
+                    "description": "Reparação e manutenção de computadores, consolas e equipamentos eletrónicos. Limpezas, upgrades, troca de écrãs, formatações.",
+                    "price": "a partir de <b>15€</b>"
+                },
+                "web-digital": {
+                    "title": "Web & <accent>Digital</accent>",
+                    "description": "Websites, e-commerce, identidade visual. Construímos a tua presença digital de raiz, com tecnologia moderna e foco em conversão.",
+                    "price": "desde <b>450€</b>"
+                },
+                "software-recuperacao": {
+                    "title": "Software & <accent>Recuperação</accent>",
+                    "description": "Instalações de sistemas, drivers, antivírus. Recuperação de fotos, documentos e projetos perdidos por avaria ou apagamento.",
+                    "price": "desde <b>25€</b>"
+                }
+            },
+            "process": {
+                "eyebrow": "Como trabalhamos",
+                "title": "Sem surpresas. Sem letras pequenas.",
+                "bigMark": "Processo<em>·</em>3 passos",
+                "steps": [
+                    { "n": "01", "label": "Diagnóstico", "sub": "Tu descreves o problema; nós avaliamos e damos orçamento — sempre antes de mexer." },
+                    { "n": "02", "label": "Execução", "sub": "Aprovas, fazemos. Mantemos-te informado em cada passo, em linguagem clara." },
+                    { "n": "03", "label": "Entrega", "sub": "Equipamento testado, dados intactos, fatura clara. Garantia incluída no preço." }
+                ]
+            }
+        },
+        "detail": {
+            "ctaSecondary": "Ver outros serviços"
+        }
+    },
     "PricingPage" : {
         "breadcrumbHome": "Início",
         "breadcrumbPricing": "Preços",

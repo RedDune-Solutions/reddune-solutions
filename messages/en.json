@@ -150,6 +150,50 @@
             }
         }
     },
+    "ServicosPage": {
+        "hub": {
+            "hero": {
+                "eyebrow": "Three areas · one team",
+                "title": "Everything you <accent>need</accent>, in one place.",
+                "lead": "Technical support, web development and data recovery. We serve individuals and businesses, in person or remotely."
+            },
+            "intro": {
+                "eyebrow": "What we do",
+                "title": "Three pillars, tied to the same <accent>philosophy</accent>.",
+                "lead": "Trust, efficiency and transparency. Every job goes through the same three filters — whether it's a bent laptop or an e-commerce from scratch."
+            },
+            "cards": {
+                "assistencia-tecnica": {
+                    "title": "Technical <accent>Support</accent>",
+                    "description": "Repair and maintenance of computers, consoles and electronic equipment. Cleaning, upgrades, screen swaps, formatting.",
+                    "price": "from <b>15€</b>"
+                },
+                "web-digital": {
+                    "title": "Web & <accent>Digital</accent>",
+                    "description": "Websites, e-commerce, visual identity. We build your digital presence from scratch with modern tech and conversion-first thinking.",
+                    "price": "from <b>450€</b>"
+                },
+                "software-recuperacao": {
+                    "title": "Software & <accent>Recovery</accent>",
+                    "description": "OS installs, drivers, antivirus. Recovery of photos, documents and projects lost to drive failure or accidental deletion.",
+                    "price": "from <b>25€</b>"
+                }
+            },
+            "process": {
+                "eyebrow": "How we work",
+                "title": "No surprises. No small print.",
+                "bigMark": "Process<em>·</em>3 steps",
+                "steps": [
+                    { "n": "01", "label": "Diagnosis", "sub": "You describe the problem; we assess and quote — always before touching anything." },
+                    { "n": "02", "label": "Execution", "sub": "You approve, we do it. We keep you posted every step, in plain language." },
+                    { "n": "03", "label": "Delivery", "sub": "Device tested, data intact, clear invoice. Warranty included in the price." }
+                ]
+            }
+        },
+        "detail": {
+            "ctaSecondary": "See other services"
+        }
+    },
     "PricingPage" : {
         "breadcrumbHome": "Home",
         "breadcrumbPricing": "Pricing",

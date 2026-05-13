@@ -1,0 +1,89 @@
+{
+  "slug": "software-recuperacao",
+  "eyebrow": "Systems · data · security",
+  "title": "We recover <em>what seemed</em> lost.",
+  "lead": "Recovery of photos, documents and projects lost to drive failures, accidental formatting or ransomware. We also install and configure operating systems and essential software.",
+  "overview": {
+    "eyebrow": "Overview",
+    "title": "Before buying a <em>new</em> device — talk to us.",
+    "lead": "90% of failing hard drives still have recoverable data. Don't give up on the wedding photos or the company books. We have professional tools and experience to tackle hard cases — including drives with physical damage and ransomware attacks."
+  },
+  "items": {
+    "eyebrow": "Included services",
+    "title": "Software, systems and <em>data</em>.",
+    "lead": "Reference table — the final value depends on the type of failure, the urgency and the state of the equipment. Initial diagnosis with no commitment.",
+    "list": [
+      {
+        "title": "Format + OS (no backup)",
+        "description": "OS install, updated drivers and basic software. Includes default apps or those requested by the client — without configuring them.",
+        "price": "Desktop <b>35–50€</b> · Laptop <b>35–50€</b>"
+      },
+      {
+        "title": "Format with backup",
+        "description": "Format with safe transfer of all data. Price rises with transfer time and file safety needs.",
+        "price": "Desktop <b>50–75€</b> · Laptop <b>50–75€</b>"
+      },
+      {
+        "title": "Virus removal & optimisation",
+        "description": "Virus cleanup, antivirus setup and prevention software. Price varies depending on whether it's standard malware/adware or critical viruses / spyware.",
+        "price": "<b>25–50€</b> · more for critical viruses"
+      },
+      {
+        "title": "Data recovery",
+        "description": "Data lost from formatting, a corrupt or inaccessible drive. Includes hard drives, SSDs, USB sticks and memory cards. Price depends on size, urgency and drive condition.",
+        "price": "<b>By quote</b> · diagnosis within 48h"
+      },
+      {
+        "title": "Data migration",
+        "description": "Safe transfer of files, emails, bookmarks and settings to a new device. Keeps everything where it was.",
+        "price": "<b>By quote</b> · depends on volume"
+      },
+      {
+        "title": "Automatic backup & cloud sync",
+        "description": "Setup of preventive backup routines (local + cloud). Worth infinitely more than a recovery.",
+        "price": "<b>By quote</b> · preventive service"
+      }
+    ],
+    "note": "<em>Important:</em> For data recovery, no data recovered means no cost. Physical failures (clean room, head swap) are referred to certified partner labs. Rush requests accepted subject to availability, with an extra fee.",
+    "noteCta": "Request a quote",
+    "noteCtaMessage": "Hi! I need a quote."
+  },
+  "stats": [
+    { "value": "35€", "label": "Format", "sub": "from, without backup" },
+    { "value": "48h", "label": "Diagnosis", "sub": "for failing drives" },
+    { "value": "0€", "label": "No data", "sub": "no data, no cost" }
+  ],
+  "faqs": {
+    "eyebrow": "Frequently asked questions",
+    "title": "The most <em>common</em> doubts.",
+    "list": [
+      {
+        "q": "What if you can't recover the data?",
+        "a": "Simple policy: no data, no cost. The initial diagnosis is free and we only charge if the recovery is successful."
+      },
+      {
+        "q": "How much does the recovery cost?",
+        "a": "Logical recoveries (format, corrupt drive) vary with the size of the data, the urgency and the time the drive has been failing. Physical failures are quoted separately. The exact quote is given after a 48h diagnosis."
+      },
+      {
+        "q": "Is my data kept confidential?",
+        "a": "Absolutely. We sign an NDA on request and never look at the content of your files — only the structures needed for recovery."
+      },
+      {
+        "q": "Do you recover drives with physical damage?",
+        "a": "Recoveries requiring a clean room or head swap are referred to certified partner labs we've worked with for years. We keep you updated throughout the process."
+      },
+      {
+        "q": "Can I prevent this?",
+        "a": "Yes! We set up automatic backup (cloud + local) by quote. The price depends on the data volume and number of devices. Worth infinitely more than a future recovery."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to <em>solve it</em>?",
+    "lead": "Describe the problem on WhatsApp and you'll have a quote within 24h.",
+    "primary": "WhatsApp",
+    "primaryMessage": "Hi! I came from the Software & Recovery page.",
+    "secondary": "See other services"
+  }
+}

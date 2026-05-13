@@ -1,31 +1,76 @@
-import Image from "next/image";
+import { Sun } from "@/components/motion/Sun";
+import { Sparks } from "@/components/motion/Sparks";
+import { cn } from "@/lib/utils";
 
 type Props = {
-  title: string;
-  description?: string;
-  imageSrc?: string;
+  eyebrow?: string;
+  title: React.ReactNode;
+  description?: React.ReactNode;
 };
 
-export function PageHero({ title, description, imageSrc }: Props) {
+/**
+ * PageHero — Phase 5 Oasis HeroLite for internal pages.
+ *
+ * Compact version of the home Hero: shorter padding, no dunes, but keeps the
+ * sun glow + drifting sparks for visual continuity. Title supports an <em>
+ * Newsreader accent and uses the same display sizing as Hero (slightly smaller).
+ *
+ * Direct port of `section.hero` (compact variant) used in
+ * `design-handoff/project/site/{servicos,portfolio,loja,contacto,politica-privacidade}/index.html`.
+ * The HTML inlines `style="min-height:auto;padding:180px 32px 60px;"` on the
+ * hero section to suppress min-height: 100vh — same idea here via classes.
+ */
+export function PageHero({ eyebrow, title, description }: Props) {
   return (
-    <section className="relative w-full bg-primary flex items-center justify-center text-center overflow-hidden min-h-[280px] pt-28 pb-12 md:pt-32 md:pb-16">
-      {imageSrc && (
-        <Image
-          src={imageSrc}
-          alt={title}
-          fill
-          priority
-          sizes="100vw"
-          quality={80}
-          className="object-cover opacity-20"
-        />
+    <section
+      className={cn(
+        "relative overflow-hidden",
+        "pt-[180px] pb-[60px] px-8",
       )}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-primary-foreground">
-        <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+    >
+      <div
+        className="pointer-events-none absolute inset-0 z-[1]"
+        aria-hidden="true"
+      >
+        <Sun size="sm" />
+        <Sparks />
+      </div>
+
+      <div className="relative z-[5] mx-auto w-full max-w-content text-center">
+        {eyebrow && (
+          <div
+            className={cn(
+              "hero-kicker inline-flex items-center gap-[10px]",
+              "px-4 py-2 mb-7",
+              "rounded-btn border border-dune-deep/10",
+              "bg-white/50 backdrop-blur",
+              "font-mono text-[11px] uppercase tracking-[0.15em] text-ink-soft",
+            )}
+          >
+            <span className="pulse" aria-hidden="true" />
+            {eyebrow}
+          </div>
+        )}
+
+        <h1
+          className={cn(
+            "font-display font-bold text-ink mx-auto",
+            "max-w-[1100px] mb-6",
+            "text-[clamp(40px,6.5vw,96px)] leading-[1] tracking-[-0.035em]",
+            "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
+          )}
+          style={{ fontVariationSettings: '"opsz" 96' }}
+        >
           {title}
         </h1>
+
         {description && (
-          <p className="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-primary-foreground/80">
+          <p
+            className={cn(
+              "mx-auto max-w-[640px]",
+              "text-[17px] md:text-[19px] leading-[1.55] text-ink-soft",
+            )}
+          >
             {description}
           </p>
         )}

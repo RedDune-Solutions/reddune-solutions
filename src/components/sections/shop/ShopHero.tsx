@@ -8,7 +8,6 @@ export function ShopHero() {
     <PageHero
       title={t("title")}
       description={t("description")}
-      imageSrc="/shop-hero.jpg"
     />
   );
 }

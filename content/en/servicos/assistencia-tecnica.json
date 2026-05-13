@@ -1,0 +1,82 @@
+{
+  "slug": "assistencia-tecnica",
+  "eyebrow": "Repair · upgrade · diagnosis",
+  "title": "Technical <em>support</em> that makes sense.",
+  "lead": "We repair computers, laptops, consoles and peripherals. Always with a prior diagnosis and a transparent quote — we only move forward once you approve.",
+  "overview": {
+    "eyebrow": "Overview",
+    "title": "From <em>diagnosis</em> to delivery — in record time.",
+    "lead": "When a device fails, you lose time, money and patience. Our mission is simple: hand back equipment working like new, in the shortest possible time, with a clear invoice and warranty included."
+  },
+  "items": {
+    "eyebrow": "Included services",
+    "title": "Hardware and physical <em>maintenance</em>.",
+    "lead": "Reference table — the final price depends on the device, number of components and complexity. We always provide a quote before starting work.",
+    "list": [
+      {
+        "title": "Fault diagnosis",
+        "description": "Identification of the equipment problem. Includes a technical report and a repair quote.",
+        "price": "<b>25€</b> · deducted if you go ahead with the repair"
+      },
+      {
+        "title": "Basic cleaning",
+        "description": "Cleaning of fans and heatsinks without dismantling components — through the case openings only.",
+        "price": "Desktop <b>20–30€</b> · Laptop <b>25–35€</b>"
+      },
+      {
+        "title": "Deep cleaning",
+        "description": "Full disassembly — GPU, PSU, heatsinks. Includes high-quality thermal paste. Varies with PC size.",
+        "price": "Desktop <b>35–50€</b> · Laptop <b>50–75€</b>"
+      },
+      {
+        "title": "Chemical cleaning",
+        "description": "Ultrasonic bath, board decontamination, thermal paste replacement (CPU, chipset, GPU) and thermal pads. Removes stubborn stains and dirt.",
+        "price": "Desktop <b>60–90€</b> · Laptop <b>80–150€</b>"
+      },
+      {
+        "title": "Component installation",
+        "description": "RAM, SSD, graphics card and more. Includes configuration and testing of the component.",
+        "price": "Desktop <b>15–30€</b>/comp. · Laptop <b>by quote</b>"
+      },
+      {
+        "title": "PC assembly",
+        "description": "Physical assembly, cable management, BIOS update, OS install, drivers and stress testing. Includes XMP/EXPO profiles and fan curves on complex builds.",
+        "price": "Office <b>60–75€</b> · Gaming <b>85–110€</b> · High-End <b>120–160€</b>"
+      }
+    ],
+    "note": "<em>Extras:</em> Rush fee (<48h) <b>25€</b> · On-site call-out <b>0.80€/km</b> · Transparent quotes always shared before any work begins.",
+    "noteCta": "Request a quote",
+    "noteCtaMessage": "Hi! I'd like a quote."
+  },
+  "stats": [
+    { "value": "25€", "label": "Diagnosis", "sub": "deducted on repair" },
+    { "value": "<48h", "label": "Rush", "sub": "25€ surcharge" },
+    { "value": "0.80€/km", "label": "Call-out", "sub": "on-site visits" },
+    { "value": "90 days", "label": "Warranty", "sub": "on every repair" }
+  ],
+  "faqs": {
+    "eyebrow": "Frequently asked questions",
+    "title": "The most <em>common</em> doubts.",
+    "list": [
+      {
+        "q": "Do you charge for quotes?",
+        "a": "Quotes are free. The technical diagnosis (25€) is deducted from the final price if you go ahead with the repair — it only becomes a final cost if you cancel."
+      },
+      {
+        "q": "Do you offer warranty?",
+        "a": "Yes, 30 days on all labour repairs. Parts follow the manufacturer's warranty."
+      },
+      {
+        "q": "Do you do on-site visits?",
+        "a": "Yes. The on-site call-out is charged at 0.80€/km from Fuseta."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to <em>solve it</em>?",
+    "lead": "Describe the problem on WhatsApp and you'll have a quote within 24h.",
+    "primary": "WhatsApp",
+    "primaryMessage": "Hi! I came from the Technical Support page.",
+    "secondary": "See other services"
+  }
+}
