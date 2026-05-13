@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
@@ -235,7 +236,7 @@ function ServicesHubBody() {
                     })}
                   </span>
                   <span
-                    aria-hidden="true"
+                    aria-hidden
                     className={cn(
                       "inline-flex h-[38px] w-[38px] items-center justify-center",
                       "rounded-full bg-ink text-cream",
@@ -243,7 +244,7 @@ function ServicesHubBody() {
                       "group-hover:bg-ember group-hover:rotate-[-45deg]",
                     )}
                   >
-                    →
+                    <ArrowRight className="size-[17px]" strokeWidth={2.25} />
                   </span>
                 </div>
               </Link>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
@@ -120,15 +121,16 @@ function PortfolioCard({
           {tag}
         </p>
         <span
-          aria-hidden="true"
+          aria-hidden
           className={cn(
-            "mt-3.5 inline-flex items-center gap-2",
+            "mt-3.5 inline-flex items-center gap-1.5",
             "font-mono text-[11px] uppercase tracking-[0.15em] text-apricot",
             "opacity-0 translate-y-3 transition-all duration-500 ease-oasis",
             "group-hover:opacity-100 group-hover:translate-y-0",
           )}
         >
-          Ver projeto →
+          Ver projeto
+          <ArrowRight className="size-3 shrink-0" strokeWidth={2.25} />
         </span>
       </div>
     </Link>
@@ -143,7 +145,7 @@ export function Portfolio({ items }: Props) {
   return (
     <section
       id="portfolio-preview"
-      className="relative mx-auto w-full max-w-content px-8 py-[120px]"
+      className="relative mx-auto block w-full max-w-content px-8 py-[120px]"
     >
       <Reveal>
         <span
@@ -164,7 +166,7 @@ export function Portfolio({ items }: Props) {
       <Reveal>
         <h2
           className={cn(
-            "font-display font-bold text-ink",
+            "section-title font-display font-bold text-ink",
             "max-w-[1000px] mb-6",
             "text-[clamp(42px,5.5vw,88px)] leading-none tracking-[-0.035em]",
             "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
@@ -192,7 +194,7 @@ export function Portfolio({ items }: Props) {
       ) : (
         <div
           className={cn(
-            "grid gap-5",
+            "portfolio-grid grid gap-5",
             "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
           )}
         >
@@ -221,7 +223,11 @@ export function Portfolio({ items }: Props) {
             {t.has("seeAllPortfolioCta")
               ? t("seeAllPortfolioCta")
               : "Ver portfólio completo"}
-            <span aria-hidden="true">→</span>
+            <ArrowRight
+              className="size-[14px] shrink-0"
+              strokeWidth={2.25}
+              aria-hidden
+            />
           </Link>
         </div>
       </Reveal>

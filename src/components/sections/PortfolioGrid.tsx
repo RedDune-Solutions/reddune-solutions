@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
@@ -135,15 +136,16 @@ function PortfolioCard({
         </h4>
         <p className="text-[13px] opacity-85 text-cream-deep">{tag}</p>
         <span
-          aria-hidden="true"
+          aria-hidden
           className={cn(
-            "mt-3 inline-flex items-center gap-2",
+            "mt-3 inline-flex items-center gap-1.5",
             "font-mono text-[11px] uppercase tracking-[0.15em] text-apricot",
             "opacity-0 translate-y-3 transition-all duration-500 ease-oasis",
             "group-hover:opacity-100 group-hover:translate-y-0",
           )}
         >
-          Ver projeto →
+          Ver projeto
+          <ArrowRight className="size-3 shrink-0" strokeWidth={2.25} />
         </span>
       </div>
     </Link>

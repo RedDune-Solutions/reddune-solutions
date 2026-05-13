@@ -8,10 +8,8 @@ import { cn } from "@/lib/utils";
  * `design-handoff/project/site/index.html` (lines 53-58).
  *
  * Layout: centered label (Geist Mono uppercase) on top, then a row of three
- * audience chips (Bricolage display 600) separated by ember dots — set
- * implicitly by the `::before` pseudo on each span via the global utility
- * classes (no global CSS here; we render the dots inline as JSX so the markup
- * stays self-contained).
+ * audience chips (Bricolage display 600) separated by ember dots via
+ * `.trusted-row` rules in `globals.css` (MOBILE-UPDATE).
  */
 export function TrustStrip() {
   const t = useTranslations("HomePage.TrustStrip");
@@ -23,7 +21,7 @@ export function TrustStrip() {
   return (
     <section
       aria-label="Para quem trabalhamos"
-      className="relative z-[5] px-8 pt-6 pb-[60px] text-center"
+      className="trusted relative z-[5] px-8 pt-6 pb-[60px] text-center"
     >
       <div
         className={cn(
@@ -34,25 +32,12 @@ export function TrustStrip() {
       </div>
       <div
         className={cn(
-          "flex flex-wrap items-center justify-center gap-x-12 gap-y-3",
+          "trusted-row flex flex-wrap items-center justify-center gap-x-12 gap-y-3",
           "font-display text-[18px] font-semibold text-ink-mute opacity-85",
         )}
       >
-        {audiences.map((audience, index) => (
-          <span
-            key={audience}
-            className="inline-flex items-center gap-2"
-          >
-            {index > 0 && (
-              <span
-                aria-hidden="true"
-                className="text-2xl leading-none text-ember"
-              >
-                ·
-              </span>
-            )}
-            {audience}
-          </span>
+        {audiences.map((audience) => (
+          <span key={audience}>{audience}</span>
         ))}
       </div>
     </section>

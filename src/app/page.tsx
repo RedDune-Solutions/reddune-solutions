@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
 import { TrustStrip } from "@/components/sections/TrustStrip";
 import { Services } from "@/components/sections/Services";
+import { BigMark } from "@/components/sections/BigMark";
 import { Portfolio } from "@/components/sections/Portfolio";
 import { StatsRow } from "@/components/sections/StatsRow";
 import { About } from "@/components/sections/About";
@@ -59,6 +60,7 @@ export default async function Home() {
         <Hero />
         <TrustStrip />
         <Services />
+        <BigMark />
         <Portfolio items={portfolioItems} />
         <StatsRow />
         <About />

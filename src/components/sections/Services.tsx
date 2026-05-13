@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ type ServiceConfig = {
 const SERVICES: ReadonlyArray<ServiceConfig> = [
   {
     key: "tecAssist",
-    href: "/servicos",
+    href: "/servicos/assistencia-tecnica",
     gradientId: "svc-g1",
     visual: (
       <svg
@@ -77,7 +78,7 @@ const SERVICES: ReadonlyArray<ServiceConfig> = [
   },
   {
     key: "webDigital",
-    href: "/servicos",
+    href: "/servicos/web-digital",
     gradientId: "svc-g2",
     visual: (
       <svg
@@ -104,7 +105,7 @@ const SERVICES: ReadonlyArray<ServiceConfig> = [
   },
   {
     key: "dataRecovery",
-    href: "/servicos",
+    href: "/servicos/software-recuperacao",
     gradientId: "svc-g3",
     visual: (
       <svg
@@ -141,7 +142,7 @@ export function Services() {
   return (
     <section
       id="servicos-preview"
-      className="relative mx-auto w-full max-w-content px-8 py-[120px]"
+      className="relative mx-auto block w-full max-w-content px-8 py-[120px]"
     >
       <Reveal>
         <span
@@ -162,7 +163,7 @@ export function Services() {
       <Reveal>
         <h2
           className={cn(
-            "font-display font-bold text-ink",
+            "section-title font-display font-bold text-ink",
             "max-w-[1000px] mb-6",
             "text-[clamp(42px,5.5vw,88px)] leading-none tracking-[-0.035em]",
             "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
@@ -187,7 +188,7 @@ export function Services() {
 
       <div
         className={cn(
-          "grid gap-5",
+          "services-grid grid gap-5",
           "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
         )}
       >
@@ -242,7 +243,7 @@ export function Services() {
                 )}
               >
                 <span
-                  aria-hidden="true"
+                  aria-hidden
                   className={cn(
                     "inline-flex h-[38px] w-[38px] items-center justify-center",
                     "rounded-full bg-ink text-cream",
@@ -250,7 +251,7 @@ export function Services() {
                     "group-hover:bg-ember group-hover:rotate-[-45deg]",
                   )}
                 >
-                  →
+                  <ArrowRight className="size-[17px]" strokeWidth={2.25} />
                 </span>
               </div>
             </Link>
@@ -261,7 +262,7 @@ export function Services() {
       <Reveal>
         <div
           className={cn(
-            "mt-7 grid items-center gap-6",
+            "svc-note mt-7 grid items-center gap-6",
             "grid-cols-1 md:grid-cols-[1fr_auto]",
             "rounded-card bg-ink text-cream",
             "px-8 py-7",

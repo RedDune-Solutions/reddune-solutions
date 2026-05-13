@@ -10,7 +10,8 @@
         "home": "Início",
         "services": "Serviços",
         "portfolio": "Portfólio",
-        "shop": "Loja"
+        "shop": "Loja",
+        "contact": "Contactar"
     },
     "HomePage": {
         "Hero": {
@@ -28,13 +29,39 @@
                 "Particulares",
                 "Empresas",
                 "Qualquer pessoa com um problema"
-            ],
-            "stats": [
-                { "value": "10+", "label": "Anos de experiência" },
-                { "value": "100+", "label": "Projetos concluídos" },
-                { "value": "24h", "label": "Tempo de resposta" },
-                { "value": "3", "label": "Anos de garantia" }
             ]
+        },
+        "StatsRow": {
+            "items": [
+                {
+                    "kind": "counter",
+                    "countTo": 3,
+                    "label": "Áreas de serviço",
+                    "sub": "técnica · web · software"
+                },
+                {
+                    "kind": "text",
+                    "headline": "Internacional",
+                    "label": "Área de actuação",
+                    "sub": "presencial · remoto"
+                },
+                {
+                    "kind": "text",
+                    "headline": "Fuseta",
+                    "label": "Base",
+                    "sub": "37.05°N · 7.74°W"
+                },
+                {
+                    "kind": "split",
+                    "headline": "B2C",
+                    "headlineSuffix": "/B2B",
+                    "label": "Para quem trabalhamos",
+                    "sub": "particulares e empresas"
+                }
+            ]
+        },
+        "BigMark": {
+            "phrase": "Oásis<accent>·</accent>de soluções"
         },
         "Process": {
             "eyebrow": "Como trabalhamos",
@@ -100,10 +127,11 @@
         },
         "AboutUsSection": {
             "eyebrow": "Sobre nós",
-            "badge": "Fuseta · Algarve",
+            "badge": "📍 Fuseta · Algarve",
+            "coordinates": "37.0556°N · 7.7445°W · Fuseta, PT",
             "placeLabel": "A nossa casa.",
             "title": "Tecnologia e <accent>inovação digital</accent> — com pés assentes na areia.",
-            "description": "A <strong>RedDune Solutions</strong> é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites modernos e eficientes.",
+            "description": "A <strong>RedDune Solutions</strong> é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites/apps modernos e eficientes.",
             "description2": "Combinamos <strong>conhecimento técnico, confiança e compromisso</strong> para garantir resultados de qualidade, adaptados às necessidades de cada cliente. O nosso objetivo é simplificar a tecnologia e ajudar pessoas e negócios a tirarem o máximo proveito do mundo digital.",
             "value1": "Confiança",
             "value2": "Eficiência",
@@ -111,10 +139,9 @@
         },
         "ContactCTA": {
             "eyebrow": "Próximo passo",
-            "title": "<accent>Soluções</accent><br></br>para os teus problemas.",
+            "title": "<accent>Soluções</accent><br></br>para os seus problemas.",
             "description": "Fala connosco e encontramos a solução certa. Estamos sempre disponíveis para ajudar — em pessoa em Fuseta ou em remoto para qualquer ponto do país.",
-            "cta": "Entrar em contacto",
-            "secondaryCta": "Ver serviços"
+            "cta": "Entrar em contacto"
         },
         "ContactSection": {
             "eyebrow": "Resposta em <24h · Fuseta, Algarve",
@@ -215,7 +242,7 @@
                 "title": "Sem surpresas. Sem letras pequenas.",
                 "bigMark": "Processo<em>·</em>3 passos",
                 "steps": [
-                    { "n": "01", "label": "Diagnóstico", "sub": "Tu descreves o problema; nós avaliamos e damos orçamento — sempre antes de mexer." },
+                    { "n": "01", "label": "Diagnóstico", "sub": "Tu descreves o problema; nós avaliamos, diagnosticamos e damos orçamento." },
                     { "n": "02", "label": "Execução", "sub": "Aprovas, fazemos. Mantemos-te informado em cada passo, em linguagem clara." },
                     { "n": "03", "label": "Entrega", "sub": "Equipamento testado, dados intactos, fatura clara. Garantia incluída no preço." }
                 ]
@@ -405,9 +432,10 @@
         "privacyPolicy": "Política de Privacidade",
         "tagline": "Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas.",
         "address": "Fuseta · Algarve · Portugal",
+        "contactLocation": "Fuseta, Algarve",
         "col1Title": "Navegação",
-        "col2Title": "Contacto",
-        "col3Title": "Legal",
+        "col2Title": "Empresa",
+        "col3Title": "Contacto",
         "copyMicrocopy": "Soluções tecnológicas no Algarve"
     },
     "ReturnPolicyPage": {

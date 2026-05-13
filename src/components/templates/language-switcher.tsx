@@ -59,17 +59,19 @@ const LanguageSwitcher = () => {
     <Button
       variant="ghost"
       size="sm"
-      className="px-1 py-1 h-auto"
+      className="px-1.5 py-1 h-auto"
       onClick={toggle}
       aria-label={label}
     >
-      <Image
-        src={src}
-        alt={label}
-        width={28}
-        height={20}
-        className="rounded-sm object-cover"
-      />
+      <span className="relative block h-[18px] w-[26px] shrink-0 overflow-hidden rounded-sm">
+        <Image
+          src={src}
+          alt={label}
+          fill
+          sizes="26px"
+          className="object-cover object-center"
+        />
+      </span>
     </Button>
   );
 };

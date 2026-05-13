@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Loja — RedDune Solutions</title>
+<meta name="description" content="Computadores, periféricos, componentes e licenças — com pedido de orçamento por WhatsApp ou formulário." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Newsreader:ital,wght@1,400;1,500&family=DM+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../styles.css" />
+<link rel="stylesheet" href="loja.css" />
+</head>
+<body>
+<nav class="top">
+  <a href="../index.html" class="logo"><img src="../assets/logo-icon.png" alt="RedDune Solutions" /></a>
+  <ul>
+    <li><a href="../servicos/index.html">Serviços</a></li>
+    <li><a href="../portfolio/index.html">Portfólio</a></li>
+    <li><a href="../loja/index.html" aria-current="page">Loja</a></li>
+  </ul>
+  <a href="../contacto/index.html" class="cta">Contactar <span>→</span></a>
+</nav>
+
+<section class="hero" style="min-height:auto;padding:180px 32px 60px;">
+  <div class="hero-scene">
+    <div class="sun"></div>
+    <svg class="dune-bg-svg" viewBox="0 0 1920 600" preserveAspectRatio="none">
+      <defs><linearGradient id="dA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e89968"/><stop offset="1" stop-color="#c97045"/></linearGradient><linearGradient id="dB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6422a"/><stop offset="1" stop-color="#a8201a"/></linearGradient></defs>
+      <path class="dune-blob b1" d="M 0 420 C 250 360, 480 440, 800 400 C 1080 360, 1300 440, 1600 400 C 1750 380, 1850 410, 1920 400 L 1920 600 L 0 600 Z" fill="url(#dA)" opacity="0.75"/>
+      <path class="dune-blob b2" d="M 0 500 C 300 460, 600 520, 1000 490 C 1300 460, 1600 510, 1920 500 L 1920 600 L 0 600 Z" fill="url(#dB)"/>
+    </svg>
+    <div class="sparks" id="sparks"></div>
+  </div>
+  <div class="hero-inner">
+    <h1 class="hero-title">
+      <span class="row"><span>Equipamentos</span></span>
+      <span class="row"><span><em>e peças</em></span></span>
+      <span class="row"><span>com selo nosso.</span></span>
+    </h1>
+    <p class="hero-sub">Filtra, pesquisa e encontra o que precisas. Cada produto tem o estado claro — novo, recondicionado ou usado — e pode ser pedido por WhatsApp ou formulário.</p>
+  </div>
+</section>
+
+<div class="loja-shell">
+
+  <div class="loja-toolbar">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="lojaSearch" type="search" placeholder="Pesquisar nome ou especificação…" autocomplete="off" />
+    </div>
+    <select id="lojaCategory" aria-label="Categoria"></select>
+    <select id="lojaBrand" aria-label="Marca"></select>
+    <select id="lojaSort" aria-label="Ordenação">
+      <option value="recentes">Recém-adicionados</option>
+      <option value="preco-asc">Preço · crescente</option>
+      <option value="preco-desc">Preço · decrescente</option>
+    </select>
+    <button id="lojaClear" class="clear">Limpar</button>
+  </div>
+
+  <div class="loja-conditions" role="group" aria-label="Filtro por estado">
+    <button class="cond-chip on" data-cond="novo">Novo <span class="ct">0</span></button>
+    <button class="cond-chip on" data-cond="recondicionado">Recondicionado <span class="ct">0</span></button>
+    <button class="cond-chip on" data-cond="usado">Usado <span class="ct">0</span></button>
+  </div>
+
+  <div class="loja-meta" id="lojaMeta"></div>
+
+  <div class="loja-grid" id="lojaGrid"></div>
+
+  <div class="loja-empty" id="lojaEmpty" style="display:none;">
+    <div class="ic">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M5 9v11a1 1 0 001 1h12a1 1 0 001-1V9"/><path d="M9 13h6"/></svg>
+    </div>
+    <h3>Sem produtos disponíveis</h3>
+    <p>A loja está em preparação — novos produtos estarão disponíveis em breve. Fala connosco se procuras algo específico.</p>
+    <div class="actions">
+      <a class="btn-primary" href="https://wa.me/351961531235?text=Olá!%20Procuro%20um%20produto%20específico%3A%20" target="_blank" rel="noopener">Pedir produto <span class="arrow">→</span></a>
+      <a class="btn-ghost" href="../contacto/index.html">Falar connosco</a>
+    </div>
+  </div>
+
+</div>
+
+<section class="block">
+  <span class="eyebrow reveal"><span class="sq"></span> Garantias da loja</span>
+  <h2 class="section-title reveal">Compras com <em>tranquilidade</em>.</h2>
+  <div class="stats-row reveal" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stat-cell"><div class="n">3<small>anos</small></div><label>Garantia</label><div class="sub">produtos novos · DL 84/2021</div></div>
+    <div class="stat-cell"><div class="n">6<small>meses</small></div><label>Garantia</label><div class="sub">produtos recondicionados</div></div>
+    <div class="stat-cell"><div class="n">14<small>dias</small></div><label>Devolução</label><div class="sub">compras à distância</div></div>
+  </div>
+  <div class="svc-note reveal" style="margin-top: 40px;">
+    <p>Lê os detalhes nas nossas <em>políticas oficiais</em>.</p>
+    <a href="../loja/politica-garantia/index.html">Política de garantia</a>
+  </div>
+</section>
+
+<div class="prod-drawer" id="prodDrawer" role="dialog" aria-modal="true"></div>
+
+<footer>
+  <div class="foot-top">
+    <div class="brand"><img src="../assets/logo.png" alt="RedDune Solutions" /><p>Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve.</p></div>
+    <div><h5>Navegação</h5><ul><li><a href="../index.html">Início</a></li><li><a href="../servicos/index.html">Serviços</a></li><li><a href="../portfolio/index.html">Portfólio</a></li><li><a href="../loja/index.html">Loja</a></li></ul></div>
+    <div><h5>Empresa</h5><ul><li><a href="../loja/politica-garantia/index.html">Política de Garantia</a></li><li><a href="../loja/politica-devolucao/index.html">Política de Devolução</a></li><li><a href="../politica-privacidade/index.html">Política de Privacidade</a></li></ul></div>
+    <div><h5>Contacto</h5><ul><li>Fuseta, Algarve</li><li><a href="mailto:reddunesolutions@gmail.com">reddunesolutions@gmail.com</a></li><li><a href="tel:+351961531235">+351 961 531 235</a></li><li><a href="https://www.instagram.com/reddune_solutions/" target="_blank" rel="noopener">@reddune_solutions</a></li></ul></div>
+  </div>
+  <div class="foot-bot"><span>© 2026 RedDune Solutions</span></div>
+</footer>
+
+<script src="../scripts.js"></script>
+<script src="../i18n.js"></script>
+<script src="products.js"></script>
+<script src="loja.js"></script>
+</body>
+</html>

@@ -22,11 +22,11 @@ export function About() {
   return (
     <section
       id="sobre"
-      className="relative mx-auto w-full max-w-content px-8 py-[120px]"
+      className="relative mx-auto block w-full max-w-content px-8 py-[120px]"
     >
       <div
         className={cn(
-          "grid gap-12 md:gap-20 items-center",
+          "about-wrap grid gap-12 md:gap-20 items-center",
           "grid-cols-1 md:grid-cols-[1fr_1.1fr]",
         )}
       >
@@ -93,7 +93,9 @@ export function About() {
                   "font-mono text-[11px] uppercase tracking-[0.15em] opacity-85",
                 )}
               >
-                37.0556°N · 7.7445°W · Fuseta, PT
+                {t.has("coordinates")
+                  ? t("coordinates")
+                  : "37.0556°N · 7.7445°W · Fuseta, PT"}
               </div>
             </div>
           </div>
@@ -120,7 +122,7 @@ export function About() {
           <Reveal>
             <h2
               className={cn(
-                "font-display font-bold text-ink",
+                "section-title font-display font-bold text-ink",
                 "text-[clamp(36px,4.5vw,64px)] leading-[1.05] tracking-[-0.03em] mb-6",
                 "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
               )}
@@ -160,7 +162,7 @@ export function About() {
           <Reveal>
             <div
               className={cn(
-                "mt-9 grid grid-cols-3 gap-4 pt-9",
+                "about-values mt-9 grid grid-cols-3 gap-4 pt-9",
                 "border-t border-dune-deep/15",
               )}
             >

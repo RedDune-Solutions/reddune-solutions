@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RedDune Solutions — Sandstone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --sand: #ede0c8;
+    --sand-warm: #f4ead4;
+    --sand-deep: #d8c4a0;
+    --ink: #1a0b08;
+    --ink-soft: #3d2920;
+    --ink-mute: #7d6553;
+    --paper: #f7efde;
+    --dune-deep: #5a0e0e;
+    --dune: #b3221c;
+    --ember: #c1311c;
+    --flame: #e3502a;
+    --line: rgba(26, 11, 8, 0.14);
+    --line-strong: rgba(26, 11, 8, 0.32);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--sand); color: var(--ink); }
+  body {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  /* paper grain */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    opacity: 0.4; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.45  0 0 0 0 0.3  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* NAV */
+  nav.top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 40px;
+    padding: 20px 32px;
+    background: var(--sand);
+    border-bottom: 1px solid var(--ink);
+  }
+  nav.top .logo img { height: 32px; }
+  nav.top ul {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+    justify-content: center;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  nav.top ul a {
+    color: var(--ink);
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+    background-image: linear-gradient(var(--ember), var(--ember));
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    transition: background-size 0.3s;
+  }
+  nav.top ul a:hover { background-size: 100% 1px; }
+  nav.top .right {
+    display: flex; gap: 20px; align-items: center;
+    font-family: 'Geist Mono', monospace; font-size: 12px;
+  }
+  nav.top .lang span.active { color: var(--ember); font-weight: 600; }
+  nav.top .cta-mini {
+    background: var(--ink);
+    color: var(--sand);
+    padding: 10px 18px;
+    text-decoration: none;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 100px;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.3s;
+  }
+  nav.top .cta-mini:hover { background: var(--ember); }
+
+  /* dateline strip */
+  .dateline {
+    background: var(--ink);
+    color: var(--sand);
+    padding: 8px 32px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .dateline span em { color: var(--flame); font-style: normal; }
+
+  /* HERO */
+  .hero {
+    padding: 80px 32px 60px;
+    position: relative;
+    border-bottom: 1px solid var(--ink);
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    max-width: 1600px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  .hero-left .kicker {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 12px 0;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .hero-left .kicker b { color: var(--ember); font-weight: 600; }
+
+  h1.hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(72px, 10vw, 168px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin-bottom: 40px;
+  }
+  h1.hero-title .a, h1.hero-title .b, h1.hero-title .c { display: block; overflow: hidden; }
+  h1.hero-title .a span, h1.hero-title .b span, h1.hero-title .c span { display: inline-block; transform: translateY(110%); animation: rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  h1.hero-title .a span { animation-delay: 0.1s; }
+  h1.hero-title .b span { animation-delay: 0.22s; }
+  h1.hero-title .c span { animation-delay: 0.34s; }
+  @keyframes rise { to { transform: translateY(0); } }
+  h1.hero-title i {
+    font-style: italic;
+    color: var(--ember);
+    position: relative;
+  }
+  h1.hero-title i::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 6%;
+    height: 8px;
+    background: var(--ember);
+    opacity: 0.18;
+    z-index: -1;
+  }
+
+  .hero-lead {
+    font-family: 'Manrope', sans-serif;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 520px;
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fade 1s 0.6s forwards;
+  }
+  @keyframes fade { to { opacity: 1; } }
+  .hero-lead b { color: var(--ember); font-weight: 600; }
+
+  .hero-actions {
+    display: flex; gap: 14px; align-items: center;
+    opacity: 0; animation: fade 1s 0.8s forwards;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--sand);
+    padding: 16px 28px;
+    text-decoration: none;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 100px;
+    display: inline-flex; align-items: center; gap: 12px;
+    transition: all 0.3s;
+  }
+  .btn-primary:hover { background: var(--ember); transform: translate(2px, -2px); }
+  .btn-secondary {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 16px 8px;
+  }
+
+  /* HERO RIGHT — animated dune scene */
+  .hero-right {
+    position: relative;
+    aspect-ratio: 1/1;
+    border: 1px solid var(--ink);
+    background: var(--sand-warm);
+    overflow: hidden;
+  }
+  .hr-sun {
+    position: absolute;
+    top: 20%; left: 50%;
+    transform: translateX(-50%);
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #f4a76a 0%, var(--ember) 50%, transparent 75%);
+    animation: rise-sun 4s ease-out 0.3s both;
+  }
+  @keyframes rise-sun { from { transform: translate(-50%, 40px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+  .hr-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hr-dune-1 { animation: dune-drift 18s ease-in-out infinite; }
+  .hr-dune-2 { animation: dune-drift-2 24s ease-in-out infinite; }
+  @keyframes dune-drift { 0%,100%{transform:translateX(0);} 50%{transform:translateX(-1.5%);} }
+  @keyframes dune-drift-2 { 0%,100%{transform:translateX(0);} 50%{transform:translateX(2%);} }
+
+  .hr-corner {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    z-index: 5;
+  }
+  .hr-corner.tr { left: auto; right: 12px; text-align: right; }
+  .hr-corner.bl { top: auto; bottom: 12px; }
+  .hr-corner.br { top: auto; bottom: 12px; left: auto; right: 12px; text-align: right; }
+
+  /* horizontal stats strip below hero */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+  }
+  .stat-strip > div {
+    padding: 32px;
+    border-right: 1px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-strip > div:last-child { border-right: 0; }
+  .stat-strip .n {
+    font-family: 'Instrument Serif', serif;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--ember);
+    letter-spacing: -0.02em;
+  }
+  .stat-strip .n i { font-style: italic; }
+  .stat-strip label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+  }
+  .stat-strip small { color: var(--ink-soft); font-size: 13px; }
+
+  /* MARQUEE */
+  .marquee {
+    background: var(--ember);
+    color: var(--sand);
+    border-bottom: 1px solid var(--ink);
+    padding: 18px 0;
+    overflow: hidden;
+  }
+  .m-track {
+    display: flex;
+    gap: 50px;
+    animation: scroll 35s linear infinite;
+    width: max-content;
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    line-height: 1;
+    align-items: center;
+  }
+  .m-track i { font-style: italic; color: var(--sand-warm); }
+  .m-track .sep { font-family: 'Geist Mono', monospace; font-size: 14px; color: var(--sand-warm); }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+
+  /* Sections */
+  section.block {
+    padding: 100px 32px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .sec-head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 24px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 60px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+  }
+  .sec-head b { color: var(--ember); font-weight: 600; }
+  .sec-head .en { font-style: italic; font-family: 'Instrument Serif', serif; font-size: 18px; color: var(--ink); text-transform: none; letter-spacing: 0; }
+
+  .sec-title {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(48px, 6vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin-bottom: 80px;
+    max-width: 1100px;
+  }
+  .sec-title i { font-style: italic; color: var(--ember); }
+
+  /* SERVICES — magazine columns */
+  .services-mag {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--ink);
+    border-left: 1px solid var(--ink);
+  }
+  .smag {
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 36px;
+    background: var(--sand);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s;
+  }
+  .smag::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0; right: 0;
+    height: 0;
+    background: var(--ember);
+    transition: height 0.4s;
+    z-index: 0;
+  }
+  .smag:hover::after { height: 100%; }
+  .smag:hover { color: var(--sand); }
+  .smag:hover .s-num, .smag:hover .s-meta b { color: var(--sand-warm); }
+  .smag > * { position: relative; z-index: 1; }
+  .smag .s-num {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--ember);
+    margin-bottom: 60px;
+    display: flex;
+    justify-content: space-between;
+    transition: color 0.4s;
+  }
+  .smag h3 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .smag h3 i { font-style: italic; }
+  .smag p { font-size: 15px; line-height: 1.6; max-width: 480px; margin-bottom: 24px; }
+  .smag .s-meta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .smag .s-meta b { color: var(--ember); font-weight: 500; }
+
+  /* PROCESS — timeline */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+  }
+  .tl-step {
+    background: var(--sand);
+    padding: 32px 24px 28px;
+    position: relative;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+  }
+  .tl-step .tl-num {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 80px;
+    line-height: 0.8;
+    color: var(--ember);
+    margin-bottom: 24px;
+  }
+  .tl-step h4 {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .tl-step p { font-size: 13px; line-height: 1.5; color: var(--ink-soft); flex: 1; }
+  .tl-step .tl-time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+    margin-top: 16px;
+  }
+
+  /* CASES — magazine cards */
+  .cases-mag { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .cmag {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: transform 0.4s, box-shadow 0.4s;
+  }
+  .cmag:hover { transform: translate(-4px, -4px); box-shadow: 4px 4px 0 var(--ink); }
+  .cmag .img {
+    aspect-ratio: 4/3;
+    background:
+      repeating-linear-gradient(45deg, var(--sand-deep), var(--sand-deep) 3px, var(--paper) 3px, var(--paper) 16px);
+    border: 1px solid var(--line);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cmag .img::after {
+    content: attr(data-label);
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    background: var(--paper);
+    padding: 6px 10px;
+    border: 1px solid var(--ink);
+  }
+  .cmag .meta {
+    display: flex; justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+  }
+  .cmag .meta b { color: var(--ember); font-weight: 600; }
+  .cmag h4 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .cmag h4 i { font-style: italic; color: var(--ember); }
+  .cmag p { font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+  .cmag .read {
+    margin-top: auto;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  /* ABOUT */
+  .about-blocks {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 60px;
+    border-top: 1px solid var(--ink);
+    padding-top: 60px;
+  }
+  .about-blocks .about-copy h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(40px, 5vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+  .about-blocks h2 i { font-style: italic; color: var(--ember); }
+  .about-blocks .about-copy p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+    max-width: 560px;
+  }
+  .about-blocks .about-copy .dropcap::first-letter {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 88px;
+    float: left;
+    line-height: 0.85;
+    padding: 6px 12px 0 0;
+    color: var(--ember);
+  }
+  .team-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--ink);
+  }
+  .team-list .row {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    transition: padding-left 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .team-list .row:hover { padding-left: 12px; background: var(--paper); }
+  .team-list .row:hover .avatar { background: var(--ember); }
+  .team-list .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--dune-deep);
+    color: var(--sand);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    transition: background 0.3s;
+  }
+  .team-list .name { font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 16px; }
+  .team-list .name small { display: block; font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--ink-mute); font-size: 14px; }
+  .team-list .role { font-family: 'Geist Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ember); }
+
+  /* Pull quote */
+  .pull {
+    margin: 80px auto;
+    max-width: 1100px;
+    padding: 60px 40px;
+    text-align: center;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(32px, 4vw, 56px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .pull i { font-style: italic; color: var(--ember); }
+  .pull cite {
+    display: block;
+    margin-top: 28px;
+    font-family: 'Geist Mono', monospace;
+    font-style: normal;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+  }
+
+  /* CTA */
+  .cta {
+    background: var(--ink);
+    color: var(--sand);
+    padding: 140px 32px;
+    text-align: center;
+    border-top: 1px solid var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .cta::before {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: -50%;
+    width: 900px; height: 900px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--ember) 0%, transparent 60%);
+    opacity: 0.5;
+    animation: ctaglow 6s ease-in-out infinite;
+  }
+  @keyframes ctaglow { 0%,100%{opacity:0.35;} 50%{opacity:0.6;} }
+  .cta h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(56px, 8vw, 140px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    position: relative;
+  }
+  .cta h2 i { font-style: italic; color: var(--flame); }
+  .cta .big-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--sand);
+    color: var(--ink);
+    padding: 22px 40px;
+    border-radius: 100px;
+    text-decoration: none;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .big-btn:hover { background: var(--flame); color: var(--sand); transform: scale(1.03); }
+  .cta-mini-meta {
+    margin-top: 40px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    color: var(--sand-deep);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--sand);
+    color: var(--ink);
+    padding: 60px 32px 24px;
+    border-top: 1px solid var(--ink);
+  }
+  .foot-top {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px;
+    padding-bottom: 60px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .foot-top h5 {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ember);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .foot-top ul { list-style: none; }
+  .foot-top li { padding: 6px 0; font-size: 14px; color: var(--ink-soft); }
+  .foot-top a { color: var(--ink-soft); text-decoration: none; }
+  .foot-top a:hover { color: var(--ember); }
+  .foot-top p { color: var(--ink-soft); font-size: 14px; line-height: 1.6; max-width: 360px; margin-top: 16px; }
+  .foot-bottom {
+    max-width: 1600px;
+    margin: 32px auto 0;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+  }
+
+  /* GIANT WORD */
+  .giant-word {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(140px, 24vw, 380px);
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    margin: 60px 0;
+    text-align: center;
+    color: var(--sand-deep);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 40px 0;
+    overflow: hidden;
+  }
+  .giant-word i { font-style: italic; color: var(--ember); }
+
+  /* reveal */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.9s cubic-bezier(0.2,0.8,0.2,1), transform 0.9s cubic-bezier(0.2,0.8,0.2,1); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  .back-canvas {
+    position: fixed;
+    top: 14px; left: 16px;
+    z-index: 200;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    color: var(--sand);
+    text-decoration: none;
+    padding: 8px 14px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 100px;
+  }
+  .back-canvas:hover { background: var(--ember); }
+
+  @media (max-width: 900px) {
+    .hero-grid, .services-mag, .about-blocks, .stat-strip, .timeline, .cases-mag, .foot-top { grid-template-columns: 1fr; }
+    nav.top ul { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back-canvas">← all directions</a>
+
+<div class="dateline">
+  <span>Fuseta · Algarve · <em>Portugal</em></span>
+  <span>Vol. <em>012</em> · Issue <em>04</em></span>
+  <span>Resposta <em>&lt; 24h</em></span>
+</div>
+
+<nav class="top">
+  <a href="#" class="logo">
+    <img src="../assets/logo.png" alt="RedDune Solutions" />
+  </a>
+  <ul>
+    <li><a href="#services">Serviços</a></li>
+    <li><a href="#process">Processo</a></li>
+    <li><a href="#portfolio">Portfólio</a></li>
+    <li><a href="#about">Sobre</a></li>
+    <li><a href="#cta">Contacto</a></li>
+  </ul>
+  <div class="right">
+    <span class="lang"><span class="active">PT</span> · <span>EN</span></span>
+    <a href="#cta" class="cta-mini">Contactar <span>→</span></a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <div class="kicker">
+        <span><b>●</b> &nbsp; Issue n.º 12 / Maio 2026</span>
+        <span>The Solutions Issue</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="a"><span>A resposta</span></span>
+        <span class="b"><span><i>certa.</i></span></span>
+        <span class="c"><span>Sem rodeios.</span></span>
+      </h1>
+      <p class="hero-lead">A RedDune Solutions oferece soluções completas em <b>assistência técnica</b>, <b>desenvolvimento web</b> e <b>recuperação de dados</b>. Tecnologia simplificada para particulares e empresas — a partir da Fuseta, Algarve.</p>
+      <div class="hero-actions">
+        <a href="#cta" class="btn-primary">Entrar em contacto <span>→</span></a>
+        <a href="#services" class="btn-secondary">Ver serviços</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <span class="hr-corner">FIG. 01 — desert@dusk</span>
+      <span class="hr-corner tr">37.0°N · 7.7°W</span>
+      <span class="hr-corner bl">RDS / animated</span>
+      <span class="hr-corner br">v.2026</span>
+      <div class="hr-sun"></div>
+      <svg class="hr-svg hr-dune-2" viewBox="0 0 600 600" preserveAspectRatio="none">
+        <path d="M0,420 C100,360 200,440 320,380 C440,320 520,440 600,400 L600,600 L0,600 Z" fill="#b3221c" opacity="0.85"/>
+      </svg>
+      <svg class="hr-svg hr-dune-1" viewBox="0 0 600 600" preserveAspectRatio="none">
+        <path d="M0,480 C150,420 300,520 450,460 C520,430 580,490 600,470 L600,600 L0,600 Z" fill="#5a0e0e"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stat-strip">
+  <div>
+    <div class="n"><span class="count" data-to="380">0</span><i>+</i></div>
+    <label>Clientes ajudados</label>
+    <small>particulares &amp; empresas</small>
+  </div>
+  <div>
+    <div class="n"><span class="count" data-to="98">0</span><i>%</i></div>
+    <label>Taxa de resolução</label>
+    <small>primeira intervenção</small>
+  </div>
+  <div>
+    <div class="n">&lt; <span class="count" data-to="24">0</span><i>h</i></div>
+    <label>Resposta inicial</label>
+    <small>orçamento incluído</small>
+  </div>
+  <div>
+    <div class="n"><span class="count" data-to="3">0</span></div>
+    <label>Áreas</label>
+    <small>técnica · web · software</small>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="m-track">
+    <span>Assistência <i>técnica</i></span><span class="sep">✶</span>
+    <span>Web <i>&amp;</i> Digital</span><span class="sep">✶</span>
+    <span>Recuperação de <i>dados</i></span><span class="sep">✶</span>
+    <span>Informática <i>&amp;</i> Eletrónica</span><span class="sep">✶</span>
+    <span>Fuseta · Algarve</span><span class="sep">✶</span>
+    <span>B2C · B2B</span><span class="sep">✶</span>
+    <span>Assistência <i>técnica</i></span><span class="sep">✶</span>
+    <span>Web <i>&amp;</i> Digital</span><span class="sep">✶</span>
+    <span>Recuperação de <i>dados</i></span><span class="sep">✶</span>
+    <span>Informática <i>&amp;</i> Eletrónica</span><span class="sep">✶</span>
+    <span>Fuseta · Algarve</span><span class="sep">✶</span>
+    <span>B2C · B2B</span><span class="sep">✶</span>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="block" id="services">
+  <div class="sec-head">
+    <span><b>§ 01</b></span>
+    <span>Serviços <span class="en">— what we do, in plain words</span></span>
+    <span>03 áreas</span>
+  </div>
+  <h2 class="sec-title reveal">Uma <i>gama completa</i> de soluções para o teu problema.</h2>
+  <div class="services-mag" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="smag reveal">
+      <div class="s-num"><span>/ 01</span><span>técnica</span></div>
+      <h3>Assistência <i>técnica</i></h3>
+      <p>Diagnóstico e reparação para computadores, consolas e equipamentos eletrónicos. Rapidez e precisão, com a transparência que esperas de uma equipa profissional.</p>
+      <div class="s-meta"><b>+</b> PC · MAC <b>+</b> Consolas <b>+</b> Eletrónica <b>+</b> Diagnóstico</div>
+    </div>
+    <div class="smag reveal">
+      <div class="s-num"><span>/ 02</span><span>digital</span></div>
+      <h3>Web <i>&amp;</i> Digital</h3>
+      <p>Websites modernos, e-commerce e sistemas personalizados. Pensados para serem rápidos, responsivos e fáceis para o teu cliente usar.</p>
+      <div class="s-meta"><b>+</b> Websites <b>+</b> E-commerce <b>+</b> Sistemas custom <b>+</b> Apps</div>
+    </div>
+    <div class="smag reveal">
+      <div class="s-num"><span>/ 03</span><span>software</span></div>
+      <h3>Software <i>&amp;</i> recuperação</h3>
+      <p>Instalação e configuração de software, drivers e sistemas operativos. Recuperação básica de dados perdidos — fotos, documentos, projetos importantes.</p>
+      <div class="s-meta"><b>+</b> OS install <b>+</b> Drivers <b>+</b> Data recovery <b>+</b> Otimização</div>
+    </div>
+  </div>
+</section>
+
+<!-- GIANT WORD -->
+<div class="giant-word reveal"><i>Solu</i>ções</div>
+
+<!-- PROCESS -->
+<section class="block" id="process">
+  <div class="sec-head">
+    <span><b>§ 02</b></span>
+    <span>Processo <span class="en">— five steps, zero jargon</span></span>
+    <span>05 etapas</span>
+  </div>
+  <h2 class="sec-title reveal">Cinco passos. <i>Zero</i> rodeios.</h2>
+  <div class="timeline">
+    <div class="tl-step reveal">
+      <div class="tl-num"><i>01</i></div>
+      <h4>Contacto inicial</h4>
+      <p>WhatsApp, email, Instagram ou em pessoa. Descreve o problema como conseguires — nós traduzimos.</p>
+      <div class="tl-time">~ 5 min</div>
+    </div>
+    <div class="tl-step reveal">
+      <div class="tl-num"><i>02</i></div>
+      <h4>Diagnóstico</h4>
+      <p>Análise do equipamento ou situação. Resposta em menos de 24h com orçamento claro e fechado.</p>
+      <div class="tl-time">&lt; 24h</div>
+    </div>
+    <div class="tl-step reveal">
+      <div class="tl-num"><i>03</i></div>
+      <h4>Aprovação &amp; agenda</h4>
+      <p>Aceitas? Combinamos horário. Reparações simples até 24h, projetos custom até 1 semana.</p>
+      <div class="tl-time">24h · 1 sem.</div>
+    </div>
+    <div class="tl-step reveal">
+      <div class="tl-num"><i>04</i></div>
+      <h4>Execução transparente</h4>
+      <p>Vais sabendo o que estamos a fazer. Sempre claro: o que vais pagar, o que está a ser feito, quando termina.</p>
+      <div class="tl-time">live</div>
+    </div>
+    <div class="tl-step reveal">
+      <div class="tl-num"><i>05</i></div>
+      <h4>Entrega &amp; suporte</h4>
+      <p>Tudo testado antes da entrega. Ficamos disponíveis para qualquer dúvida sobre a intervenção feita.</p>
+      <div class="tl-time">contínuo</div>
+    </div>
+  </div>
+</section>
+
+<!-- PULL QUOTE -->
+<div class="pull reveal">
+  &laquo;Simplificam a tecnologia.<br><i>O meu negócio ganhou um site lindo e funcional em duas semanas.</i>&raquo;
+  <cite>— cliente RedDune · Fuseta</cite>
+</div>
+
+<!-- PORTFOLIO -->
+<section class="block" id="portfolio">
+  <div class="sec-head">
+    <span><b>§ 03</b></span>
+    <span>Portfólio <span class="en">— selected work</span></span>
+    <span>03 áreas</span>
+  </div>
+  <h2 class="sec-title reveal">Um vislumbre do nosso <i>mundo de soluções</i>.</h2>
+  <div class="cases-mag">
+    <a class="cmag reveal" href="https://www.instagram.com/reddune_solutions/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
+      <div class="img" data-label="custom builds"></div>
+      <div class="meta"><span><b>Hardware</b></span><span>@reddune_solutions</span></div>
+      <h4>Construção de <i>computadores</i></h4>
+      <p>Builds por medida — gaming, workstation, HTPC. Escolha de cada componente, montagem, configuração e testes de estabilidade entregues a funcionar.</p>
+      <span class="read">Ver no Instagram →</span>
+    </a>
+    <a class="cmag reveal" href="https://www.instagram.com/reddune_solutions/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
+      <div class="img" data-label="web &amp; app"></div>
+      <div class="meta"><span><b>Digital</b></span><span>websites · sistemas</span></div>
+      <h4>Desenvolvimento <i>web &amp; app</i></h4>
+      <p>Websites modernos, e-commerce e sistemas custom para PMEs locais. Rápidos a abrir, fáceis para o cliente, prontos para qualquer dispositivo.</p>
+      <span class="read">Ver no Instagram →</span>
+    </a>
+    <a class="cmag reveal" href="https://www.instagram.com/reddune_solutions/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
+      <div class="img" data-label="diagnostics"></div>
+      <div class="meta"><span><b>Diagnóstico</b></span><span>análise · orçamento</span></div>
+      <h4>Diagnóstico de <i>hardware</i></h4>
+      <p>Análise detalhada antes de qualquer reparação. Identificação do problema real, opções claras com preços e tempo, decisão informada do cliente.</p>
+      <span class="read">Ver no Instagram →</span>
+    </a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="block" id="about">
+  <div class="sec-head">
+    <span><b>§ 04</b></span>
+    <span>Sobre <span class="en">— who we are</span></span>
+    <span>03 valores</span>
+  </div>
+  <div class="about-blocks">
+    <div class="about-copy">
+      <h2 class="reveal">Tecnologia &amp;<br><i>inovação</i> digital.</h2>
+      <p class="reveal dropcap">A RedDune Solutions é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites modernos e eficientes.</p>
+      <p class="reveal">Combinamos conhecimento técnico, criatividade e compromisso para garantir resultados de qualidade, adaptados às necessidades de cada cliente.</p>
+      <p class="reveal"><b>Simplificamos a tecnologia para ajudar pessoas e negócios a tirarem o máximo proveito do mundo digital.</b></p>
+    </div>
+    <div class="team-list">
+      <div class="row reveal">
+        <div class="avatar">C</div>
+        <div class="name">Confiança<small>Em cada intervenção, sem exceções</small></div>
+        <div class="role">Valor 01</div>
+      </div>
+      <div class="row reveal">
+        <div class="avatar">E</div>
+        <div class="name">Eficiência<small>Sem desperdício do teu tempo</small></div>
+        <div class="role">Valor 02</div>
+      </div>
+      <div class="row reveal">
+        <div class="avatar">T</div>
+        <div class="name">Transparência<small>Sempre sabes o que pagas</small></div>
+        <div class="role">Valor 03</div>
+      </div>
+      <div class="row reveal">
+        <div class="avatar" style="font-size:14px;">▤</div>
+        <div class="name">Fuseta<small>37.0556°N · 7.7445°W · Algarve</small></div>
+        <div class="role">Base</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <h2 class="reveal">Tens um <i>projeto</i><br>em <i>mente?</i></h2>
+  <a href="mailto:geral@reddunesolutions.pt" class="big-btn">Entrar em contacto <span>→</span></a>
+  <div class="cta-mini-meta">Fuseta · Algarve &nbsp; · &nbsp; geral@reddunesolutions.pt &nbsp; · &nbsp; @reddune_solutions</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-top">
+    <div>
+      <img src="../assets/logo.png" alt="RedDune Solutions" style="height: 36px;" />
+      <p>Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas.</p>
+    </div>
+    <div>
+      <h5>Navegação</h5>
+      <ul>
+        <li><a href="#">Início</a></li>
+        <li><a href="#services">Serviços</a></li>
+        <li><a href="#portfolio">Portfólio</a></li>
+        <li><a href="#">Loja</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Empresa</h5>
+      <ul>
+        <li><a href="#about">Sobre</a></li>
+        <li><a href="#cta">Contactos</a></li>
+        <li><a href="#">Política de Garantia</a></li>
+        <li><a href="#">Política de Privacidade</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Contacto</h5>
+      <ul>
+        <li>Fuseta, Algarve</li>
+        <li>geral@reddunesolutions.pt</li>
+        <li><a href="https://www.instagram.com/reddune_solutions/" target="_blank" rel="noopener">@reddune_solutions</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 RedDune Solutions</span>
+    <span>Todos os direitos reservados</span>
+    <span>v.2026 — sandstone</span>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  const countIo = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const el = e.target;
+        const to = +el.dataset.to;
+        const dur = 1600;
+        const start = performance.now();
+        function tick(now) {
+          const t = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - t, 3);
+          el.textContent = Math.round(to * eased).toLocaleString('pt-PT');
+          if (t < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        countIo.unobserve(el);
+      }
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.count').forEach(el => countIo.observe(el));
+</script>
+
+</body>
+</html>
