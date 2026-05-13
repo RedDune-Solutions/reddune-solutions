@@ -16,6 +16,11 @@ import {
   type ServicoSlug,
   type ServiceContent,
 } from "@/lib/servicos-content";
+import {
+  serviceLd,
+  faqPageLd,
+  jsonLdScript,
+} from "@/lib/structured-data";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -309,9 +314,35 @@ export default async function ServicoSlugPage({ params }: PageProps) {
   const locale = await getLocale();
   const content = await getServicoContent(locale, typedSlug);
 
+  // Strip <em>...</em> for plain-text JSON-LD payload.
+  const plainTitle = content.title.replace(/<\/?em>/g, "");
+
+  const serviceSchema = serviceLd({
+    slug: typedSlug,
+    name: plainTitle,
+    description: content.lead,
+  });
+
+  const faqSchema =
+    content.faqs.list.length > 0
+      ? faqPageLd(
+          content.faqs.list.map(({ q, a }) => ({ question: q, answer: a })),
+        )
+      : null;
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(serviceSchema) }}
+      />
+      {faqSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(faqSchema) }}
+        />
+      )}
       <main id="main" className="flex-grow">
         <PageHero
           eyebrow={content.eyebrow}

@@ -10,6 +10,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { getAllProducts } from "@/lib/mongodb/products";
 import { publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
+import { itemListLd, jsonLdScript } from "@/lib/structured-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -196,10 +197,31 @@ function WarrantyStrip() {
 
 export default async function ShopPage() {
   const products = await getAllProducts();
+  const locale = await getLocale();
+  const isPt = locale !== "en";
+
+  const catalogSchema = itemListLd({
+    url: `${publicEnv.baseUrl}/loja`,
+    name: isPt
+      ? "Catálogo Reddune Solutions"
+      : "Reddune Solutions Catalog",
+    items: products.map((p) => ({
+      id: p.id,
+      name: isPt ? p.name.pt : p.name.en,
+      price: p.price,
+      image: p.imageUrls[0],
+    })),
+  });
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+      {products.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(catalogSchema) }}
+        />
+      )}
       <main id="main" className="flex-grow">
         <ShopHeroSection />
         <section className="pb-16">
