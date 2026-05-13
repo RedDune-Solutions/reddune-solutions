@@ -117,8 +117,11 @@
             "secondaryCta": "Ver serviços"
         },
         "ContactSection": {
-            "title": "Entre em contacto",
-            "description": "Tem um projeto em mente ou precisa de assistência? Estamos aqui para ajudar! Entre em contacto connosco e vamos discutir como podemos trabalhar juntos para dar vida às suas ideias.",
+            "eyebrow": "Resposta em <24h · Fuseta, Algarve",
+            "title": "Fala <accent>connosco</accent>.",
+            "description": "Descreve o teu problema como conseguires — nós traduzimos. WhatsApp é o caminho mais rápido, mas estamos em todo o lado.",
+            "formEyebrow": "Formulário de contacto",
+            "formTitle": "Envia-nos uma <accent>mensagem</accent>.",
             "form" : {
                 "title": "Envie-nos uma mensagem",
                 "nameTitle": "Nome",

@@ -8,6 +8,7 @@ import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import { publicEnv } from "@/lib/env";
+import { waLink } from "@/lib/whatsapp";
 import {
   SERVICOS_SLUGS,
   getServicoContent,
@@ -133,10 +134,9 @@ function WhatsappLink({
   children: React.ReactNode;
   className?: string;
 }) {
-  const url = `https://wa.me/351961531235?text=${encodeURIComponent(message)}`;
   return (
     <a
-      href={url}
+      href={waLink(message)}
       target="_blank"
       rel="noopener noreferrer"
       className={className}

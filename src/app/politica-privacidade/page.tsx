@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ShieldCheck,
-  UserCog,
-  FileCheck2,
-  ListChecks,
-  Clock,
-  ArrowRight,
-  ChevronDown,
-} from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { PageBreadcrumb } from "@/components/ui/page-breadcrumb";
-import type { PageBreadcrumbCrumb } from "@/components/ui/page-breadcrumb";
-import { Card } from "@/components/ui/card";
+import { PageHero } from "@/components/sections/PageHero";
+import { Reveal } from "@/components/motion/Reveal";
 import { getLocale, getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -23,12 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const isPt = locale !== "en";
   const t = await getTranslations("PrivacyPolicyPage");
 
-  const title = t("metaTitle");
-  const description = t("metaDescription");
-
   return {
-    title,
-    description,
+    title: t("metaTitle"),
+    description: t("metaDescription"),
     keywords: isPt
       ? [
           "política de privacidade",
@@ -54,42 +42,37 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     },
     openGraph: {
-      title,
-      description,
+      title: t("metaTitle"),
+      description: t("metaDescription"),
       type: "website",
       locale,
       url: `${base}/politica-privacidade`,
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: t("metaTitle"),
+      description: t("metaDescription"),
     },
   };
 }
 
-type PageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
+// Splits "Política de Privacidade" / "Privacy Policy" into
+// "<prefix> <em>last-word</em>" so the title fits the Oasis pattern.
+function renderPrivacyTitle(raw: string): React.ReactNode {
+  const parts = raw.trim().split(/\s+/);
+  if (parts.length < 2) return <em>{raw}</em>;
+  const last = parts[parts.length - 1];
+  const prefix = parts.slice(0, -1).join(" ");
+  return (
+    <>
+      <span>{prefix} </span>
+      <em>{last}</em>
+    </>
+  );
+}
 
-export default async function PrivacyPolicyPage({ searchParams }: PageProps) {
-  const params = (await searchParams) ?? {};
-  const from = typeof params.from === "string" ? params.from : undefined;
+export default async function PrivacyPolicyPage() {
   const t = await getTranslations("PrivacyPolicyPage");
-  const tBreadcrumb = await getTranslations("Breadcrumb");
-  const tNavigation = await getTranslations("Navigation");
-
-  const firstCrumbMap: Record<string, PageBreadcrumbCrumb> = {
-    home: { label: tBreadcrumb("home"), href: "/" },
-    shop: { label: tNavigation("shop"), href: "/loja" },
-    pricing: { label: tNavigation("services"), href: "/servicos" },
-    contact: { label: tBreadcrumb("contact"), href: "/contacto" },
-  };
-  const firstCrumb = firstCrumbMap[from ?? "home"] ?? firstCrumbMap.home;
-  const crumbs: PageBreadcrumbCrumb[] = [
-    firstCrumb,
-    { label: tBreadcrumb("privacyPolicy") },
-  ];
 
   const section3Items = [
     t("section3Item1"),
@@ -102,32 +85,34 @@ export default async function PrivacyPolicyPage({ searchParams }: PageProps) {
     t("section3Item8"),
   ];
 
-  const sections = [
+  const sections: Array<{
+    n: string;
+    title: string;
+    body: React.ReactNode;
+  }> = [
     {
-      icon: UserCog,
+      n: "01",
       title: t("section1Title"),
       body: (
-        <dl className="space-y-3 text-base md:text-lg text-muted-foreground">
-          <div className="flex flex-col sm:flex-row sm:gap-2">
-            <dt className="font-semibold text-foreground">{t("section1Company")}</dt>
-            <dd>{t("section1CompanyValue")}</dd>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:gap-2">
-            <dt className="font-semibold text-foreground">{t("section1Office")}</dt>
-            <dd>{t("section1OfficeValue")}</dd>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:gap-2">
-            <dt className="font-semibold text-foreground">{t("section1Contact")}</dt>
-            <dd>{t("section1ContactValue")}</dd>
-          </div>
+        <dl className="space-y-3">
+          {[
+            { dt: t("section1Company"), dd: t("section1CompanyValue") },
+            { dt: t("section1Office"), dd: t("section1OfficeValue") },
+            { dt: t("section1Contact"), dd: t("section1ContactValue") },
+          ].map((row) => (
+            <div key={row.dt} className="flex flex-col sm:flex-row sm:gap-2">
+              <dt className="font-semibold text-ink min-w-[220px]">{row.dt}</dt>
+              <dd>{row.dd}</dd>
+            </div>
+          ))}
         </dl>
       ),
     },
     {
-      icon: FileCheck2,
+      n: "02",
       title: t("section2Title"),
       body: (
-        <div className="space-y-4 text-base md:text-lg text-muted-foreground leading-relaxed">
+        <div className="space-y-4">
           <p>{t("section2P1")}</p>
           <p>{t("section2P2")}</p>
           <p>{t("section2P3")}</p>
@@ -138,12 +123,12 @@ export default async function PrivacyPolicyPage({ searchParams }: PageProps) {
       ),
     },
     {
-      icon: ListChecks,
+      n: "03",
       title: t("section3Title"),
       body: (
-        <div className="space-y-4 text-base md:text-lg text-muted-foreground leading-relaxed">
+        <div className="space-y-4">
           <p>{t("section3Intro")}</p>
-          <ul className="list-disc pl-6 space-y-2">
+          <ul className="list-disc pl-6 space-y-2 marker:text-ember">
             {section3Items.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -153,89 +138,78 @@ export default async function PrivacyPolicyPage({ searchParams }: PageProps) {
       ),
     },
     {
-      icon: Clock,
+      n: "04",
       title: t("section4Title"),
-      body: (
-        <div className="space-y-4 text-base md:text-lg text-muted-foreground leading-relaxed">
-          <p>{t("section4P1")}</p>
-        </div>
-      ),
+      body: <p>{t("section4P1")}</p>,
     },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow pt-20">
-        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-6">
-          <PageBreadcrumb crumbs={crumbs} />
-        </div>
+      <main id="main" className="flex-grow">
+        <PageHero
+          eyebrow="Privacidade · RGPD"
+          title={renderPrivacyTitle(t("title"))}
+          description={t("subtitle")}
+        />
 
-        <section className="py-10 md:py-16">
-          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12 md:mb-16">
-              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary text-primary-foreground mb-6 shadow-md">
-                <ShieldCheck className="h-8 w-8 md:h-10 md:w-10" aria-hidden="true" />
-              </div>
-              <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                {t("title")}
-              </h1>
-              <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                {t("subtitle")}
-              </p>
-            </div>
-
-            <div className="space-y-4 md:space-y-6">
-              {sections.map(({ icon: Icon, title, body }) => (
-                <Card
-                  key={title}
-                  className="relative overflow-hidden border-primary/10 bg-card transition-all hover:shadow-lg hover:border-primary/30"
-                >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-primary" aria-hidden="true" />
-                  <details className="group">
-                    <summary className="flex items-center gap-4 p-8 md:p-10 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 shrink-0">
-                        <Icon className="h-7 w-7 text-primary" aria-hidden="true" />
-                      </div>
-                      <h2 className="font-headline text-xl md:text-2xl font-bold flex-1 min-w-0">
-                        {title}
-                      </h2>
-                      <ChevronDown
-                        className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground shrink-0 transition-transform duration-200 group-open:rotate-180"
-                        aria-hidden="true"
-                      />
-                    </summary>
-                    <div className="px-8 md:px-10 pb-8 md:pb-10 -mt-2">
-                      {body}
-                    </div>
-                  </details>
-                </Card>
-              ))}
-            </div>
+        <section className="relative mx-auto w-full max-w-content px-8 py-16 md:py-24">
+          <div className="mx-auto max-w-prose font-body text-[16px] leading-[1.7] text-ink-soft">
+            {sections.map((sec) => (
+              <Reveal key={sec.n}>
+                <article className="mb-12">
+                  <div className="flex items-baseline gap-4 mb-4">
+                    <span className="font-mono text-[13px] uppercase tracking-[0.12em] text-ember">
+                      {sec.n}
+                    </span>
+                    <h2 className="font-display text-[24px] md:text-[28px] font-bold tracking-[-0.01em] text-ink m-0">
+                      {sec.title}
+                    </h2>
+                  </div>
+                  <div>{sec.body}</div>
+                </article>
+              </Reveal>
+            ))}
           </div>
         </section>
 
-        <section className="pb-16 md:pb-24">
-          <div className="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-2xl bg-secondary/60 border border-border p-8 md:p-12 text-center">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-6">
-                <ShieldCheck className="h-7 w-7 text-primary" aria-hidden="true" />
-              </div>
-              <h2 className="font-headline text-2xl md:text-3xl font-bold mb-4">
+        <section className="relative mx-auto w-full max-w-content px-8 pb-24">
+          <Reveal>
+            <div
+              className={cn(
+                "mx-auto max-w-[820px]",
+                "rounded-card bg-sand-warm/70",
+                "px-8 py-12 md:px-12 md:py-14",
+                "text-center",
+              )}
+            >
+              <h2
+                className={cn(
+                  "font-display font-bold text-ink mb-5",
+                  "text-[clamp(28px,3.5vw,44px)] leading-[1.1] tracking-[-0.02em]",
+                )}
+              >
                 {t("closingTitle")}
               </h2>
-              <p className="text-base md:text-lg text-muted-foreground mb-8">
+              <p className="mx-auto max-w-[640px] text-[16px] leading-[1.65] text-ink-soft mb-8">
                 {t("closingBody")}
               </p>
               <Link
                 href="/contacto?from=home"
-                className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
+                className={cn(
+                  "inline-flex items-center gap-3 rounded-btn",
+                  "bg-ink text-cream px-7 py-4",
+                  "text-[14px] font-semibold",
+                  "transition-all duration-300",
+                  "hover:bg-ember hover:scale-[1.04]",
+                )}
               >
                 {t("ctaContact")}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <span aria-hidden="true">→</span>
               </Link>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
       <Footer />

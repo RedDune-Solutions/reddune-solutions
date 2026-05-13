@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ShopFilters, type CategoryValue, type ConditionValue } from "./ShopFilters";
 import { ProductCard } from "./ProductCard";
 import { Reveal } from "@/components/motion/Reveal";
+import { waLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 import type {
   Product,
@@ -140,7 +141,7 @@ function ShopEmptyState({ filtering }: { filtering: boolean }) {
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <a
-            href="https://wa.me/351961531235?text=Olá!%20Procuro%20um%20produto%20espec%C3%ADfico%3A%20"
+            href={waLink("Olá! Procuro um produto específico: ")}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
