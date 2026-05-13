@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Lock, Sparkles, RefreshCw, ShieldCheck, ArrowRight } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { PageBreadcrumb } from "@/components/ui/page-breadcrumb";
-import type { PageBreadcrumbCrumb } from "@/components/ui/page-breadcrumb";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHero } from "@/components/sections/PageHero";
+import { Reveal } from "@/components/motion/Reveal";
 import { getLocale, getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const base = publicEnv.baseUrl;
-  const isPt = locale !== "en";
   const t = await getTranslations("WarrantyPolicyPage");
 
   const title = t("metaTitle");
@@ -21,23 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    keywords: isPt
-      ? [
-          "política de garantia",
-          "garantia RedDune Solutions",
-          "garantia equipamentos novos",
-          "garantia recondicionados",
-          "loja Algarve",
-          "Fuseta",
-        ]
-      : [
-          "warranty policy",
-          "RedDune Solutions warranty",
-          "new equipment warranty",
-          "refurbished warranty",
-          "shop Algarve",
-          "Fuseta",
-        ],
     alternates: {
       canonical: `${base}/loja/politica-garantia`,
       languages: {
@@ -60,112 +41,135 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-type PageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
-
-export default async function WarrantyPolicyPage({ searchParams }: PageProps) {
-  const params = (await searchParams) ?? {};
-  const from = typeof params.from === "string" ? params.from : undefined;
+export default async function WarrantyPolicyPage() {
   const t = await getTranslations("WarrantyPolicyPage");
-  const tBreadcrumb = await getTranslations("Breadcrumb");
-  const tNavigation = await getTranslations("Navigation");
-
-  const firstCrumbMap: Record<string, PageBreadcrumbCrumb> = {
-    home: { label: tBreadcrumb("home"), href: "/" },
-    shop: { label: tNavigation("shop"), href: "/loja" },
-    pricing: { label: tNavigation("services"), href: "/servicos" },
-    contact: { label: tBreadcrumb("contact"), href: "/contacto" },
-  };
-  const firstCrumb = firstCrumbMap[from ?? "home"] ?? firstCrumbMap.home;
-  const crumbs: PageBreadcrumbCrumb[] = [
-    firstCrumb,
-    { label: tBreadcrumb("warrantyPolicy") },
-  ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow pt-20">
-        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-6">
-          <PageBreadcrumb crumbs={crumbs} />
-        </div>
+      <main id="main" className="flex-grow">
+        <PageHero
+          eyebrow="Loja · políticas"
+          title={
+            <>
+              {t("title").split(/\s(?=[^\s]+$)/).map((part, i, arr) =>
+                i === arr.length - 1 ? (
+                  <em key={i}>{part}</em>
+                ) : (
+                  <span key={i}>{part} </span>
+                ),
+              )}
+            </>
+          }
+          description={t("subtitle")}
+        />
 
-        <section className="py-10 md:py-16">
-          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12 md:mb-16">
-              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary text-primary-foreground mb-6 shadow-md">
-                <Lock className="h-8 w-8 md:h-10 md:w-10" aria-hidden="true" />
-              </div>
-              <h1 className="font-headline text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                {t("title")}
-              </h1>
-              <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                {t("subtitle")}
-              </p>
-            </div>
+        {/* Intro stats — visual hook */}
+        <section className="relative mx-auto w-full max-w-content px-8 pt-12 md:pt-16 pb-8">
+          <Reveal>
+            <p
+              className={cn(
+                "max-w-[760px] text-[17px] md:text-[19px] leading-[1.65] text-ink-soft mb-12",
+              )}
+            >
+              {t("intro")}
+            </p>
+          </Reveal>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-              <Card className="relative overflow-hidden border-primary/10 bg-card transition-all hover:shadow-lg hover:border-primary/30">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-primary" aria-hidden="true" />
-                <CardContent className="p-8 md:p-10">
-                  <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-6">
-                    <Sparkles className="h-7 w-7 text-primary" aria-hidden="true" />
+          <Reveal>
+            <div
+              className={cn(
+                "relative grid gap-8 overflow-hidden",
+                "grid-cols-1 md:grid-cols-2",
+                "rounded-card bg-ink text-cream",
+                "px-10 py-[60px]",
+              )}
+            >
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-24 -right-36 z-0 h-[500px] w-[500px] rounded-full opacity-40"
+                style={{
+                  background:
+                    "radial-gradient(circle, var(--ember), transparent 60%)",
+                  animation: "glow 5s ease-in-out infinite",
+                }}
+              />
+              {[
+                {
+                  label: t("newLabel"),
+                  duration: t("newDuration"),
+                  caption: t("newCaption"),
+                },
+                {
+                  label: t("refurbishedLabel"),
+                  duration: t("refurbishedDuration"),
+                  caption: t("refurbishedCaption"),
+                },
+              ].map((cell) => (
+                <div key={cell.label} className="relative z-[1]">
+                  <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-apricot mb-3">
+                    {cell.label}
                   </div>
-                  <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-2">
-                    {t("newLabel")}
-                  </p>
-                  <p className="font-headline text-4xl md:text-5xl font-bold text-primary mb-1">
-                    {t("newDuration")}
-                  </p>
-                  <p className="text-base text-muted-foreground">
-                    {t("newCaption")}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="relative overflow-hidden border-primary/10 bg-card transition-all hover:shadow-lg hover:border-primary/30">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-primary" aria-hidden="true" />
-                <CardContent className="p-8 md:p-10">
-                  <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-6">
-                    <RefreshCw className="h-7 w-7 text-primary" aria-hidden="true" />
+                  <div
+                    className={cn(
+                      "font-display font-bold tracking-[-0.03em]",
+                      "text-[clamp(48px,6vw,88px)] leading-[0.95]",
+                      "bg-clip-text text-transparent",
+                    )}
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, var(--cream) 0%, var(--apricot) 70%, var(--ember) 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    {cell.duration}
                   </div>
-                  <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-2">
-                    {t("refurbishedLabel")}
-                  </p>
-                  <p className="font-headline text-4xl md:text-5xl font-bold text-primary mb-1">
-                    {t("refurbishedDuration")}
-                  </p>
-                  <p className="text-base text-muted-foreground">
-                    {t("refurbishedCaption")}
-                  </p>
-                </CardContent>
-              </Card>
+                  <div className="mt-2 text-sm text-cream-deep">
+                    {cell.caption}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </Reveal>
         </section>
 
-        <section className="pb-16 md:pb-24">
-          <div className="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-2xl bg-secondary/60 border border-border p-8 md:p-12 text-center">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mx-auto mb-6">
-                <ShieldCheck className="h-7 w-7 text-primary" aria-hidden="true" />
-              </div>
-              <h2 className="font-headline text-2xl md:text-3xl font-bold mb-4">
+        {/* Closing slab */}
+        <section className="relative mx-auto w-full max-w-content px-8 pb-24">
+          <Reveal>
+            <div
+              className={cn(
+                "rounded-card bg-sand-warm/70",
+                "px-8 py-12 md:px-12 md:py-14",
+                "text-center",
+              )}
+            >
+              <h2
+                className={cn(
+                  "font-display font-bold text-ink mb-5",
+                  "text-[clamp(28px,3.5vw,44px)] leading-[1.1] tracking-[-0.02em]",
+                )}
+              >
                 {t("closingTitle")}
               </h2>
-              <p className="text-base md:text-lg text-muted-foreground mb-8">
+              <p className="mx-auto max-w-[640px] text-[16px] leading-[1.65] text-ink-soft mb-8">
                 {t("closingBody")}
               </p>
               <Link
                 href="/contacto?from=shop"
-                className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
+                className={cn(
+                  "inline-flex items-center gap-3 rounded-btn",
+                  "bg-ink text-cream px-7 py-4",
+                  "text-[14px] font-semibold",
+                  "transition-all duration-300",
+                  "hover:bg-ember hover:scale-[1.04]",
+                )}
               >
                 {t("ctaContact")}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <span aria-hidden="true">→</span>
               </Link>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
       <Footer />

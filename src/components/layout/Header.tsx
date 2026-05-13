@@ -15,17 +15,22 @@ import LanguageSwitcher from "../templates/language-switcher";
  * Mobile (< 980px): hides nav list + desktop CTA, shows burger that
  *   opens a fullscreen drawer with the same paleta.
  *
- * Scroll behaviour is intentionally NOT implemented here — that lives
- * on /loja's filter bar (Phase 5).
+ * Phase 5c — slide-up hide behaviour on /loja: when scrolling down past
+ *   200px the pill slides off (translateY -200%), slides back when
+ *   scrolling up. Active only on /loja (where the filter bar would
+ *   otherwise overlap the pill).
  */
 
 const MOBILE_BREAKPOINT_PX = 980;
+const HIDE_THRESHOLD_PX = 200;
 
 export function Header() {
   const t = useTranslations("Navigation");
   const pathname = usePathname() ?? "/";
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const slideUpEnabled = pathname.startsWith("/loja");
 
   // Track viewport against the Oasis 980px breakpoint (not project's 768).
   useEffect(() => {
@@ -54,6 +59,28 @@ export function Header() {
       document.body.style.overflow = previousOverflow;
     };
   }, [open]);
+
+  // Slide-up hide on /loja: track scroll direction and hide when scrolling
+  // down past the threshold. Resets when route changes.
+  useEffect(() => {
+    if (!slideUpEnabled) {
+      setHidden(false);
+      return;
+    }
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const goingDown = y > lastY;
+      if (goingDown && y > HIDE_THRESHOLD_PX) {
+        setHidden(true);
+      } else if (!goingDown) {
+        setHidden(false);
+      }
+      lastY = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [slideUpEnabled]);
 
   const navLinks = [
     { href: "/servicos", label: t("services") },
@@ -85,12 +112,17 @@ export function Header() {
 
       <header
         role="banner"
+        data-hidden={hidden ? "true" : undefined}
         className={cn(
-          "fixed top-[18px] left-1/2 -translate-x-1/2 z-[100]",
+          "fixed top-[18px] left-1/2 z-[100]",
           "flex items-center gap-6",
           "py-[10px] pl-[22px] pr-[12px]",
           "rounded-btn border border-dune-deep/10",
           "bg-cream/85 backdrop-blur-xl shadow-warm",
+          "transition-transform duration-500 ease-oasis",
+          hidden
+            ? "-translate-x-1/2 -translate-y-[200%]"
+            : "-translate-x-1/2 translate-y-0",
           // Mobile pill is tighter
           "max-[979px]:gap-3 max-[979px]:pl-4 max-[979px]:pr-2 max-[979px]:py-2",
         )}

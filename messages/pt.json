@@ -339,8 +339,28 @@
     },
     "ShopPage": {
         "hero": {
-            "title": "A Nossa Loja",
-            "description": "Descubra os nossos computadores, componentes e acessórios. Contacte-nos para adquirir qualquer produto."
+            "eyebrow": "Loja · catálogo",
+            "title": "Equipamentos <accent>e peças</accent> com selo nosso.",
+            "description": "Filtra, pesquisa e encontra o que precisas. Cada produto tem o estado claro — novo, recondicionado ou usado — e pode ser pedido por WhatsApp ou formulário."
+        },
+        "warranty": {
+            "eyebrow": "Garantias da loja",
+            "title": "Compras com <accent>tranquilidade</accent>.",
+            "statNew": {
+                "label": "Garantia",
+                "sub": "produtos novos · DL 84/2021"
+            },
+            "statRefurb": {
+                "label": "Garantia",
+                "sub": "produtos recondicionados"
+            },
+            "statReturn": {
+                "label": "Devolução",
+                "sub": "compras à distância"
+            },
+            "policiesNote": "Lê os detalhes nas nossas <em>políticas oficiais</em>.",
+            "policyWarrantyCta": "Política de garantia",
+            "policyReturnCta": "Política de devolução"
         },
         "categories": {
             "all": "Todos",
@@ -371,12 +391,14 @@
         "home": "Início",
         "contact": "Contacto",
         "warrantyPolicy": "Política de Garantia",
+        "returnPolicy": "Política de Devolução",
         "privacyPolicy": "Política de Privacidade"
     },
     "Footer": {
         "rights": "Todos os direitos reservados.",
         "contactButton": "Contactos",
         "warrantyPolicy": "Política de Garantia",
+        "returnPolicy": "Política de Devolução",
         "privacyPolicy": "Política de Privacidade",
         "tagline": "Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas.",
         "address": "Fuseta · Algarve · Portugal",
@@ -384,6 +406,53 @@
         "col2Title": "Contacto",
         "col3Title": "Legal",
         "copyMicrocopy": "Soluções tecnológicas no Algarve"
+    },
+    "ReturnPolicyPage": {
+        "metaTitle": "Política de Devolução — RedDune Solutions | 14 dias compras à distância",
+        "metaDescription": "Direito de livre resolução em compras à distância — 14 dias, sem perguntas. Conforme o Decreto-Lei n.º 24/2014.",
+        "eyebrow": "Loja · políticas",
+        "title": "Política de <em>devolução</em>.",
+        "subtitle": "Direito de livre resolução em compras à distância — 14 dias, sem perguntas.",
+        "sections": [
+            {
+                "n": "01",
+                "title": "Direito de livre resolução",
+                "body": "Para compras realizadas à distância (online, WhatsApp, email), tens <strong>14 dias</strong> a contar da data de receção para devolver o produto sem indicar motivo, conforme o Decreto-Lei n.º 24/2014."
+            },
+            {
+                "n": "02",
+                "title": "Como devolver",
+                "body": "Notifica-nos da intenção de devolução por email (reddunesolutions@gmail.com) ou WhatsApp. Embala o produto na embalagem original, com todos os acessórios. Tens 14 dias adicionais para o entregar ou enviar de volta."
+            },
+            {
+                "n": "03",
+                "title": "Estado do produto",
+                "body": "O produto deve estar em condição idêntica à da entrega: sem sinais de uso, com todos os acessórios, manuais e embalagem original. Software instalado, ativações de licença e personalizações irreversíveis podem afetar o valor do reembolso."
+            },
+            {
+                "n": "04",
+                "title": "Custos de devolução",
+                "body": "Os custos de envio de devolução são da responsabilidade do cliente, salvo se o produto estiver defeituoso ou em desconformidade — caso em que assumimos o custo de recolha."
+            },
+            {
+                "n": "05",
+                "title": "Reembolso",
+                "body": "Reembolsamos a totalidade do valor pago (incluindo portes originais) através do mesmo método de pagamento, em até <strong>14 dias</strong> após receção do produto e validação do seu estado."
+            },
+            {
+                "n": "06",
+                "title": "Exceções",
+                "body": "Não são aceites devoluções de: produtos personalizados (builds por medida segundo especificação do cliente), software com licença ativada, produtos consumíveis abertos (cabos cortados à medida), e ofertas promocionais identificadas como não-reembolsáveis."
+            },
+            {
+                "n": "07",
+                "title": "Compras em loja",
+                "body": "Para compras presenciais (não à distância), aplicam-se as garantias legais previstas no DL 84/2021, mas não existe o direito de livre resolução automático — qualquer troca fica ao critério da RedDune Solutions."
+            }
+        ],
+        "closingTitle": "Tens uma devolução para tratar?",
+        "closingBody": "Contacta-nos por WhatsApp ou email para iniciar o processo. Resposta em 24h.",
+        "ctaContact": "Falar connosco"
     },
     "WarrantyPolicyPage": {
         "metaTitle": "Política de Garantia — RedDune Solutions | Equipamentos Novos e Recondicionados",

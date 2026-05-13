@@ -339,8 +339,28 @@
     },
     "ShopPage": {
         "hero": {
-            "title": "Our Shop",
-            "description": "Discover our computers, components and accessories. Contact us to purchase any product."
+            "eyebrow": "Shop · catalogue",
+            "title": "Equipment <accent>and parts</accent> with our seal.",
+            "description": "Filter, search and find what you need. Each product has its state clearly shown — new, refurbished or used — and can be enquired about via WhatsApp or form."
+        },
+        "warranty": {
+            "eyebrow": "Shop warranty",
+            "title": "Shopping with <accent>peace of mind</accent>.",
+            "statNew": {
+                "label": "Warranty",
+                "sub": "new products · DL 84/2021"
+            },
+            "statRefurb": {
+                "label": "Warranty",
+                "sub": "refurbished products"
+            },
+            "statReturn": {
+                "label": "Return",
+                "sub": "distance sales"
+            },
+            "policiesNote": "Read the details in our <em>official policies</em>.",
+            "policyWarrantyCta": "Warranty policy",
+            "policyReturnCta": "Return policy"
         },
         "categories": {
             "all": "All",
@@ -371,12 +391,14 @@
         "home": "Home",
         "contact": "Contact",
         "warrantyPolicy": "Warranty Policy",
+        "returnPolicy": "Return Policy",
         "privacyPolicy": "Privacy Policy"
     },
     "Footer": {
         "rights": "All rights reserved.",
         "contactButton": "Contacts",
         "warrantyPolicy": "Warranty Policy",
+        "returnPolicy": "Return Policy",
         "privacyPolicy": "Privacy Policy",
         "tagline": "Computer repair, web development and data recovery in Fuseta, Algarve. Personalised service for individuals and businesses.",
         "address": "Fuseta · Algarve · Portugal",
@@ -384,6 +406,53 @@
         "col2Title": "Contact",
         "col3Title": "Legal",
         "copyMicrocopy": "Technology solutions in the Algarve"
+    },
+    "ReturnPolicyPage": {
+        "metaTitle": "Return Policy — RedDune Solutions | 14-day distance sales return",
+        "metaDescription": "Right of withdrawal on distance sales — 14 days, no questions asked. According to Portuguese Decree-Law no. 24/2014.",
+        "eyebrow": "Shop · policies",
+        "title": "Return <em>policy</em>.",
+        "subtitle": "Right of withdrawal on distance sales — 14 days, no questions asked.",
+        "sections": [
+            {
+                "n": "01",
+                "title": "Right of withdrawal",
+                "body": "For purchases made remotely (online, WhatsApp, email), you have <strong>14 days</strong> from the delivery date to return the product without giving a reason, in accordance with Portuguese Decree-Law no. 24/2014."
+            },
+            {
+                "n": "02",
+                "title": "How to return",
+                "body": "Notify us of your intention to return by email (reddunesolutions@gmail.com) or WhatsApp. Pack the product in its original packaging, with all accessories. You have a further 14 days to drop it off or send it back."
+            },
+            {
+                "n": "03",
+                "title": "Condition of the product",
+                "body": "The product must be in the same condition as delivered: no signs of use, with all accessories, manuals and original packaging. Installed software, activated licences and irreversible personalisations may affect the refund value."
+            },
+            {
+                "n": "04",
+                "title": "Return costs",
+                "body": "Return shipping costs are the customer's responsibility, except if the product is defective or non-conforming — in which case we cover the collection cost."
+            },
+            {
+                "n": "05",
+                "title": "Refund",
+                "body": "We refund the full amount paid (including original shipping) through the same payment method, within <strong>14 days</strong> of receiving the product and validating its condition."
+            },
+            {
+                "n": "06",
+                "title": "Exceptions",
+                "body": "We do not accept returns of: bespoke products (custom builds to client spec), software with an activated licence, opened consumable products (cables cut to size), and promotional offers identified as non-refundable."
+            },
+            {
+                "n": "07",
+                "title": "In-store purchases",
+                "body": "For in-store (non-distance) purchases, the legal warranties under DL 84/2021 apply, but there is no automatic right of withdrawal — any exchange is at RedDune Solutions's discretion."
+            }
+        ],
+        "closingTitle": "Got a return to process?",
+        "closingBody": "Contact us via WhatsApp or email to get started. Reply within 24h.",
+        "ctaContact": "Talk to us"
     },
     "WarrantyPolicyPage": {
         "metaTitle": "Warranty Policy — RedDune Solutions | New and Refurbished Equipment",

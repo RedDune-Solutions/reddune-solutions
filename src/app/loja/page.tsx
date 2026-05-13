@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { ShopHero } from "@/components/sections/shop/ShopHero";
+import { PageHero } from "@/components/sections/PageHero";
 import { ProductGrid } from "@/components/sections/shop/ProductGrid";
+import { Reveal } from "@/components/motion/Reveal";
 import { getAllProducts } from "@/lib/mongodb/products";
-import { getLocale } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -44,19 +48,164 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+function ShopHeroSection() {
+  const t = useTranslations("ShopPage.hero");
+  return (
+    <PageHero
+      eyebrow={t.has("eyebrow") ? t("eyebrow") : "Loja · catálogo"}
+      title={t.rich("title", {
+        accent: (chunks) => <em>{chunks}</em>,
+      })}
+      description={t("description")}
+    />
+  );
+}
+
+function WarrantyStrip() {
+  const t = useTranslations("ShopPage.warranty");
+  return (
+    <section className="relative mx-auto w-full max-w-content px-8 py-16 md:py-24">
+      <Reveal>
+        <span
+          className={cn(
+            "inline-flex items-center gap-[10px]",
+            "rounded-btn border border-ember/20 bg-ember/[0.08]",
+            "px-[14px] py-[6px] mb-7",
+            "font-mono text-[11px] uppercase tracking-[0.2em] text-ember",
+          )}
+        >
+          <span aria-hidden="true" className="block h-1.5 w-1.5 rounded-sm bg-ember" />
+          {t("eyebrow")}
+        </span>
+      </Reveal>
+      <Reveal>
+        <h2
+          className={cn(
+            "font-display font-bold text-ink max-w-[1000px] mb-10",
+            "text-[clamp(32px,4.8vw,68px)] leading-[1.05] tracking-[-0.03em]",
+            "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
+          )}
+        >
+          {t.rich("title", {
+            accent: (chunks) => <em>{chunks}</em>,
+          })}
+        </h2>
+      </Reveal>
+
+      <Reveal>
+        <div
+          className={cn(
+            "relative grid gap-8 overflow-hidden",
+            "grid-cols-1 md:grid-cols-3",
+            "rounded-card bg-ink text-cream",
+            "px-10 py-[60px]",
+          )}
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-24 -right-36 z-0 h-[500px] w-[500px] rounded-full opacity-40"
+            style={{
+              background:
+                "radial-gradient(circle, var(--ember), transparent 60%)",
+              animation: "glow 5s ease-in-out infinite",
+            }}
+          />
+          {[
+            { v: "3", unit: "anos", label: t("statNew.label"), sub: t("statNew.sub") },
+            { v: "6", unit: "meses", label: t("statRefurb.label"), sub: t("statRefurb.sub") },
+            { v: "14", unit: "dias", label: t("statReturn.label"), sub: t("statReturn.sub") },
+          ].map((cell) => (
+            <div key={cell.label} className="relative z-[1]">
+              <div
+                className={cn(
+                  "font-display font-bold tracking-[-0.03em]",
+                  "text-[clamp(48px,5.5vw,80px)] leading-[0.95]",
+                  "bg-clip-text text-transparent",
+                )}
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, var(--cream) 0%, var(--apricot) 70%, var(--ember) 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                {cell.v}
+                <small className="ml-1 text-[0.4em] font-mono text-apricot align-baseline">
+                  {cell.unit}
+                </small>
+              </div>
+              <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.18em] text-apricot">
+                {cell.label}
+              </div>
+              <div className="mt-2 text-sm text-cream-deep">{cell.sub}</div>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+
+      <Reveal>
+        <div
+          className={cn(
+            "mt-8 grid items-center gap-6",
+            "grid-cols-1 md:grid-cols-[1fr_auto]",
+            "rounded-card bg-sand-warm/70",
+            "px-8 py-6",
+          )}
+        >
+          <p
+            className={cn(
+              "text-[15px] md:text-[16px] leading-[1.55] text-ink-soft",
+              "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
+            )}
+          >
+            {t.rich("policiesNote", {
+              em: (chunks) => <em>{chunks}</em>,
+            })}
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/loja/politica-garantia?from=shop"
+              className={cn(
+                "inline-flex items-center gap-2 rounded-btn",
+                "bg-ink text-cream px-5 py-3",
+                "font-mono text-[12px] uppercase tracking-[0.12em]",
+                "transition-colors duration-300 hover:bg-ember",
+              )}
+            >
+              {t("policyWarrantyCta")}
+              <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              href="/loja/politica-devolucao?from=shop"
+              className={cn(
+                "inline-flex items-center gap-2 rounded-btn",
+                "border border-dune-deep/15 bg-white/60 px-5 py-3",
+                "font-mono text-[12px] uppercase tracking-[0.12em] text-ink",
+                "transition-colors duration-300 hover:border-ember hover:text-ember",
+              )}
+            >
+              {t("policyReturnCta")}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 export default async function ShopPage() {
   const products = await getAllProducts();
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow">
-        <ShopHero />
-        <section className="py-12 md:py-20 bg-secondary/50">
-          <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <ProductGrid products={products} />
-          </div>
+      <main id="main" className="flex-grow">
+        <ShopHeroSection />
+        <section className="pb-16">
+          <ProductGrid products={products} />
         </section>
+        <WarrantyStrip />
       </main>
       <Footer />
     </div>

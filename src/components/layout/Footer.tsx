@@ -38,6 +38,7 @@ export function Footer() {
   const contactHref =
     origin === "home" ? "/contacto" : `/contacto?from=${origin}`;
   const warrantyHref = `/loja/politica-garantia?from=${origin}`;
+  const returnHref = `/loja/politica-devolucao?from=${origin}`;
   const privacyHref = `/politica-privacidade?from=${origin}`;
   const year = new Date().getFullYear();
 
@@ -171,6 +172,11 @@ export function Footer() {
               <li>
                 <FooterLink href={warrantyHref}>
                   {t("warrantyPolicy")}
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href={returnHref}>
+                  {t.has("returnPolicy") ? t("returnPolicy") : "Política de Devolução"}
                 </FooterLink>
               </li>
             </ul>
