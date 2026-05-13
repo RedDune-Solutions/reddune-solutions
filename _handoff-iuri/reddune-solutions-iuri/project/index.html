@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RedDune Solutions — Direções</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #18100a;
+    --bg-2: #251609;
+    --ink: #f4ead4;
+    --ink-dim: #b8a584;
+    --ink-mute: #7d6553;
+    --ember: #d6332a;
+    --flame: #ff5a3c;
+    --sand: #ede0c8;
+    --line: rgba(244, 234, 212, 0.16);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body {
+    font-family: 'Manrope', sans-serif;
+    min-height: 100vh;
+    padding: 40px;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(214,51,42,0.18), transparent 40%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,90,60,0.12), transparent 40%),
+      var(--bg);
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1;
+    opacity: 0.16; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.8  0 0 0 0 0.6  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .wrap { max-width: 1600px; margin: 0 auto; position: relative; z-index: 2; }
+  header.top {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 60px;
+  }
+  header img.logo { height: 36px; filter: brightness(1.2) drop-shadow(0 0 16px rgba(214,51,42,0.35)); }
+  header .meta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    text-align: center;
+  }
+  header .meta b { color: var(--ember); font-weight: 500; }
+  header .status {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-align: right;
+  }
+  header .status .dot { display: inline-block; width: 8px; height: 8px; background: var(--ember); border-radius: 50%; vertical-align: middle; margin-right: 8px; animation: p 1.5s infinite; }
+  @keyframes p { 0%,100%{box-shadow:0 0 0 0 rgba(214,51,42,0.7);} 50%{box-shadow:0 0 0 8px rgba(214,51,42,0);} }
+
+  h1.brief {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: clamp(48px, 6vw, 92px);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+    max-width: 1100px;
+  }
+  h1.brief i { font-style: italic; color: var(--ember); }
+  .brief-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    margin-bottom: 80px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .brief-meta div {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .brief-meta div b { display: block; color: var(--ink); font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 16px; margin-top: 6px; letter-spacing: 0; text-transform: none; }
+
+  .label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ember);
+    margin-bottom: 24px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1), border-color 0.4s;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-6px); border-color: var(--ember); }
+  .card .preview {
+    aspect-ratio: 16/10;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .card .preview iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 1600px; height: 1000px;
+    transform: scale(0.4375);
+    transform-origin: top left;
+    border: 0;
+    pointer-events: none;
+  }
+  .card .preview::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.5));
+    pointer-events: none;
+  }
+  .card .body {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .card .ord {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--ember);
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+  }
+  .card h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(32px, 3.4vw, 52px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+  .card h2 em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--ember);
+    font-weight: 400;
+    text-transform: lowercase;
+  }
+  .card p {
+    color: var(--ink-dim);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 540px;
+  }
+  .card .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .card .tags span {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+  }
+  .card .go {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 24px;
+    background: var(--ember);
+    color: var(--bg);
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 100px;
+    align-self: flex-start;
+    transition: background 0.3s;
+  }
+  .card:hover .go { background: var(--flame); }
+
+  .card.b {
+    background: var(--sand);
+    color: #1a0b08;
+    border-color: var(--sand);
+  }
+  .card.b .preview { border-color: rgba(26,11,8,0.18); }
+  .card.b h2 { color: #1a0b08; }
+  .card.b p { color: #3d2920; }
+  .card.b .ord, .card.b h2 em { color: #c1311c; }
+  .card.b .tags span { color: #3d2920; border-color: rgba(26,11,8,0.2); }
+  .card.b .go { background: #1a0b08; color: var(--sand); }
+  .card.b:hover .go { background: #c1311c; }
+
+  .card.c {
+    background: #f7eedb;
+    color: #2a1410;
+    border-color: #f7eedb;
+  }
+  .card.c .preview { border-color: rgba(42,20,16,0.16); }
+  .card.c h2 { color: #2a1410; }
+  .card.c p { color: #4d2d22; }
+  .card.c .ord, .card.c h2 em { color: #d6422a; }
+  .card.c .tags span { color: #4d2d22; border-color: rgba(42,20,16,0.18); }
+  .card.c .go { background: #2a1410; color: #f7eedb; }
+  .card.c:hover .go { background: #d6422a; }
+  .card.c.featured { grid-column: span 1; outline: 2px solid var(--ember); outline-offset: -2px; }
+  .card .badge-new {
+    position: absolute;
+    top: 14px; right: 14px;
+    z-index: 4;
+    background: var(--ember);
+    color: var(--bg);
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 5px 10px;
+    border-radius: 100px;
+    font-weight: 600;
+  }
+
+  footer.foot {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  footer .next b { color: var(--ember); font-weight: 500; }
+
+  @media (max-width: 1200px) { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr; }
+    .brief-meta { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <img src="assets/logo.png" alt="RedDune Solutions" class="logo" />
+    <div class="meta">RedDune Solutions <b>·</b> website redesign <b>·</b> v.0.1 — Maio 2026</div>
+    <div class="status"><span class="dot"></span> 3 direções para revisão</div>
+  </header>
+
+  <div class="label">/ brief</div>
+  <h1 class="brief">Website com animações <i>avançadas</i>, B2C — três direções estéticas para escolher.</h1>
+  <div class="brief-meta">
+    <div>Cliente<b>RedDune Solutions</b></div>
+    <div>Público<b>Consumidor final · B2C</b></div>
+    <div>Direção estética<b>Quente / desértica</b></div>
+    <div>Nível de animação<b>10 / 10</b></div>
+  </div>
+
+  <div class="label">/ direções</div>
+
+  <div class="cards">
+    <a href="directions/inferno-dunes.html" class="card a">
+      <div class="preview">
+        <iframe src="directions/inferno-dunes.html" loading="lazy"></iframe>
+      </div>
+      <div class="body">
+        <div class="ord"><span>Direção A</span><span>cinematic · dark</span></div>
+        <h2>Inferno <em>Dunes</em></h2>
+        <p>Hero cinematográfico com dunas em camadas paralaxe, sol pulsante, partículas de areia, cursor personalizado com glow ember, marquee gigante, contadores animados e reveals em scroll. Vibe Linear/Vercel mas com calor desértico — fundo quase preto e acentos crimson.</p>
+        <div class="tags">
+          <span>Archivo Black</span><span>Instrument Serif</span><span>Geist Mono</span>
+          <span>Custom cursor</span><span>Particles</span><span>SVG parallax</span><span>Grain overlay</span>
+        </div>
+        <span class="go">Abrir direção A <span>→</span></span>
+      </div>
+    </a>
+
+    <a href="directions/oasis.html" class="card c featured">
+      <span class="badge-new">NEW · recommended</span>
+      <div class="preview">
+        <iframe src="directions/oasis.html" loading="lazy"></iframe>
+      </div>
+      <div class="body">
+        <div class="ord"><span>Direção C</span><span>natural · organic</span></div>
+        <h2>O<em>asis</em></h2>
+        <p>Mais natural e respirado. Formas curvas, gradientes quentes, cards arredondados, sem grelha rígida. Usa o teu conteúdo real (Fuseta · Algarve · 3 serviços) e mantém as animações: dunas SVG que morfam, paralaxe do rato, sparks flutuantes, contadores e reveals.</p>
+        <div class="tags">
+          <span>Bricolage Grotesque</span><span>Newsreader italic</span><span>DM Sans</span>
+          <span>SVG morph</span><span>Mouse parallax</span><span>Soft shadows</span><span>Fuseta · Algarve</span>
+        </div>
+        <span class="go">Abrir direção C <span>→</span></span>
+      </div>
+    </a>
+
+    <a href="directions/sandstone.html" class="card b">
+      <div class="preview">
+        <iframe src="directions/sandstone.html" loading="lazy"></iframe>
+      </div>
+      <div class="body">
+        <div class="ord"><span>Direção B</span><span>editorial · light</span></div>
+        <h2>Sand<em>stone</em></h2>
+        <p>Layout magazine assimétrico em tons de areia clara, tipografia editorial com grande Instrument Serif itálico, marquee crimson invertido, timeline horizontal do processo, pull quote, dropcap. Profissional, refinado, com micro-interações em vez de espetáculo — funciona como uma revista de design.</p>
+        <div class="tags">
+          <span>Instrument Serif</span><span>Manrope</span><span>Geist Mono</span>
+          <span>Editorial grid</span><span>Hover invert</span><span>Dropcap</span><span>Paper grain</span>
+        </div>
+        <span class="go">Abrir direção B <span>→</span></span>
+      </div>
+    </a>
+  </div>
+
+  <footer class="foot">
+    <span>RedDune Solutions · website redesign</span>
+    <span class="next">Próximo: <b>escolher direção</b> · iterar copy · adicionar páginas internas</span>
+  </footer>
+
+</div>
+</body>
+</html>

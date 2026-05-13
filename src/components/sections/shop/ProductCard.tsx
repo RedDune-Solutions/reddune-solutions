@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ImageOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { ImageOff, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
@@ -185,7 +185,7 @@ export function ProductCard({ product, locale }: Props) {
             )}
             aria-label={t("contactButton")}
           >
-            <span aria-hidden="true">→</span>
+            <ArrowRight className="size-[15px]" strokeWidth={2.25} aria-hidden />
           </Link>
         </div>
       </div>

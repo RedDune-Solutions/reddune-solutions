@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
@@ -174,7 +175,11 @@ function WarrantyStrip() {
               )}
             >
               {t("policyWarrantyCta")}
-              <span aria-hidden="true">→</span>
+              <ArrowRight
+                className="size-[14px] shrink-0"
+                strokeWidth={2.25}
+                aria-hidden
+              />
             </Link>
             <Link
               href="/loja/politica-devolucao?from=shop"
@@ -186,7 +191,11 @@ function WarrantyStrip() {
               )}
             >
               {t("policyReturnCta")}
-              <span aria-hidden="true">→</span>
+              <ArrowRight
+                className="size-[14px] shrink-0"
+                strokeWidth={2.25}
+                aria-hidden
+              />
             </Link>
           </div>
         </div>

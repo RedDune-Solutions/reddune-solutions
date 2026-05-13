@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
@@ -220,10 +221,10 @@ function ServicoCTA({ content }: { content: ServiceContent }) {
               >
                 {content.cta.primary}
                 <span
-                  aria-hidden="true"
+                  aria-hidden
                   className="inline-block transition-transform duration-300 group-hover:rotate-[-45deg]"
                 >
-                  →
+                  <ArrowRight className="size-[18px]" strokeWidth={2.25} />
                 </span>
               </WhatsappLink>
               <Link
@@ -494,7 +495,11 @@ export default async function ServicoSlugPage({ params }: PageProps) {
                 )}
               >
                 {content.items.noteCta}
-                <span aria-hidden="true">→</span>
+                <ArrowRight
+                  className="size-[15px] shrink-0"
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
               </WhatsappLink>
             </div>
           </Reveal>

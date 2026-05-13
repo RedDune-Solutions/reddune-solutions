@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, CalendarClock, Clock, type LucideIcon } from "lucide-react";
+import { AlertCircle, CalendarClock, Clock, ArrowRight, type LucideIcon } from "lucide-react";
 import { TarefaCard } from "./TarefaCard";
 import {
   isOverdue,
@@ -51,9 +51,10 @@ export function TodayWidget({ tarefas }: Props) {
         </div>
         <Link
           href="/painel/calendario"
-          className="text-xs font-medium text-ember hover:underline underline-offset-4"
+          className="inline-flex items-center gap-1 text-xs font-medium text-ember hover:underline underline-offset-4"
         >
-          Ver calendário →
+          Ver calendário
+          <ArrowRight className="size-3 shrink-0" strokeWidth={2.25} aria-hidden />
         </Link>
       </div>
 

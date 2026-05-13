@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { ShopFilters, type CategoryValue, type ConditionValue } from "./ShopFilters";
 import { ProductCard } from "./ProductCard";
@@ -153,7 +154,11 @@ function ShopEmptyState({ filtering }: { filtering: boolean }) {
             )}
           >
             Pedir produto
-            <span aria-hidden="true">→</span>
+            <ArrowRight
+              className="size-[15px] shrink-0"
+              strokeWidth={2.25}
+              aria-hidden
+            />
           </a>
           <Link
             href="/contacto?from=shop"

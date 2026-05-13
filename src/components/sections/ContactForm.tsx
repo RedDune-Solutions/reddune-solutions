@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -203,15 +203,15 @@ export function ContactForm() {
           )}
           {isLoading ? t("form.submitButtonLoading") : t("form.submitButton")}
           <span
-            aria-hidden="true"
+            aria-hidden
             className={cn(
               "inline-flex h-7 w-7 items-center justify-center",
-              "rounded-full bg-cream text-ink text-base leading-none",
+              "rounded-full bg-cream text-ink",
               "transition-transform duration-300",
               "group-hover:rotate-[-45deg]",
             )}
           >
-            →
+            <ArrowRight className="size-[15px]" strokeWidth={2.25} />
           </span>
         </button>
       </div>

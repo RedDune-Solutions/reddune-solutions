@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DuneBackground } from "@/components/motion/DuneBackground";
 import { Sun } from "@/components/motion/Sun";
@@ -12,9 +13,8 @@ import { cn } from "@/lib/utils";
  * `design-handoff/project/site/index.html` (lines 24-51) + the matching CSS
  * blocks in `design-handoff/project/site/styles.css`.
  *
- * Structure:
+ * Structure (Iuri `site/index.html` — no kicker above title):
  *   • <DuneBackground/> + <Sun/> + <Sparks/> compose the scene
- *   • Hero-kicker pill (Geist Mono, ember pulse dot)
  *   • 3-row title (rise animation per row, "certa" wrapped in Newsreader em)
  *   • Body subtitle (fadeUp)
  *   • CTA row: primary (ink → cream) + ghost (cream/translucent)
@@ -44,20 +44,6 @@ export function Hero() {
       </div>
 
       <div className="relative z-[5] mx-auto w-full max-w-content text-center">
-        {/* Kicker pill */}
-        <div
-          className={cn(
-            "hero-kicker inline-flex items-center gap-[10px]",
-            "px-4 py-2 mb-9",
-            "rounded-btn border border-dune-deep/10",
-            "bg-white/50 backdrop-blur",
-            "font-mono text-[11px] uppercase tracking-[0.15em] text-ink-soft",
-          )}
-        >
-          <span className="pulse" aria-hidden="true" />
-          {t("eyebrow")}
-        </div>
-
         {/* Title — 3 rows, each animates rise from below */}
         <h1
           className={cn(
@@ -117,12 +103,12 @@ export function Hero() {
               aria-hidden="true"
               className={cn(
                 "inline-flex h-7 w-7 items-center justify-center rounded-full",
-                "bg-cream text-ink text-base leading-none",
+                "bg-cream text-ink",
                 "transition-transform duration-300 ease-oasis",
                 "group-hover:rotate-[-45deg]",
               )}
             >
-              →
+              <ArrowRight className="size-[15px]" strokeWidth={2.25} />
             </span>
           </Link>
           <Link

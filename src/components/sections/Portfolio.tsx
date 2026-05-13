@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
@@ -120,15 +121,16 @@ function PortfolioCard({
           {tag}
         </p>
         <span
-          aria-hidden="true"
+          aria-hidden
           className={cn(
-            "mt-3.5 inline-flex items-center gap-2",
+            "mt-3.5 inline-flex items-center gap-1.5",
             "font-mono text-[11px] uppercase tracking-[0.15em] text-apricot",
             "opacity-0 translate-y-3 transition-all duration-500 ease-oasis",
             "group-hover:opacity-100 group-hover:translate-y-0",
           )}
         >
-          Ver projeto →
+          Ver projeto
+          <ArrowRight className="size-3 shrink-0" strokeWidth={2.25} />
         </span>
       </div>
     </Link>
@@ -221,7 +223,11 @@ export function Portfolio({ items }: Props) {
             {t.has("seeAllPortfolioCta")
               ? t("seeAllPortfolioCta")
               : "Ver portfólio completo"}
-            <span aria-hidden="true">→</span>
+            <ArrowRight
+              className="size-[14px] shrink-0"
+              strokeWidth={2.25}
+              aria-hidden
+            />
           </Link>
         </div>
       </Reveal>

@@ -93,7 +93,9 @@ export function About() {
                   "font-mono text-[11px] uppercase tracking-[0.15em] opacity-85",
                 )}
               >
-                37.0556°N · 7.7445°W · Fuseta, PT
+                {t.has("coordinates")
+                  ? t("coordinates")
+                  : "37.0556°N · 7.7445°W · Fuseta, PT"}
               </div>
             </div>
           </div>

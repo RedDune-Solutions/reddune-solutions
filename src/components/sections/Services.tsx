@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ type ServiceConfig = {
 const SERVICES: ReadonlyArray<ServiceConfig> = [
   {
     key: "tecAssist",
-    href: "/servicos",
+    href: "/servicos/assistencia-tecnica",
     gradientId: "svc-g1",
     visual: (
       <svg
@@ -77,7 +78,7 @@ const SERVICES: ReadonlyArray<ServiceConfig> = [
   },
   {
     key: "webDigital",
-    href: "/servicos",
+    href: "/servicos/web-digital",
     gradientId: "svc-g2",
     visual: (
       <svg
@@ -104,7 +105,7 @@ const SERVICES: ReadonlyArray<ServiceConfig> = [
   },
   {
     key: "dataRecovery",
-    href: "/servicos",
+    href: "/servicos/software-recuperacao",
     gradientId: "svc-g3",
     visual: (
       <svg
@@ -242,7 +243,7 @@ export function Services() {
                 )}
               >
                 <span
-                  aria-hidden="true"
+                  aria-hidden
                   className={cn(
                     "inline-flex h-[38px] w-[38px] items-center justify-center",
                     "rounded-full bg-ink text-cream",
@@ -250,7 +251,7 @@ export function Services() {
                     "group-hover:bg-ember group-hover:rotate-[-45deg]",
                   )}
                 >
-                  →
+                  <ArrowRight className="size-[17px]" strokeWidth={2.25} />
                 </span>
               </div>
             </Link>

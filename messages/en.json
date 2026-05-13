@@ -28,13 +28,39 @@
                 "Individuals",
                 "Businesses",
                 "Anyone with a problem"
-            ],
-            "stats": [
-                { "value": "10+", "label": "Years of experience" },
-                { "value": "100+", "label": "Projects delivered" },
-                { "value": "24h", "label": "Response time" },
-                { "value": "3", "label": "Years of warranty" }
             ]
+        },
+        "StatsRow": {
+            "items": [
+                {
+                    "kind": "counter",
+                    "countTo": 3,
+                    "label": "Service areas",
+                    "sub": "technical · web · software"
+                },
+                {
+                    "kind": "text",
+                    "headline": "International",
+                    "label": "Where we work",
+                    "sub": "in-person · remote"
+                },
+                {
+                    "kind": "text",
+                    "headline": "Fuseta",
+                    "label": "Base",
+                    "sub": "37.05°N · 7.74°W"
+                },
+                {
+                    "kind": "split",
+                    "headline": "B2C",
+                    "headlineSuffix": "/B2B",
+                    "label": "Who we work with",
+                    "sub": "individuals and businesses"
+                }
+            ]
+        },
+        "BigMark": {
+            "phrase": "Oasis<accent>·</accent>of solutions"
         },
         "Process": {
             "eyebrow": "How we work",
@@ -100,10 +126,11 @@
         },
         "AboutUsSection": {
             "eyebrow": "About us",
-            "badge": "Fuseta · Algarve",
+            "badge": "📍 Fuseta · Algarve",
+            "coordinates": "37.0556°N · 7.7445°W · Fuseta, PT",
             "placeLabel": "Our home.",
             "title": "Technology and <accent>digital innovation</accent> — with feet planted in the sand.",
-            "description": "<strong>RedDune Solutions</strong> is a technology and digital innovation company, focused on providing complete solutions for computer maintenance, electronic equipment repair, and modern, efficient websites.",
+            "description": "<strong>RedDune Solutions</strong> is a technology and digital innovation company, focused on providing complete solutions for computer maintenance, electronic equipment repair, and modern, efficient websites/apps.",
             "description2": "We combine <strong>technical knowledge, trust and commitment</strong> to ensure quality results tailored to each client's needs. Our goal is to simplify technology and help people and businesses make the most of the digital world.",
             "value1": "Trust",
             "value2": "Efficiency",
@@ -113,8 +140,7 @@
             "eyebrow": "Next step",
             "title": "<accent>Solutions</accent><br></br>for your problems.",
             "description": "Talk to us and we'll find the right solution. We're always available to help — in person in Fuseta or remotely anywhere in the country.",
-            "cta": "Get in touch",
-            "secondaryCta": "See services"
+            "cta": "Get in touch"
         },
         "ContactSection": {
             "eyebrow": "Reply within 24h · Fuseta, Algarve",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { useTranslations } from "next-intl";
+import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/sections/PageHero";
@@ -126,7 +127,11 @@ function InstagramNote() {
             )}
           >
             {t("instagramCta")}
-            <span aria-hidden="true">→</span>
+            <ArrowRight
+              className="size-[15px] shrink-0"
+              strokeWidth={2.25}
+              aria-hidden
+            />
           </a>
         </div>
       </Reveal>

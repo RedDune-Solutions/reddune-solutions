@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CalendarDays, User, ArrowUpRight } from "lucide-react";
+import { CalendarDays, User, ArrowUpRight, ArrowRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import type { TarefaPublic } from "@/types/tarefa";
 
@@ -47,8 +47,15 @@ export function TarefaCard({ tarefa, className }: Props) {
       </h3>
 
       {tarefa.proximaAccao && (
-        <p className="mt-2 text-sm text-ink-soft line-clamp-2 leading-relaxed">
-          → {tarefa.proximaAccao}
+        <p className="mt-2 text-sm text-ink-soft leading-relaxed">
+          <span className="inline-flex max-w-full items-start gap-1.5">
+            <ArrowRight
+              className="size-3.5 shrink-0 mt-0.5 text-ink-mute"
+              strokeWidth={2.25}
+              aria-hidden
+            />
+            <span className="min-w-0 line-clamp-2">{tarefa.proximaAccao}</span>
+          </span>
         </p>
       )}
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "../templates/language-switcher";
 
@@ -133,12 +134,12 @@ export function Header() {
           className="inline-flex items-center shrink-0"
         >
           <Image
-            src="/logo.png"
+            src="/logo-mark.png"
             alt="Reddune Solutions"
-            width={140}
+            width={40}
             height={40}
             priority
-            className="h-10 w-auto object-contain"
+            className="h-10 w-10 object-contain"
           />
         </Link>
 
@@ -186,16 +187,18 @@ export function Header() {
               className={cn(
                 "inline-flex items-center gap-2 rounded-btn",
                 "bg-ink text-cream px-5 py-2.5",
-                "text-[13px] font-semibold font-mono uppercase tracking-[0.04em]",
+                "text-[13px] font-medium font-mono uppercase tracking-[0.04em]",
                 "transition-all duration-300",
                 "hover:bg-ember hover:scale-[1.04]",
                 "focus-visible:bg-ember",
               )}
             >
               Contactar
-              <span aria-hidden="true" className="text-base leading-none">
-                →
-              </span>
+              <ArrowRight
+                className="size-[14px] shrink-0"
+                strokeWidth={2.25}
+                aria-hidden
+              />
             </Link>
           </div>
         )}
@@ -307,15 +310,17 @@ export function Header() {
               className={cn(
                 "mt-6 inline-flex items-center justify-center gap-3 rounded-btn",
                 "bg-ink text-cream px-7 py-4",
-                "text-base font-semibold font-mono uppercase tracking-[0.04em]",
+                "text-base font-medium font-mono uppercase tracking-[0.04em]",
                 "transition-colors duration-300",
                 "hover:bg-ember focus-visible:bg-ember",
               )}
             >
               Contactar
-              <span aria-hidden="true" className="text-lg leading-none">
-                →
-              </span>
+              <ArrowRight
+                className="size-[18px] shrink-0"
+                strokeWidth={2.25}
+                aria-hidden
+              />
             </Link>
           </div>
         </div>

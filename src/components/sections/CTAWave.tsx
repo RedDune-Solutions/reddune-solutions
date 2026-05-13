@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
+import { EMAIL } from "@/lib/constants";
 
 /**
  * CTAWave — Phase 4 Oasis closing CTA slab.
@@ -98,14 +100,14 @@ export function CTAWave() {
               >
                 {t("cta")}
                 <span
-                  aria-hidden="true"
+                  aria-hidden
                   className="inline-block transition-transform duration-300 group-hover:rotate-[-45deg]"
                 >
-                  →
+                  <ArrowRight className="size-[18px]" strokeWidth={2.25} />
                 </span>
               </Link>
-              <Link
-                href="/servicos"
+              <a
+                href={`mailto:${EMAIL}`}
                 className={cn(
                   "inline-flex items-center",
                   "rounded-btn border border-cream/40 bg-transparent",
@@ -115,8 +117,8 @@ export function CTAWave() {
                   "hover:bg-cream/10 hover:border-cream",
                 )}
               >
-                {t("secondaryCta")}
-              </Link>
+                {EMAIL}
+              </a>
             </div>
           </div>
         </div>

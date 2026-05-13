@@ -1,39 +1,59 @@
+"use client";
+
+import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Counter } from "@/components/motion/Counter";
 import { cn } from "@/lib/utils";
 
-/**
- * StatsRow — Phase 4 Oasis stats slab.
- *
- * Direct port of `.stats-row` from
- * `design-handoff/project/site/index.html` (lines 135-142) +
- * `design-handoff/project/site/styles.css` (lines 616-666).
- *
- * Ink-bg slab inside a section.block frame, 4 cells with an apricot/ember
- * gradient number plus a cream label. A radial `glow` halo pulses behind the
- * top-right corner (handled via the `.stats-glow` ::before utility).
- *
- * The numbers use <Counter/> for IntersectionObserver-driven count-up. Stat
- * value strings are parsed to a numeric `to` + textual `suffix` (e.g. "10+",
- * "24h", "3 anos") so the count animation still works for non-pure-numbers.
- */
+type StatCellBase = { label: string; sub: string };
 
-type Stat = { value: string; label: string };
+type StatCellJson =
+  | (StatCellBase & { kind: "counter"; countTo: number })
+  | (StatCellBase & { kind: "text"; headline: string })
+  | (StatCellBase & {
+      kind: "split";
+      headline: string;
+      headlineSuffix: string;
+    });
 
-// Split "10+", "24h", "3 anos" → { to: 10, suffix: "+" | "h" | " anos" }.
-// Returns to=null when no leading number — we render the raw string instead.
-function parseStat(value: string): { to: number | null; suffix: string } {
-  const match = value.trim().match(/^(\d+)(.*)$/);
-  if (!match) return { to: null, suffix: value };
-  return { to: parseInt(match[1], 10), suffix: match[2] };
+function isStatCell(v: unknown): v is StatCellJson {
+  if (!v || typeof v !== "object") return false;
+  const o = v as Record<string, unknown>;
+  if (typeof o.label !== "string" || typeof o.sub !== "string") return false;
+  if (o.kind === "counter")
+    return typeof o.countTo === "number";
+  if (o.kind === "text") return typeof o.headline === "string";
+  if (o.kind === "split")
+    return (
+      typeof o.headline === "string" && typeof o.headlineSuffix === "string"
+    );
+  return false;
 }
 
+/**
+ * Stats row — matches `.stats-row` / `.stat-cell` from Iuri `site/index.html`
+ * (four cells: animated count, geography, base, audience split).
+ */
 export function StatsRow() {
-  const t = useTranslations("HomePage.TrustStrip");
-  const statsRaw = t.raw("stats");
-  const stats = Array.isArray(statsRaw) ? (statsRaw as Stat[]) : [];
+  const t = useTranslations("HomePage.StatsRow");
+  const raw = t.raw("items");
+  const items = Array.isArray(raw)
+    ? (raw as unknown[]).filter(isStatCell)
+    : [];
 
-  if (stats.length === 0) return null;
+  if (items.length === 0) return null;
+
+  const gradientHeadline = cn(
+    "inline-block font-display font-bold tracking-[-0.03em]",
+    "text-[clamp(48px,5.5vw,80px)] leading-[0.95]",
+    "bg-clip-text text-transparent",
+  );
+  const gradientStyle: CSSProperties = {
+    backgroundImage:
+      "linear-gradient(135deg, var(--cream) 0%, var(--apricot) 70%, var(--ember) 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  };
 
   return (
     <section className="relative mx-auto w-full max-w-content px-8 py-[120px]">
@@ -45,7 +65,6 @@ export function StatsRow() {
           "px-12 py-[60px]",
         )}
       >
-        {/* Glow halo — animates via the `glow` keyframe in globals.css */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-24 -right-36 z-0 h-[500px] w-[500px] rounded-full opacity-40"
@@ -56,35 +75,46 @@ export function StatsRow() {
           }}
         />
 
-        {stats.map((stat) => {
-          const { to, suffix } = parseStat(stat.value);
-          return (
-            <div key={stat.label} className="relative z-[1]">
-              <div
-                className={cn(
-                  "font-display font-bold tracking-[-0.03em]",
-                  "text-[clamp(48px,5.5vw,80px)] leading-[0.95]",
-                  "bg-clip-text text-transparent",
-                )}
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, var(--cream) 0%, var(--apricot) 70%, var(--ember) 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {to !== null ? (
-                  <Counter to={to} suffix={suffix} />
-                ) : (
-                  stat.value
-                )}
-              </div>
-              <div className="mt-3 text-sm font-medium text-cream-deep">
-                {stat.label}
-              </div>
+        {items.map((cell, index) => (
+          <div key={`${cell.kind}-${index}`} className="relative z-[1]">
+            <div
+              className={cn(
+                cell.kind === "split" &&
+                  "flex flex-wrap items-baseline gap-0 font-display font-bold",
+              )}
+            >
+              {cell.kind === "counter" ? (
+                <span className={gradientHeadline} style={gradientStyle}>
+                  <Counter to={cell.countTo} />
+                </span>
+              ) : cell.kind === "split" ? (
+                <>
+                  <span className={gradientHeadline} style={gradientStyle}>
+                    {cell.headline}
+                  </span>
+                  <span className="font-display font-bold text-apricot text-[clamp(22px,3vw,44px)]">
+                    {cell.headlineSuffix}
+                  </span>
+                </>
+              ) : (
+                <span className={gradientHeadline} style={gradientStyle}>
+                  {cell.headline}
+                </span>
+              )}
             </div>
-          );
-        })}
+            <label className="mt-3 block text-sm font-medium text-cream-deep">
+              {cell.label}
+            </label>
+            <div
+              className={cn(
+                "mt-1.5 font-mono text-[11px] uppercase tracking-[0.15em]",
+                "text-ink-mute",
+              )}
+            >
+              {cell.sub}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
