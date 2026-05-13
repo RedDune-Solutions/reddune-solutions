@@ -15,6 +15,10 @@ const DUNE = "#a8201a";
 const EMBER = "#d6422a";
 const FLAME = "#ff6b3f";
 
+// Note: @vercel/og's Satori renderer only supports the following CSS
+// `display` values: `flex`, `block`, `none`, `-webkit-box`. All children
+// containers must set one explicitly (no implicit `inline-block`).
+
 export default async function OpenGraphImage() {
   return new ImageResponse(
     (
@@ -68,7 +72,6 @@ export default async function OpenGraphImage() {
             display: "flex",
             alignItems: "center",
             gap: 14,
-            zIndex: 2,
             fontSize: 18,
             letterSpacing: 6,
             textTransform: "uppercase",
@@ -76,16 +79,16 @@ export default async function OpenGraphImage() {
             color: INK,
           }}
         >
-          <span
+          <div
             style={{
-              display: "inline-block",
+              display: "flex",
               width: 10,
               height: 10,
               background: DUNE,
               borderRadius: 2,
             }}
           />
-          Reddune Solutions
+          <div style={{ display: "flex" }}>Reddune Solutions</div>
         </div>
 
         {/* Main title block */}
@@ -93,7 +96,6 @@ export default async function OpenGraphImage() {
           style={{
             display: "flex",
             flexDirection: "column",
-            zIndex: 2,
             maxWidth: 920,
           }}
         >
@@ -109,11 +111,11 @@ export default async function OpenGraphImage() {
               gap: "0 20px",
             }}
           >
-            <span>A</span>
-            <span style={{ fontStyle: "italic", fontWeight: 500, color: DUNE }}>
+            <div style={{ display: "flex" }}>A</div>
+            <div style={{ display: "flex", fontStyle: "italic", fontWeight: 500, color: DUNE }}>
               resposta
-            </span>
-            <span>certa.</span>
+            </div>
+            <div style={{ display: "flex" }}>certa.</div>
           </div>
           <div
             style={{
@@ -135,7 +137,6 @@ export default async function OpenGraphImage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            zIndex: 2,
             fontSize: 18,
             letterSpacing: 4,
             textTransform: "uppercase",
@@ -143,8 +144,8 @@ export default async function OpenGraphImage() {
             fontWeight: 600,
           }}
         >
-          <span style={{ display: "flex" }}>Fuseta · Algarve</span>
-          <span style={{ display: "flex", color: DUNE }}>reddune.solutions</span>
+          <div style={{ display: "flex" }}>Fuseta · Algarve</div>
+          <div style={{ display: "flex", color: DUNE }}>reddune.solutions</div>
         </div>
       </div>
     ),
