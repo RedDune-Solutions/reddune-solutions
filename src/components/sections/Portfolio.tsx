@@ -210,16 +210,16 @@ export function Portfolio({ items }: Props) {
       <Reveal>
         <div className="mt-12 text-center">
           <Link
-            href="/contacto?from=home"
+            href="/portfolio"
             className={cn(
               "inline-flex items-center gap-2",
               "font-mono text-[13px] uppercase tracking-[0.18em] text-ember",
               "transition-colors duration-300 hover:text-dune",
             )}
           >
-            {t.has("fullPortfolioCta")
-              ? t("fullPortfolioCta")
-              : "Conversar sobre o teu projeto"}
+            {t.has("seeAllPortfolioCta")
+              ? t("seeAllPortfolioCta")
+              : "Ver portfólio completo"}
             <span aria-hidden="true">→</span>
           </Link>
         </div>

@@ -9,6 +9,7 @@
     "Navigation": {
         "home": "Home",
         "services": "Services",
+        "portfolio": "Portfolio",
         "shop": "Shop"
     },
     "HomePage": {
@@ -90,6 +91,7 @@
             "description": "Selected cases from our three areas — from computers built piece by piece to websites delivered in under a week.",
             "emptyState": "Coming soon.",
             "fullPortfolioCta": "Talk about your project",
+            "seeAllPortfolioCta": "View full portfolio",
             "cards" : {
                 "portfolioCard-1": "Computer Building",
                 "portfolioCard-2": "Website Development",
@@ -149,6 +151,32 @@
                 "errorDescription": "An error occurred while sending your message. Please try again later."
             }
         }
+    },
+    "PortfolioPage": {
+        "meta": {
+            "title": "Portfolio — RedDune Solutions | Algarve",
+            "description": "Selected cases — repairs, builds, websites and recoveries by RedDune Solutions in Fuseta, Algarve."
+        },
+        "hero": {
+            "eyebrow": "Projects · 3 areas",
+            "title": "Work <accent>done</accent> with care.",
+            "lead": "A selection of the projects that best represent what we do. Hardware, software and web — all in one place."
+        },
+        "intro": {
+            "eyebrow": "Selected cases",
+            "title": "A glimpse into our <accent>portfolio</accent>.",
+            "lead": "From an almost unrecoverable laptop to an e-commerce earning revenue in its first month. Small wins and serious projects."
+        },
+        "filters": {
+            "all": "All",
+            "hardware": "Hardware",
+            "web": "Web",
+            "diagnostico": "Diagnosis"
+        },
+        "emptyState": "Coming soon — we're updating the portfolio.",
+        "instagramNote": "See more on our <em>Instagram</em> — new projects almost every week.",
+        "instagramCta": "@reddune_solutions",
+        "fallbackTags": ["Hardware", "Web", "Diagnosis"]
     },
     "ServicosPage": {
         "hub": {
@@ -352,7 +380,7 @@
         "privacyPolicy": "Privacy Policy",
         "tagline": "Computer repair, web development and data recovery in Fuseta, Algarve. Personalised service for individuals and businesses.",
         "address": "Fuseta · Algarve · Portugal",
-        "col1Title": "Services",
+        "col1Title": "Navigation",
         "col2Title": "Contact",
         "col3Title": "Legal",
         "copyMicrocopy": "Technology solutions in the Algarve"

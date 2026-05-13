@@ -57,6 +57,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/servicos", label: t("services") },
+    { href: "/portfolio", label: t.has("portfolio") ? t("portfolio") : "Portfólio" },
     { href: "/loja", label: t("shop") },
   ];
 

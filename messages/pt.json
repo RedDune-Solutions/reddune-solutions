@@ -9,6 +9,7 @@
     "Navigation": {
         "home": "Início",
         "services": "Serviços",
+        "portfolio": "Portfólio",
         "shop": "Loja"
     },
     "HomePage": {
@@ -90,6 +91,7 @@
             "description": "Casos selecionados das nossas três áreas — desde computadores construídos peça a peça a websites entregues em menos de uma semana.",
             "emptyState": "Brevemente disponível.",
             "fullPortfolioCta": "Conversar sobre o teu projeto",
+            "seeAllPortfolioCta": "Ver portfólio completo",
             "cards" : {
                 "portfolioCard-1": "Construção de computadores",
                 "portfolioCard-2": "Desenvolvimento de website",
@@ -149,6 +151,32 @@
                 "errorDescription": "Ocorreu um erro ao enviar a sua mensagem. Por favor, tente novamente mais tarde."
             }
         }
+    },
+    "PortfolioPage": {
+        "meta": {
+            "title": "Portfólio — RedDune Solutions | Algarve",
+            "description": "Casos selecionados — reparações, builds, sites e recuperações da RedDune Solutions em Fuseta, Algarve."
+        },
+        "hero": {
+            "eyebrow": "Projetos · 3 áreas",
+            "title": "Trabalhos <accent>feitos</accent> com cuidado.",
+            "lead": "Uma seleção dos projetos que melhor representam o nosso trabalho. Hardware, software e web — tudo no mesmo sítio."
+        },
+        "intro": {
+            "eyebrow": "Casos selecionados",
+            "title": "Um vislumbre do nosso <accent>portefólio</accent>.",
+            "lead": "De um portátil quase irrecuperável a um e-commerce a faturar no primeiro mês. Pequenas vitórias e projetos a sério."
+        },
+        "filters": {
+            "all": "Todos",
+            "hardware": "Hardware",
+            "web": "Web",
+            "diagnostico": "Diagnóstico"
+        },
+        "emptyState": "Em breve — estamos a actualizar o portfólio.",
+        "instagramNote": "Vê mais no nosso <em>Instagram</em> — projetos novos quase todas as semanas.",
+        "instagramCta": "@reddune_solutions",
+        "fallbackTags": ["Hardware", "Web", "Diagnóstico"]
     },
     "ServicosPage": {
         "hub": {
@@ -352,7 +380,7 @@
         "privacyPolicy": "Política de Privacidade",
         "tagline": "Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas.",
         "address": "Fuseta · Algarve · Portugal",
-        "col1Title": "Serviços",
+        "col1Title": "Navegação",
         "col2Title": "Contacto",
         "col3Title": "Legal",
         "copyMicrocopy": "Soluções tecnológicas no Algarve"

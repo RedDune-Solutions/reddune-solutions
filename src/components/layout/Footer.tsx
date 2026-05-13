@@ -29,9 +29,11 @@ export function Footer() {
     ? "shop"
     : pathname.startsWith("/servicos")
       ? "pricing"
-      : pathname.startsWith("/contacto")
-        ? "contact"
-        : "home";
+      : pathname.startsWith("/portfolio")
+        ? "portfolio"
+        : pathname.startsWith("/contacto")
+          ? "contact"
+          : "home";
 
   const contactHref =
     origin === "home" ? "/contacto" : `/contacto?from=${origin}`;
@@ -100,7 +102,15 @@ export function Footer() {
             </h5>
             <ul className="space-y-2 list-none">
               <li>
+                <FooterLink href="/">{tNav("home")}</FooterLink>
+              </li>
+              <li>
                 <FooterLink href="/servicos">{tNav("services")}</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/portfolio">
+                  {tNav.has("portfolio") ? tNav("portfolio") : "Portfólio"}
+                </FooterLink>
               </li>
               <li>
                 <FooterLink href="/loja">{tNav("shop")}</FooterLink>
