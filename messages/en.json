@@ -10,7 +10,8 @@
         "home": "Home",
         "services": "Services",
         "portfolio": "Portfolio",
-        "shop": "Shop"
+        "shop": "Shop",
+        "contact": "Contact"
     },
     "HomePage": {
         "Hero": {
@@ -241,7 +242,7 @@
                 "title": "No surprises. No small print.",
                 "bigMark": "Process<em>·</em>3 steps",
                 "steps": [
-                    { "n": "01", "label": "Diagnosis", "sub": "You describe the problem; we assess and quote — always before touching anything." },
+                    { "n": "01", "label": "Diagnosis", "sub": "You describe the problem; we assess, diagnose and quote." },
                     { "n": "02", "label": "Execution", "sub": "You approve, we do it. We keep you posted every step, in plain language." },
                     { "n": "03", "label": "Delivery", "sub": "Device tested, data intact, clear invoice. Warranty included in the price." }
                 ]
@@ -431,9 +432,10 @@
         "privacyPolicy": "Privacy Policy",
         "tagline": "Computer repair, web development and data recovery in Fuseta, Algarve. Personalised service for individuals and businesses.",
         "address": "Fuseta · Algarve · Portugal",
+        "contactLocation": "Fuseta, Algarve",
         "col1Title": "Navigation",
-        "col2Title": "Contact",
-        "col3Title": "Legal",
+        "col2Title": "Company",
+        "col3Title": "Contact",
         "copyMicrocopy": "Technology solutions in the Algarve"
     },
     "ReturnPolicyPage": {

@@ -145,7 +145,7 @@ export function Portfolio({ items }: Props) {
   return (
     <section
       id="portfolio-preview"
-      className="relative mx-auto w-full max-w-content px-8 py-[120px]"
+      className="relative mx-auto block w-full max-w-content px-8 py-[120px]"
     >
       <Reveal>
         <span
@@ -166,7 +166,7 @@ export function Portfolio({ items }: Props) {
       <Reveal>
         <h2
           className={cn(
-            "font-display font-bold text-ink",
+            "section-title font-display font-bold text-ink",
             "max-w-[1000px] mb-6",
             "text-[clamp(42px,5.5vw,88px)] leading-none tracking-[-0.035em]",
             "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
@@ -194,7 +194,7 @@ export function Portfolio({ items }: Props) {
       ) : (
         <div
           className={cn(
-            "grid gap-5",
+            "portfolio-grid grid gap-5",
             "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
           )}
         >

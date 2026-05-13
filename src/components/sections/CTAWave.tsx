@@ -27,12 +27,12 @@ export function CTAWave() {
   return (
     <section
       id="contacto"
-      className="px-8 my-20 mb-[60px] mx-auto w-full max-w-content"
+      className="mx-auto my-20 mb-[60px] block w-full max-w-content px-8"
     >
       <Reveal>
         <div
           className={cn(
-            "relative overflow-hidden rounded-[40px]",
+            "cta-wave relative overflow-hidden rounded-[40px]",
             "px-[60px] py-[100px]",
             "text-center text-cream",
           )}
@@ -87,7 +87,7 @@ export function CTAWave() {
             >
               {t("description")}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-[14px]">
+            <div className="flex flex-wrap items-center justify-center gap-[14px] cta-wave-actions">
               <Link
                 href="/contacto?from=home"
                 className={cn(

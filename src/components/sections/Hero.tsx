@@ -29,7 +29,7 @@ export function Hero() {
     <section
       id="home"
       className={cn(
-        "relative flex min-h-screen flex-col justify-center overflow-hidden",
+        "hero relative flex min-h-screen flex-col justify-center overflow-hidden",
         "pt-[180px] pb-20 px-8",
       )}
     >
@@ -80,7 +80,7 @@ export function Hero() {
         {/* CTA row */}
         <div
           className={cn(
-            "flex flex-wrap items-center justify-center gap-[14px] opacity-0",
+            "hero-cta-row flex flex-wrap items-center justify-center gap-[14px] opacity-0",
           )}
           style={{
             animation: "fadeUp 0.9s 1s cubic-bezier(0.16, 1, 0.3, 1) forwards",

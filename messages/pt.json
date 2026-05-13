@@ -10,7 +10,8 @@
         "home": "Início",
         "services": "Serviços",
         "portfolio": "Portfólio",
-        "shop": "Loja"
+        "shop": "Loja",
+        "contact": "Contactar"
     },
     "HomePage": {
         "Hero": {
@@ -241,7 +242,7 @@
                 "title": "Sem surpresas. Sem letras pequenas.",
                 "bigMark": "Processo<em>·</em>3 passos",
                 "steps": [
-                    { "n": "01", "label": "Diagnóstico", "sub": "Tu descreves o problema; nós avaliamos e damos orçamento — sempre antes de mexer." },
+                    { "n": "01", "label": "Diagnóstico", "sub": "Tu descreves o problema; nós avaliamos, diagnosticamos e damos orçamento." },
                     { "n": "02", "label": "Execução", "sub": "Aprovas, fazemos. Mantemos-te informado em cada passo, em linguagem clara." },
                     { "n": "03", "label": "Entrega", "sub": "Equipamento testado, dados intactos, fatura clara. Garantia incluída no preço." }
                 ]
@@ -431,9 +432,10 @@
         "privacyPolicy": "Política de Privacidade",
         "tagline": "Assistência técnica informática, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas.",
         "address": "Fuseta · Algarve · Portugal",
+        "contactLocation": "Fuseta, Algarve",
         "col1Title": "Navegação",
-        "col2Title": "Contacto",
-        "col3Title": "Legal",
+        "col2Title": "Empresa",
+        "col3Title": "Contacto",
         "copyMicrocopy": "Soluções tecnológicas no Algarve"
     },
     "ReturnPolicyPage": {

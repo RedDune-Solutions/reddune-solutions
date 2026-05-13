@@ -56,10 +56,10 @@ export function StatsRow() {
   };
 
   return (
-    <section className="relative mx-auto w-full max-w-content px-8 py-[120px]">
+    <section className="relative mx-auto block w-full max-w-content px-8 py-[120px]">
       <div
         className={cn(
-          "relative grid gap-8 overflow-hidden",
+          "stats-row relative grid gap-8 overflow-hidden",
           "grid-cols-2 md:grid-cols-4",
           "rounded-card bg-ink text-cream",
           "px-12 py-[60px]",
