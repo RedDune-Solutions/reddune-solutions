@@ -41,13 +41,13 @@
                 },
                 {
                     "kind": "text",
-                    "headline": "Internacional",
+                    "headline": "Fuseta",
                     "label": "Área de actuação",
                     "sub": "presencial · remoto"
                 },
                 {
                     "kind": "text",
-                    "headline": "Fuseta",
+                    "headline": "Algarve",
                     "label": "Base",
                     "sub": "37.05°N · 7.74°W"
                 },
@@ -110,7 +110,7 @@
                 }
             },
             "cta": "Fala connosco",
-            "quote": "Não encontraste o que procuravas? A nossa paixão é criar <accent>soluções à medida</accent>. <contactLink>Conta-nos a tua ideia</contactLink> e vamos transformá-la em realidade."
+            "quote": "Não encontrou o que procura? A nossa paixão é criar <accent>soluções à medida</accent>. <contactLink>Conta-nos a tua ideia</contactLink> e vamos transformá-la em realidade."
         },
         "PortfolioSection": {
             "eyebrow": "O nosso portfólio",

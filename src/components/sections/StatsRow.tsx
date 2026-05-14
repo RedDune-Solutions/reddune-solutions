@@ -60,9 +60,9 @@ export function StatsRow() {
       <div
         className={cn(
           "stats-row relative grid gap-8 overflow-hidden",
-          "grid-cols-2 md:grid-cols-4",
+          "grid-cols-4",
           "rounded-card bg-ink text-cream",
-          "px-12 py-[60px]",
+          "px-2 py-[40px] sm:px-12 sm:py-[60px]",
         )}
       >
         <div

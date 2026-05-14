@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
+
   async redirects() {
     return [
       {
@@ -19,6 +20,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "flagcdn.com", pathname: "/**" },
       { protocol: "https", hostname: "instagram.flis11-1.fna.fbcdn.net", pathname: "/**" },
       { protocol: "https", hostname: "drive.google.com", pathname: "/**" },
+      { protocol: 'https', hostname: 'instagram.flis11-2.fna.fbcdn.net', port: '', pathname: '/**', },
     ],
   },
 };

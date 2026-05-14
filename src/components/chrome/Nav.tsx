@@ -121,6 +121,29 @@ export function Nav({ pillHidden = false }: NavProps) {
               </li>
             );
           })}
+          
+          {/* Contacto link — aparece apenas no drawer mobile */}
+          <li className="hidden max-[720px]:block">
+            <Link
+              href="/contacto?from=home"
+              onClick={() => setOpen(false)}
+              className={cn(
+                "cta",
+                "flex items-center gap-2 rounded-btn",
+                "bg-ink px-5 py-2.5 font-mono text-[13px] font-medium uppercase tracking-[0.04em] text-cream",
+                "transition-all duration-300",
+                "hover:scale-[1.04] hover:bg-ember focus-visible:bg-ember",
+                "mt-4 w-full justify-center",
+              )}
+            >
+              {contactLabel}
+              <ArrowRight
+                className="size-[14px] shrink-0"
+                strokeWidth={2.25}
+                aria-hidden
+              />
+            </Link>
+          </li>
         </ul>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -129,7 +152,7 @@ export function Nav({ pillHidden = false }: NavProps) {
             href="/contacto?from=home"
             className={cn(
               "cta",
-              "inline-flex items-center gap-2 rounded-btn",
+              "inline-flex max-[720px]:hidden items-center gap-2 rounded-btn",
               "bg-ink px-5 py-2.5 font-mono text-[13px] font-medium uppercase tracking-[0.04em] text-cream",
               "transition-all duration-300",
               "hover:scale-[1.04] hover:bg-ember focus-visible:bg-ember",

@@ -109,7 +109,7 @@ function PortfolioCard({
 
       <span
         className={cn(
-          "absolute left-[18px] top-[18px] z-[3]",
+          "absolute left-[18px] top-[18px] z-[3] filter-",
           "rounded-btn border border-white/30 bg-white/60 backdrop-blur",
           "px-3 py-1.5",
           "font-mono text-[10px] uppercase tracking-[0.18em] text-ink",
@@ -122,7 +122,7 @@ function PortfolioCard({
 
       <div
         className={cn(
-          "absolute inset-x-6 bottom-6 z-[4] text-cream",
+          "absolute inset-x-6 bottom-6 z-[4] text-cream ",
           "transition-transform duration-500 ease-oasis",
           "group-hover:-translate-y-2",
         )}
