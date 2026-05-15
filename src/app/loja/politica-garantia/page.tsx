@@ -106,8 +106,8 @@ export default async function WarrantyPolicyPage() {
                   duration: t("refurbishedDuration"),
                   caption: t("refurbishedCaption"),
                 },
-              ].map((cell) => (
-                <div key={cell.label} className="relative z-[1]">
+              ].map((cell, i) => (
+                <div key={`${cell.label}-${i}`} className="relative z-[1]">
                   <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-apricot mb-3">
                     {cell.label}
                   </div>
