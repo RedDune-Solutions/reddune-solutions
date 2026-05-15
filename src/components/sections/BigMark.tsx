@@ -13,7 +13,7 @@ export function BigMark() {
 
   return (
     <Reveal>
-      <div className="big-mark relative mx-auto w-full max-w-content px-8 py-10 pb-20 text-center">
+      <div className="big-mark relative mx-auto w-full max-w-content text-center">
         <div
           className={cn(
             "word font-display font-extrabold leading-[0.88] tracking-[-0.05em]",

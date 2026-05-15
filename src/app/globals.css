@@ -591,7 +591,9 @@ body.nav-open .nav-drawer-backdrop {
     padding: 120px 20px 56px;
   }
   h1.hero-title {
-    font-size: clamp(40px, 11vw, 68px) !important;
+    font-size: clamp(28px, 9vw, 56px) !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
   .hero-cta-row {
     max-width: 100%;

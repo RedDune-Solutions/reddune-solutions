@@ -30,7 +30,7 @@ export function Hero() {
       id="home"
       className={cn(
         "hero relative flex min-h-screen flex-col justify-center overflow-hidden",
-        "pt-[180px] pb-20 px-8",
+        "pt-20 md:pt-[180px] pb-20 px-8",
       )}
     >
       {/* Scene: dunes + sun + sparks */}
@@ -49,7 +49,7 @@ export function Hero() {
           className={cn(
             "hero-title font-display font-bold text-ink",
             "mb-9",
-            "text-[clamp(54px,8vw,130px)] leading-[0.96] tracking-[-0.04em]",
+            "text-[clamp(42px,7vw,110px)] leading-[0.96] tracking-[-0.04em]",
           )}
           style={{ fontVariationSettings: '"opsz" 96' }}
         >
