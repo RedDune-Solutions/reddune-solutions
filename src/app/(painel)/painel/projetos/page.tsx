@@ -4,6 +4,7 @@ import { KanbanBoard } from "@/components/painel/KanbanBoard";
 import { TarefasTable } from "@/components/painel/TarefasTable";
 import { ViewToggle, type PainelView } from "@/components/painel/ViewToggle";
 import { FilterBar, applyFilters } from "@/components/painel/FilterBar";
+import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { TAREFA_STATUS, TAREFA_TIPO, type TarefaStatus, type TarefaTipo } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,10 @@ export default async function ProjetosPage({
       <div className="px-6 lg:px-8 py-8 space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <FilterBar tarefas={allTarefas} />
-          <ViewToggle current={view} />
+          <div className="flex items-center gap-2">
+            <ViewToggle current={view} />
+            <NovaTarefaButton />
+          </div>
         </div>
 
         {view === "kanban" ? (

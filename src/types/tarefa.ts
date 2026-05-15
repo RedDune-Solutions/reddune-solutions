@@ -69,6 +69,9 @@ export type TarefaResponsavel = (typeof TAREFA_RESPONSAVEL)[number];
 export const TAREFA_PASTA = ["clientes", "internos"] as const;
 export type TarefaPasta = (typeof TAREFA_PASTA)[number];
 
+export const TAREFA_ORIGIN = ["obsidian", "manual"] as const;
+export type TarefaOrigin = (typeof TAREFA_ORIGIN)[number];
+
 export interface Tarefa {
   id: string;
   titulo: string;
@@ -82,7 +85,8 @@ export interface Tarefa {
   valorEstimado: number | null;
   notasResumo: string | null;
   pasta: TarefaPasta;
-  sourcePath: string;
+  sourcePath: string | null;
+  origin: TarefaOrigin;
 }
 
 export type TarefaPublic = Omit<Tarefa, "sourcePath">;

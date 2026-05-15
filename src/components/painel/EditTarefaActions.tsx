@@ -54,9 +54,7 @@ export function EditTarefaActions({ tarefa }: Props) {
         return;
       }
       setSuccess(
-        field === "status"
-          ? "Estado actualizado (pendente sync)"
-          : "Próxima acção actualizada (pendente sync)"
+        field === "status" ? "Estado actualizado." : "Próxima acção actualizada."
       );
       startTransition(() => router.refresh());
     } catch (e) {
@@ -169,7 +167,7 @@ export function EditTarefaActions({ tarefa }: Props) {
       )}
       {success && (
         <p className="text-xs text-emerald-700 bg-emerald-500/10 px-3 py-2 rounded-btn border border-emerald-500/20">
-          {success} · Corre <code className="font-mono">npm run sync:obsidian</code> ou clica <strong>Sincronizar</strong> para aplicar no vault.
+          {success}
         </p>
       )}
     </div>

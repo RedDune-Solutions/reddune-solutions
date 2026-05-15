@@ -193,6 +193,7 @@ function parseProject(relPath, fileContent) {
     notasResumo: summarizeBody(parsed.content),
     pasta: folder,
     sourcePath: relPath.replace(/\\/g, "/"),
+    origin: "obsidian",
   };
 }
 

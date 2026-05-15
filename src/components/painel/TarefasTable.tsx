@@ -13,7 +13,8 @@ import {
 } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { ArrowUpDown, Search } from "lucide-react";
-import { StatusBadge } from "./StatusBadge";
+import { InlineStatusSelect } from "./InlineStatusSelect";
+import { TarefaRowMenu } from "./TarefaRowMenu";
 import type { TarefaPublic } from "@/types/tarefa";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +57,9 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => (
+          <InlineStatusSelect tarefaId={row.original.id} status={row.original.status} />
+        ),
       },
       {
         accessorKey: "proximaAccao",
@@ -82,6 +85,12 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
             {row.original.tipo ?? "—"}
           </span>
         ),
+      },
+      {
+        id: "actions",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => <TarefaRowMenu tarefa={row.original} />,
       },
     ],
     []
