@@ -28,6 +28,7 @@ const STATUS_CLASSES: Record<TarefaStatus, string> = {
   garantia: "bg-cream-deep text-ink-soft border-cream-deep",
   suspenso: "bg-ink-mute text-cream border-ink-mute",
   bloqueado: "bg-dune-deep text-cream border-dune-deep",
+  "em-divida": "bg-dune-deep text-cream border-dune-deep",
 };
 
 export function StatusBadge({

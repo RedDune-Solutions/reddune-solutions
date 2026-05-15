@@ -10,6 +10,7 @@ export const TAREFA_STATUS = [
   "garantia",
   "suspenso",
   "bloqueado",
+  "em-divida",
 ] as const;
 
 export type TarefaStatus = (typeof TAREFA_STATUS)[number];
@@ -26,6 +27,7 @@ export const STATUS_LABELS: Record<TarefaStatus, string> = {
   garantia: "Garantia",
   suspenso: "Suspenso",
   bloqueado: "Bloqueado",
+  "em-divida": "Em dívida",
 };
 
 export const STATUS_GROUPS = {
@@ -39,7 +41,7 @@ export const STATUS_GROUPS = {
     "bloqueado",
   ] as TarefaStatus[],
   pronto: ["pronto"] as TarefaStatus[],
-  arquivo: ["fechado", "cancelado", "garantia"] as TarefaStatus[],
+  arquivo: ["fechado", "cancelado", "garantia", "em-divida"] as TarefaStatus[],
 };
 
 export const TAREFA_TIPO = [

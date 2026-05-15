@@ -1,106 +1,108 @@
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { Users, ArrowUpRight, FileText } from "lucide-react";
+import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
 import { Topbar } from "@/components/painel/Topbar";
-import { FilterBar, applyFilters } from "@/components/painel/FilterBar";
-import { clienteToSlug } from "@/lib/slug";
-import { STATUS_GROUPS, type TarefaPublic, TAREFA_STATUS, TAREFA_TIPO, type TarefaStatus, type TarefaTipo } from "@/types/tarefa";
+import { KpiCard } from "@/components/painel/KpiCard";
+import { STATUS_GROUPS } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{
-  status?: string;
-  tipo?: string;
-  cliente?: string;
-  q?: string;
-}>;
-
-export default async function ClientesPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const [allTarefas, meta, params] = await Promise.all([
+export default async function ClientesPage() {
+  const [clientes, tarefas, meta] = await Promise.all([
+    getAllClientes(),
     getAllTarefas(),
     getSyncMeta(),
-    searchParams,
   ]);
 
-  const statusParam =
-    params.status && TAREFA_STATUS.includes(params.status as TarefaStatus)
-      ? (params.status as TarefaStatus)
-      : undefined;
-  const tipoParam =
-    params.tipo && TAREFA_TIPO.includes(params.tipo as TarefaTipo)
-      ? (params.tipo as TarefaTipo)
-      : undefined;
-
-  const tarefas = applyFilters(allTarefas, {
-    status: statusParam,
-    tipo: tipoParam,
-    cliente: params.cliente,
-    q: params.q,
-  });
-
-  const grouped = new Map<string, TarefaPublic[]>();
-  for (const tarefa of tarefas) {
-    if (tarefa.cliente && tarefa.cliente.trim().length > 0) {
-      const list = grouped.get(tarefa.cliente) ?? [];
-      list.push(tarefa);
-      grouped.set(tarefa.cliente, list);
+  const tarefaCountByNome = new Map<string, { total: number; ativas: number }>();
+  for (const t of tarefas) {
+    if (!t.cliente) continue;
+    const key = t.cliente.trim().toLowerCase();
+    const existing = tarefaCountByNome.get(key) ?? { total: 0, ativas: 0 };
+    existing.total += 1;
+    if (
+      STATUS_GROUPS.ativo.includes(t.status) ||
+      STATUS_GROUPS.proximo.includes(t.status) ||
+      STATUS_GROUPS.aguarda.includes(t.status)
+    ) {
+      existing.ativas += 1;
     }
+    tarefaCountByNome.set(key, existing);
   }
 
-  const sortedClientes = [...grouped.entries()].sort(([a], [b]) =>
-    a.localeCompare(b, "pt")
-  );
+  const sorted = [...clientes].sort((a, b) => {
+    const nomeA = String(a.nome ?? a.sourcePath ?? "");
+    const nomeB = String(b.nome ?? b.sourcePath ?? "");
+    return nomeA.localeCompare(nomeB, "pt");
+  });
+
+  const comProjetos = sorted.filter((c) => {
+    const nome = String(c.nome ?? "").trim().toLowerCase();
+    return (tarefaCountByNome.get(nome)?.total ?? 0) > 0;
+  }).length;
 
   return (
     <>
       <Topbar
         title="Clientes"
-        description={`${sortedClientes.length} cliente${sortedClientes.length === 1 ? "" : "s"}.`}
+        description={`${clientes.length} ficha${clientes.length === 1 ? "" : "s"} sincronizadas do Obsidian.`}
         syncedAt={meta?.updatedAt}
         syncCount={meta?.count}
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-8">
-        <FilterBar tarefas={allTarefas} />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <KpiCard label="Total de clientes" value={clientes.length} icon={Users} tone="default" />
+          <KpiCard label="Com projectos activos" value={comProjetos} icon={FileText} tone="accent" />
+        </div>
 
-        {sortedClientes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem clientes para os filtros actuais.</p>
+        {sorted.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Sem fichas de clientes. Corre o sync do Obsidian para importar a pasta{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">01_Clientes (Fichas)</code>.
+          </p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sortedClientes.map(([cliente, items]) => {
-              const active = items.filter(
-                (t) =>
-                  STATUS_GROUPS.ativo.includes(t.status) ||
-                  STATUS_GROUPS.proximo.includes(t.status) ||
-                  STATUS_GROUPS.aguarda.includes(t.status)
-              ).length;
-              const slug = clienteToSlug(cliente);
+            {sorted.map((cliente, idx) => {
+              const nome = String(cliente.nome ?? "").trim();
+              const nomeKey = nome.toLowerCase();
+              const counts = tarefaCountByNome.get(nomeKey);
+              const displayName =
+                (nome || String(cliente.sourcePath).split("/").pop()?.replace(".md", "")) ?? "—";
+
               return (
-                <Link
-                  key={cliente}
-                  href={`/painel/clientes/${slug}`}
+                <div
+                  key={String(cliente.sourcePath ?? idx)}
                   className="group relative flex items-start justify-between gap-3 rounded-lg border border-border bg-surface p-5 transition-all duration-300 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="min-w-0 flex-1">
                     <h3 className="font-headline text-base font-semibold text-foreground leading-tight truncate">
-                      {cliente}
+                      {displayName}
                     </h3>
+                    {typeof cliente.email === "string" && cliente.email && (
+                      <p className="mt-1 text-xs text-muted-foreground truncate">
+                        {cliente.email}
+                      </p>
+                    )}
+                    {typeof cliente.nif !== "undefined" && cliente.nif !== null && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        NIF: {String(cliente.nif)}
+                      </p>
+                    )}
                     <p className="mt-2 text-xs text-muted-foreground tabular-nums">
-                      {items.length} tarefa{items.length === 1 ? "" : "s"}
-                      {active > 0 && (
-                        <span className="ml-2 text-accent">· {active} activa{active === 1 ? "" : "s"}</span>
+                      {counts?.total ?? 0} projecto{(counts?.total ?? 0) === 1 ? "" : "s"}
+                      {(counts?.ativas ?? 0) > 0 && (
+                        <span className="ml-2 text-accent">
+                          · {counts!.ativas} activo{counts!.ativas === 1 ? "" : "s"}
+                        </span>
                       )}
                     </p>
                   </div>
                   <ArrowUpRight
-                    className="h-4 w-4 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                     aria-hidden="true"
                   />
-                </Link>
+                </div>
               );
             })}
           </div>

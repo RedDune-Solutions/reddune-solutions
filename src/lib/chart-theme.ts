@@ -54,6 +54,7 @@ export const oasisStatusColors = {
   garantia: "#ecdfc2",           // cream-deep
   suspenso: "#8c7563",           // ink-mute
   bloqueado: "#5a0e0e",          // dune-deep
+  "em-divida": "#5a0e0e",        // dune-deep (debt, heavy)
 } as const;
 
 export type OasisStatusKey = keyof typeof oasisStatusColors;
