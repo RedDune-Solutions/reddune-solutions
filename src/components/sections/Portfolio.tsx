@@ -80,7 +80,7 @@ function PortfolioCard({
         aria-hidden="true"
         className={cn(
           "absolute inset-0 transition-opacity duration-500",
-          "bg-gradient-to-b from-transparent via-transparent to-ink/75",
+          "bg-gradient-to-b from-transparent via-ink/50 via-65% to-ink",
         )}
       />
 
@@ -109,6 +109,7 @@ function PortfolioCard({
         <h4
           className={cn(
             "font-display text-[22px] font-semibold leading-[1.1] tracking-[-0.01em] mb-1.5",
+            "[text-shadow:0_2px_8px_rgba(0,0,0,0.6)]",
           )}
         >
           {item.title[locale]}

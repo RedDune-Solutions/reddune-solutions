@@ -59,8 +59,8 @@ export function StatsRow() {
     <section className="relative mx-auto block w-full max-w-content px-8 py-[120px]">
       <div
         className={cn(
-          "stats-row relative grid gap-8 overflow-hidden",
-          "grid-cols-4",
+          "stats-row relative grid gap-8 overflow-hidden align-center",
+          "grid-cols-1 md:grid-cols-2 xl:grid-cols-4",
           "rounded-card bg-ink text-cream",
           "px-2 py-[40px] sm:px-12 sm:py-[60px]",
         )}
@@ -76,7 +76,10 @@ export function StatsRow() {
         />
 
         {items.map((cell, index) => (
-          <div key={`${cell.kind}-${index}`} className="relative z-[1]">
+          <div
+            key={`${cell.kind}-${index}`}
+            className="relative z-[1] flex flex-col items-center md:items-start text-center md:text-left"
+          >
             <div
               className={cn(
                 cell.kind === "split" &&

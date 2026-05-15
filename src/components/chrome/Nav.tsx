@@ -9,7 +9,7 @@ import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/templates/language-switcher";
 
-const DRAWER_MAX_PX = 720;
+const DRAWER_MAX_PX = 900;
 
 export type NavProps = {
   /** Slide the pill off-screen (e.g. scroll-down hide on /loja). */
@@ -70,14 +70,14 @@ export function Nav({ pillHidden = false }: NavProps) {
         className={cn(
           "top",
           "fixed top-[18px] left-1/2 z-[100]",
-          "flex max-w-[calc(100vw-24px)] flex-nowrap items-center gap-6",
+          "flex w-max max-w-[calc(100vw-24px)] max-[899px]:w-[calc(100vw-24px)] flex-nowrap items-center gap-6",
           "rounded-btn border border-dune-deep/10",
-          "bg-cream/85 py-[10px] pl-[22px] pr-[12px] backdrop-blur-xl shadow-warm",
+          "bg-cream/85 py-[10px] pl-[22px] pr-1.5 backdrop-blur-xl shadow-warm",
           "transition-transform duration-500 ease-oasis",
           pillHidden
             ? "-translate-x-1/2 -translate-y-[200%]"
             : "-translate-x-1/2 translate-y-0",
-          "max-[719px]:gap-3 max-[719px]:pl-4 max-[719px]:pr-2 max-[719px]:py-2",
+          "max-[899px]:gap-3 max-[899px]:pl-4 max-[899px]:pr-2 max-[899px]:py-2",
         )}
       >
         <Link
@@ -96,7 +96,7 @@ export function Nav({ pillHidden = false }: NavProps) {
           />
         </Link>
 
-        <ul className="flex list-none items-center gap-6">
+        <ul className="flex min-w-0 list-none items-center gap-6">
           {navLinks.map((link) => {
             const active = isActive(link.href);
             return (
@@ -123,7 +123,7 @@ export function Nav({ pillHidden = false }: NavProps) {
           })}
           
           {/* Contacto link — aparece apenas no drawer mobile */}
-          <li className="hidden max-[720px]:block">
+          <li className="hidden max-[900px]:block">
             <Link
               href="/contacto?from=home"
               onClick={() => setOpen(false)}
@@ -152,7 +152,7 @@ export function Nav({ pillHidden = false }: NavProps) {
             href="/contacto?from=home"
             className={cn(
               "cta",
-              "inline-flex max-[720px]:hidden items-center gap-2 rounded-btn",
+              "inline-flex max-[900px]:hidden items-center gap-2 rounded-btn",
               "bg-ink px-5 py-2.5 font-mono text-[13px] font-medium uppercase tracking-[0.04em] text-cream",
               "transition-all duration-300",
               "hover:scale-[1.04] hover:bg-ember focus-visible:bg-ember",

@@ -528,11 +528,7 @@ body.nav-open .nav-drawer-backdrop {
   }
 }
 
-@media (max-width: 720px) {
-  html {
-    overflow-x: hidden;
-  }
-
+@media (max-width: 900px) {
   .nav-toggle {
     display: inline-flex;
   }
@@ -581,6 +577,16 @@ body.nav-open .nav-drawer-backdrop {
     display: none;
   }
 
+  nav.top > ul a.cta {
+    display: flex;
+  }
+}
+
+@media (max-width: 720px) {
+  html {
+    overflow-x: hidden;
+  }
+
   section.hero {
     padding: 120px 20px 56px;
   }
@@ -627,7 +633,7 @@ body.nav-open .nav-drawer-backdrop {
   }
 
   .stats-row {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
     padding-left: 28px !important;
     padding-right: 28px !important;
   }
