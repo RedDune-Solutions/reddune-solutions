@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { Users, ArrowUpRight, FileText } from "lucide-react";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { STATUS_GROUPS } from "@/types/tarefa";
+import { clienteToSlug } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -70,9 +72,11 @@ export default async function ClientesPage() {
               const displayName =
                 (nome || String(cliente.sourcePath).split("/").pop()?.replace(".md", "")) ?? "—";
 
+              const slug = clienteToSlug(displayName);
               return (
-                <div
+                <Link
                   key={String(cliente.sourcePath ?? idx)}
+                  href={`/painel/clientes/${slug}`}
                   className="group relative flex items-start justify-between gap-3 rounded-lg border border-border bg-surface p-5 transition-all duration-300 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="min-w-0 flex-1">
@@ -102,7 +106,7 @@ export default async function ClientesPage() {
                     className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                     aria-hidden="true"
                   />
-                </div>
+                </Link>
               );
             })}
           </div>

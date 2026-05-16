@@ -90,6 +90,7 @@ const TIPO_NORMALIZE = {
 };
 
 const VALID_RESPONSAVEL = new Set(["eu", "cliente", "fornecedor"]);
+const VALID_LOCAL = new Set(["oficina", "casa-cliente", "remoto"]);
 
 function hashId(input) {
   return createHash("sha1").update(input).digest("hex").slice(0, 16);
@@ -177,6 +178,15 @@ function parseProject(relPath, fileContent) {
   const rawResponsavel = String(fm.responsável ?? fm.responsavel ?? "").trim().toLowerCase();
   const responsavel = VALID_RESPONSAVEL.has(rawResponsavel) ? rawResponsavel : null;
 
+  const rawLocal = String(fm.local ?? "").trim().toLowerCase();
+  const local = VALID_LOCAL.has(rawLocal) ? rawLocal : null;
+
+  const rawMetodo = String(fm["método-pagamento"] ?? fm["metodo-pagamento"] ?? "").trim();
+  const metodoPagamento = rawMetodo.length > 0 ? rawMetodo.slice(0, 100) : null;
+
+  const bodyRaw = (parsed.content ?? "").trim();
+  const bodyMd = bodyRaw.length > 0 ? bodyRaw.slice(0, 50000) : null;
+
   return {
     id,
     titulo,
@@ -189,8 +199,13 @@ function parseProject(relPath, fileContent) {
     responsavel,
     prazo: toIsoDate(fm["data-prevista"]),
     dataCriado: toIsoDate(fm["data-criado"]),
+    dataFechado: toIsoDate(fm["data-fechado"]),
     valorEstimado: toNumberOrNull(fm["valor-estimado"]),
+    valorPago: toNumberOrNull(fm["valor-pago"]),
+    metodoPagamento,
+    local,
     notasResumo: summarizeBody(parsed.content),
+    bodyMd,
     pasta: folder,
     sourcePath: relPath.replace(/\\/g, "/"),
     origin: "obsidian",
@@ -206,8 +221,14 @@ function parseFicha(relPath, fileContent) {
       v instanceof Date ? v.toISOString().slice(0, 10) : v,
     ])
   );
+  const fileName = relPath.split("/").pop() ?? "";
+  const nome = fileName.replace(/\.md$/, "");
+  const bodyRaw = (parsed.content ?? "").trim();
+  const bodyMd = bodyRaw.length > 0 ? bodyRaw.slice(0, 50000) : null;
   return {
     ...sanitized,
+    nome: sanitized.nome ?? nome,
+    bodyMd,
     sourcePath: relPath.replace(/\\/g, "/"),
   };
 }

@@ -5,6 +5,7 @@ import {
   TAREFA_RESPONSAVEL,
   TAREFA_PASTA,
   TAREFA_ORIGIN,
+  TAREFA_LOCAL,
 } from "@/types/tarefa";
 
 export const tarefaSchema = z.object({
@@ -17,8 +18,13 @@ export const tarefaSchema = z.object({
   responsavel: z.enum(TAREFA_RESPONSAVEL).nullable(),
   prazo: z.string().nullable(),
   dataCriado: z.string().nullable(),
+  dataFechado: z.string().nullable().optional(),
   valorEstimado: z.number().finite().nullable(),
+  valorPago: z.number().finite().nullable().optional(),
+  metodoPagamento: z.string().max(100).nullable().optional(),
+  local: z.enum(TAREFA_LOCAL).nullable().optional(),
   notasResumo: z.string().max(500).nullable(),
+  bodyMd: z.string().max(50000).nullable().optional(),
   pasta: z.enum(TAREFA_PASTA),
   sourcePath: z.string().min(1).max(500),
   origin: z.enum(TAREFA_ORIGIN).default("obsidian"),
@@ -37,8 +43,13 @@ export const tarefaManualSchema = z.object({
   tipo: z.enum(TAREFA_TIPO).nullable().optional(),
   responsavel: z.enum(TAREFA_RESPONSAVEL).nullable().optional(),
   prazo: z.string().nullable().optional(),
+  dataFechado: z.string().nullable().optional(),
   valorEstimado: z.number().finite().nullable().optional(),
+  valorPago: z.number().finite().nullable().optional(),
+  metodoPagamento: z.string().max(100).nullable().optional(),
+  local: z.enum(TAREFA_LOCAL).nullable().optional(),
   notasResumo: z.string().max(500).nullable().optional(),
+  bodyMd: z.string().max(50000).nullable().optional(),
   pasta: z.enum(TAREFA_PASTA),
 });
 

@@ -17,6 +17,22 @@ export async function getAllParceiros(): Promise<ParceirFicha[]> {
     .toArray();
 }
 
+export async function getParceiroBySlug(slug: string): Promise<ParceirFicha | null> {
+  const db = await getDb();
+  const all = await db
+    .collection<ParceirFicha>(COLLECTION)
+    .find({}, { projection: { _id: 0 } })
+    .toArray();
+  const target = slug.toLowerCase();
+  return (
+    all.find((c) => {
+      const nome = String(c.nome ?? "").toLowerCase();
+      const file = String(c.sourcePath ?? "").split("/").pop()?.replace(/\.md$/, "").toLowerCase() ?? "";
+      return nome === target || file === target;
+    }) ?? null
+  );
+}
+
 export async function replaceParceiros(
   items: ParceirFicha[]
 ): Promise<{ count: number; updatedAt: string }> {

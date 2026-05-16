@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User, Folder, Euro, FileText, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Calendar, User, Folder, Euro, FileText, MapPin, CreditCard, CheckCircle2, type LucideIcon } from "lucide-react";
 import { getTarefaById } from "@/lib/mongodb/tarefas";
 import { Topbar } from "@/components/painel/Topbar";
 import { StatusBadge } from "@/components/painel/StatusBadge";
 import { EditTarefaActions } from "@/components/painel/EditTarefaActions";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
+import { Markdown } from "@/components/painel/Markdown";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -86,6 +87,9 @@ export default async function TarefaDetalhePage({ params }: { params: Params }) 
           <DetailRow icon={Folder} label="Pasta" value={tarefa.pasta === "clientes" ? "Projetos de cliente" : "Projetos internos"} />
           <DetailRow icon={Calendar} label="Prazo" value={formatDate(tarefa.prazo)} />
           <DetailRow icon={Calendar} label="Criado" value={formatDate(tarefa.dataCriado)} />
+          {tarefa.dataFechado && (
+            <DetailRow icon={CheckCircle2} label="Fechado" value={formatDate(tarefa.dataFechado)} />
+          )}
           {tarefa.valorEstimado != null && (
             <DetailRow
               icon={Euro}
@@ -93,9 +97,30 @@ export default async function TarefaDetalhePage({ params }: { params: Params }) 
               value={`${tarefa.valorEstimado.toFixed(2)} €`}
             />
           )}
+          {tarefa.valorPago != null && (
+            <DetailRow
+              icon={Euro}
+              label="Valor pago"
+              value={`${tarefa.valorPago.toFixed(2)} €`}
+            />
+          )}
+          {tarefa.metodoPagamento && (
+            <DetailRow icon={CreditCard} label="Pagamento" value={tarefa.metodoPagamento} />
+          )}
+          {tarefa.local && (
+            <DetailRow icon={MapPin} label="Local" value={tarefa.local.replace("-", " ")} />
+          )}
         </div>
 
-        {tarefa.notasResumo && (
+        {tarefa.bodyMd ? (
+          <section className="rounded-xl border border-border bg-card p-6">
+            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
+              <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+              Notas
+            </p>
+            <Markdown>{tarefa.bodyMd}</Markdown>
+          </section>
+        ) : tarefa.notasResumo ? (
           <section className="rounded-xl border border-border bg-card p-6">
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               <FileText className="h-3.5 w-3.5" aria-hidden="true" />
@@ -105,7 +130,7 @@ export default async function TarefaDetalhePage({ params }: { params: Params }) 
               {tarefa.notasResumo}
             </p>
           </section>
-        )}
+        ) : null}
 
       </div>
     </>

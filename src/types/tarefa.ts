@@ -72,6 +72,9 @@ export type TarefaPasta = (typeof TAREFA_PASTA)[number];
 export const TAREFA_ORIGIN = ["obsidian", "manual"] as const;
 export type TarefaOrigin = (typeof TAREFA_ORIGIN)[number];
 
+export const TAREFA_LOCAL = ["oficina", "casa-cliente", "remoto"] as const;
+export type TarefaLocal = (typeof TAREFA_LOCAL)[number];
+
 export interface Tarefa {
   id: string;
   titulo: string;
@@ -82,8 +85,13 @@ export interface Tarefa {
   responsavel: TarefaResponsavel | null;
   prazo: string | null;
   dataCriado: string | null;
+  dataFechado: string | null;
   valorEstimado: number | null;
+  valorPago: number | null;
+  metodoPagamento: string | null;
+  local: TarefaLocal | null;
   notasResumo: string | null;
+  bodyMd: string | null;
   pasta: TarefaPasta;
   sourcePath: string | null;
   origin: TarefaOrigin;
