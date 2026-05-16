@@ -1,12 +1,12 @@
 "use client";
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { STATUS_LABELS, type TarefaStatus } from "@/types/tarefa";
+import { STATUS_LABELS, type ProjetoStatus } from "@/types/projeto";
 import { oasisStatusColors, oasisChartTheme } from "@/lib/chart-theme";
 
-type Datum = { name: string; value: number; status: TarefaStatus };
+type Datum = { name: string; value: number; status: ProjetoStatus };
 
-export function StatusPie({ data }: { data: Array<{ status: TarefaStatus; count: number }> }) {
+export function StatusPie({ data }: { data: Array<{ status: ProjetoStatus; count: number }> }) {
   const chartData: Datum[] = data
     .filter((d) => d.count > 0)
     .map((d) => ({

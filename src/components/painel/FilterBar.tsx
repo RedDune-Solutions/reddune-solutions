@@ -13,13 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   STATUS_LABELS,
-  TAREFA_STATUS,
-  TAREFA_TIPO,
-  type TarefaPublic,
-} from "@/types/tarefa";
+  PROJETO_STATUS,
+  PROJETO_TIPO,
+  type Projeto,
+} from "@/types/projeto";
 
 type Props = {
-  tarefas: TarefaPublic[];
+  projetos: Projeto[];
 };
 
 const ALL = "__all__";
@@ -27,22 +27,22 @@ const ALL = "__all__";
 const SELECT_TRIGGER_CLASSES =
   "bg-white/70 border-dune-deep/15 rounded-btn focus:ring-ember";
 
-export function FilterBar({ tarefas }: Props) {
+export function FilterBar({ projetos }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
 
   const status = params?.get("status") ?? "";
   const tipo = params?.get("tipo") ?? "";
-  const cliente = params?.get("cliente") ?? "";
+  const clienteNome = params?.get("cliente") ?? "";
 
   const clientes = Array.from(
     new Set(
-      tarefas
-        .map((t) => t.cliente)
+      projetos
+        .map((p) => p.clienteNome)
         .filter((c): c is string => Boolean(c && c.length > 0))
     )
-  ).sort((a, b) => a.localeCompare(b, "pt"));
+  ).sort((a, b) => String(a).localeCompare(String(b), "pt"));
 
   const update = useCallback(
     (key: string, value: string) => {
@@ -62,7 +62,7 @@ export function FilterBar({ tarefas }: Props) {
     router.replace(pathname ?? "/painel", { scroll: false });
   }, [pathname, router]);
 
-  const hasActive = Boolean(status || tipo || cliente);
+  const hasActive = Boolean(status || tipo || clienteNome);
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -72,7 +72,7 @@ export function FilterBar({ tarefas }: Props) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Todos estados</SelectItem>
-          {TAREFA_STATUS.map((s) => (
+          {PROJETO_STATUS.map((s) => (
             <SelectItem key={s} value={s}>
               {STATUS_LABELS[s]}
             </SelectItem>
@@ -86,7 +86,7 @@ export function FilterBar({ tarefas }: Props) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Todos tipos</SelectItem>
-          {TAREFA_TIPO.map((t) => (
+          {PROJETO_TIPO.map((t) => (
             <SelectItem key={t} value={t} className="capitalize">
               {t.replace("-", " ")}
             </SelectItem>
@@ -95,7 +95,7 @@ export function FilterBar({ tarefas }: Props) {
       </Select>
 
       {clientes.length > 0 && (
-        <Select value={cliente || ALL} onValueChange={(v) => update("cliente", v)}>
+        <Select value={clienteNome || ALL} onValueChange={(v) => update("cliente", v)}>
           <SelectTrigger className={`w-[200px] ${SELECT_TRIGGER_CLASSES}`}>
             <SelectValue placeholder="Cliente" />
           </SelectTrigger>

@@ -12,6 +12,7 @@ import {
   ExternalLink,
   FolderKanban,
   AlertTriangle,
+  StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
   { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
   { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },
+  { href: "/painel/notas", label: "Notas", Icon: StickyNote },
 ];
 
 type Props = {

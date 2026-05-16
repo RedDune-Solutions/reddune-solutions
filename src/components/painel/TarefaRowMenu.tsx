@@ -10,13 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import type { TarefaPublic } from "@/types/tarefa";
+import type { Projeto } from "@/types/projeto";
 
 type Props = {
-  tarefa: TarefaPublic;
+  projeto: Projeto;
 };
 
-export function TarefaRowMenu({ tarefa }: Props) {
+export function TarefaRowMenu({ projeto }: Props) {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const [pending, startTransition] = useTransition();
@@ -24,10 +24,10 @@ export function TarefaRowMenu({ tarefa }: Props) {
 
   async function onDelete(e: Event) {
     e.preventDefault();
-    if (!confirm(`Apagar "${tarefa.titulo}"?`)) return;
+    if (!confirm(`Apagar "${projeto.titulo}"?`)) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tarefas/${encodeURIComponent(tarefa.id)}`, {
+      const res = await fetch(`/api/projetos/${encodeURIComponent(projeto.id)}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -35,8 +35,8 @@ export function TarefaRowMenu({ tarefa }: Props) {
         alert(`Erro: ${data.error ?? res.status}`);
         return;
       }
-      if (pathname.includes(`/tarefas/${tarefa.id}`)) {
-        startTransition(() => router.push("/painel/tarefas"));
+      if (pathname.includes(`/projetos/${projeto.id}`)) {
+        startTransition(() => router.push("/painel/projetos"));
       } else {
         startTransition(() => router.refresh());
       }
@@ -69,7 +69,7 @@ export function TarefaRowMenu({ tarefa }: Props) {
       <DropdownMenuContent align="end">
         <DropdownMenuItem destructive onSelect={onDelete}>
           <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-          Apagar tarefa
+          Apagar projeto
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

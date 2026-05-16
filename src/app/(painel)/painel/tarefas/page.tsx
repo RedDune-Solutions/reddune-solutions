@@ -1,12 +1,13 @@
-import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllProjetos } from "@/lib/mongodb/projetos";
+import { getAllClientes } from "@/lib/mongodb/clientes";
+import { applyFilters } from "@/lib/filter-projetos";
 import { Topbar } from "@/components/painel/Topbar";
 import { KanbanBoard } from "@/components/painel/KanbanBoard";
 import { TarefasTable } from "@/components/painel/TarefasTable";
 import { ViewToggle, type PainelView } from "@/components/painel/ViewToggle";
-import { applyFilters } from "@/lib/filter-tarefas";
 import { FilterBar } from "@/components/painel/FilterBar";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
-import { TAREFA_STATUS, TAREFA_TIPO, type TarefaStatus, type TarefaTipo } from "@/types/tarefa";
+import { PROJETO_STATUS, PROJETO_TIPO, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
@@ -23,26 +24,27 @@ export default async function TarefasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const [allTarefas, meta, params] = await Promise.all([
-    getAllTarefas(),
-    getSyncMeta(),
+  const [allProjetos, clientes, params] = await Promise.all([
+    getAllProjetos(),
+    getAllClientes(),
     searchParams,
   ]);
 
   const view: PainelView = params.view === "lista" ? "lista" : "kanban";
+
   const statusParam =
-    params.status && TAREFA_STATUS.includes(params.status as TarefaStatus)
-      ? (params.status as TarefaStatus)
+    params.status && PROJETO_STATUS.includes(params.status as ProjetoStatus)
+      ? (params.status as ProjetoStatus)
       : undefined;
   const tipoParam =
-    params.tipo && TAREFA_TIPO.includes(params.tipo as TarefaTipo)
-      ? (params.tipo as TarefaTipo)
+    params.tipo && PROJETO_TIPO.includes(params.tipo as ProjetoTipo)
+      ? (params.tipo as ProjetoTipo)
       : undefined;
 
-  const tarefas = applyFilters(allTarefas, {
+  const projetos = applyFilters(allProjetos, {
     status: statusParam,
     tipo: tipoParam,
-    cliente: params.cliente,
+    clienteNome: params.cliente,
     q: params.q,
   });
 
@@ -50,24 +52,22 @@ export default async function TarefasPage({
     <>
       <Topbar
         title="Tarefas"
-        description={`${tarefas.length} de ${allTarefas.length} tarefa${allTarefas.length === 1 ? "" : "s"} sincronizadas.`}
-        syncedAt={meta?.updatedAt}
-        syncCount={meta?.count}
+        description="Quadro de trabalho activo."
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <FilterBar tarefas={allTarefas} />
+          <FilterBar projetos={allProjetos} />
           <div className="flex items-center gap-2">
             <ViewToggle current={view} />
-            <NovaTarefaButton />
+            <NovaTarefaButton clientes={clientes} />
           </div>
         </div>
 
         {view === "kanban" ? (
-          <KanbanBoard tarefas={tarefas} />
+          <KanbanBoard projetos={projetos} />
         ) : (
-          <TarefasTable tarefas={tarefas} />
+          <TarefasTable projetos={projetos} />
         )}
       </div>
     </>

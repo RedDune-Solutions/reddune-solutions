@@ -1,62 +1,58 @@
 import Link from "next/link";
 import { ListChecks, Hourglass, CheckCircle2, AlertCircle, ArrowRight, Users, AlertTriangle } from "lucide-react";
-import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { TarefaCard } from "@/components/painel/TarefaCard";
 import { TodayWidget } from "@/components/painel/TodayWidget";
 import { Button } from "@/components/ui/button";
-import { STATUS_GROUPS } from "@/types/tarefa";
+import { STATUS_GROUPS } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
 export default async function PainelOverviewPage() {
-  const [tarefas, clientes, meta] = await Promise.all([
-    getAllTarefas(),
+  const [projetos, clientes] = await Promise.all([
+    getAllProjetos(),
     getAllClientes(),
-    getSyncMeta(),
   ]);
 
-  const dividasCount = tarefas.filter((t) => t.status === "em-divida").length;
-  const dividasValor = tarefas
-    .filter((t) => t.status === "em-divida")
-    .reduce((sum, t) => sum + (t.valorEstimado ?? 0), 0);
+  const dividasCount = projetos.filter((p) => p.status === "em-divida").length;
+  const dividasValor = projetos
+    .filter((p) => p.status === "em-divida")
+    .reduce((sum, p) => sum + (p.valorEstimado ?? 0), 0);
 
   const counts = {
-    total: tarefas.length,
-    emCurso: tarefas.filter((t) => STATUS_GROUPS.ativo.includes(t.status)).length,
-    proximos: tarefas.filter((t) => STATUS_GROUPS.proximo.includes(t.status)).length,
-    aguarda: tarefas.filter((t) => STATUS_GROUPS.aguarda.includes(t.status)).length,
-    pronto: tarefas.filter((t) => STATUS_GROUPS.pronto.includes(t.status)).length,
+    total: projetos.length,
+    emCurso: projetos.filter((p) => STATUS_GROUPS.ativo.includes(p.status)).length,
+    proximos: projetos.filter((p) => STATUS_GROUPS.proximo.includes(p.status)).length,
+    aguarda: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length,
+    pronto: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length,
   };
 
-  const proximaAccaoTarefas = tarefas
+  const proximaAccaoProjetos = projetos
     .filter(
-      (t) =>
-        STATUS_GROUPS.ativo.includes(t.status) ||
-        STATUS_GROUPS.proximo.includes(t.status)
+      (p) =>
+        STATUS_GROUPS.ativo.includes(p.status) ||
+        STATUS_GROUPS.proximo.includes(p.status)
     )
-    .filter((t) => t.proximaAccao && t.proximaAccao.length > 0)
+    .filter((p) => p.proximaAccao && p.proximaAccao.length > 0)
     .slice(0, 6);
 
   return (
     <>
       <Topbar
         title="Visão geral"
-        description="Estado actual de tarefas e projectos do Obsidian."
-        syncedAt={meta?.updatedAt}
-        syncCount={meta?.count}
+        description="Estado actual de projectos e clientes."
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-10">
-        {tarefas.length === 0 ? (
+        {projetos.length === 0 ? (
           <EmptyState />
         ) : (
           <>
-            <TodayWidget tarefas={tarefas} />
+            <TodayWidget projetos={projetos} />
 
-            {/* KPIs */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 label="Em curso"
@@ -88,14 +84,13 @@ export default async function PainelOverviewPage() {
               />
             </div>
 
-            {/* KPIs secundários */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <KpiCard
-                label="Clientes (fichas)"
+                label="Clientes"
                 value={clientes.length}
                 icon={Users}
                 tone="default"
-                hint="Fichas importadas do Obsidian"
+                hint="Total de fichas"
               />
               <KpiCard
                 label="Em dívida"
@@ -110,27 +105,26 @@ export default async function PainelOverviewPage() {
               />
             </div>
 
-            {/* Próximas acções */}
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-headline text-xl md:text-2xl font-semibold tracking-tight">
                   Próximas acções
                 </h2>
                 <Button asChild variant="ghost" size="sm">
-                  <Link href="/painel/tarefas?view=kanban">
-                    Ver todas
+                  <Link href="/painel/projetos?view=kanban">
+                    Ver todos
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
               </div>
-              {proximaAccaoTarefas.length === 0 ? (
+              {proximaAccaoProjetos.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Sem próximas acções activas. Tudo em dia.
                 </p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {proximaAccaoTarefas.map((tarefa) => (
-                    <TarefaCard key={tarefa.id} tarefa={tarefa} />
+                  {proximaAccaoProjetos.map((projeto) => (
+                    <TarefaCard key={projeto.id} projeto={projeto} />
                   ))}
                 </div>
               )}
@@ -150,7 +144,8 @@ function EmptyState() {
         Sem dados ainda
       </h2>
       <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-        Clica em <strong>Sincronizar</strong> no topo (em dev), ou corre <code className="rounded bg-muted px-1.5 py-0.5 text-xs">npm run sync:obsidian</code> no PC.
+        Vai a <strong>Projectos</strong> e cria o primeiro projecto, ou corre a migração em{" "}
+        <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/api/migrate</code> (POST) para importar dados existentes.
       </p>
     </div>
   );

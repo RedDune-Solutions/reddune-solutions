@@ -12,17 +12,19 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { TarefaForm } from "./TarefaForm";
-import type { TarefaPublic } from "@/types/tarefa";
+import type { Projeto } from "@/types/projeto";
+import type { Cliente } from "@/types/cliente";
 
 type Props = {
-  tarefa?: TarefaPublic;
+  projeto?: Projeto;
+  clientes?: Cliente[];
   label?: string;
   variant?: "primary" | "ghost";
 };
 
-export function NovaTarefaButton({ tarefa, label, variant = "primary" }: Props) {
+export function NovaTarefaButton({ projeto, clientes = [], label, variant = "primary" }: Props) {
   const [open, setOpen] = useState(false);
-  const isEdit = !!tarefa;
+  const isEdit = !!projeto;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -37,18 +39,19 @@ export function NovaTarefaButton({ tarefa, label, variant = "primary" }: Props) 
           variant={variant === "ghost" ? "ghost" : "default"}
         >
           {!isEdit && <Plus className="h-4 w-4 mr-1" aria-hidden="true" />}
-          {label ?? (isEdit ? "Editar" : "Nova tarefa")}
+          {label ?? (isEdit ? "Editar" : "Novo projeto")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex flex-col p-0">
         <SheetHeader>
-          <SheetTitle>{isEdit ? "Editar tarefa" : "Nova tarefa"}</SheetTitle>
+          <SheetTitle>{isEdit ? "Editar projeto" : "Novo projeto"}</SheetTitle>
           <SheetDescription>
-            {isEdit ? "Actualiza os campos desta tarefa." : "Cria uma tarefa nova manualmente."}
+            {isEdit ? "Actualiza os campos deste projeto." : "Cria um projeto novo."}
           </SheetDescription>
         </SheetHeader>
         <TarefaForm
-          tarefa={tarefa}
+          projeto={projeto}
+          clientes={clientes}
           onSaved={() => setOpen(false)}
           onCancel={() => setOpen(false)}
         />

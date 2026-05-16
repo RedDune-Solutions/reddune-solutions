@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowUpDown, Search } from "lucide-react";
 import { InlineStatusSelect } from "./InlineStatusSelect";
 import { TarefaRowMenu } from "./TarefaRowMenu";
-import type { TarefaPublic } from "@/types/tarefa";
+import type { Projeto } from "@/types/projeto";
 import { cn } from "@/lib/utils";
 
 function formatDate(iso: string | null): string {
@@ -31,18 +31,18 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
+export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [filter, setFilter] = useState("");
 
-  const columns = useMemo<ColumnDef<TarefaPublic>[]>(
+  const columns = useMemo<ColumnDef<Projeto>[]>(
     () => [
       {
         accessorKey: "titulo",
-        header: "Tarefa",
+        header: "Projeto",
         cell: ({ row }) => (
           <Link
-            href={`/painel/tarefas/${row.original.id}`}
+            href={`/painel/projetos/${row.original.id}`}
             className="font-medium text-ink hover:text-ember transition-colors"
           >
             {row.original.titulo}
@@ -50,15 +50,15 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
         ),
       },
       {
-        accessorKey: "cliente",
+        accessorKey: "clienteNome",
         header: "Cliente",
-        cell: ({ row }) => row.original.cliente ?? "—",
+        cell: ({ row }) => row.original.clienteNome ?? "—",
       },
       {
         accessorKey: "status",
         header: "Estado",
         cell: ({ row }) => (
-          <InlineStatusSelect tarefaId={row.original.id} status={row.original.status} />
+          <InlineStatusSelect projetoId={row.original.id} status={row.original.status} />
         ),
       },
       {
@@ -90,23 +90,23 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
         id: "actions",
         header: "",
         enableSorting: false,
-        cell: ({ row }) => <TarefaRowMenu tarefa={row.original} />,
+        cell: ({ row }) => <TarefaRowMenu projeto={row.original} />,
       },
     ],
     []
   );
 
   const filteredData = useMemo(() => {
-    if (!filter.trim()) return tarefas;
+    if (!filter.trim()) return projetos;
     const q = filter.toLowerCase();
-    return tarefas.filter(
-      (t) =>
-        t.titulo.toLowerCase().includes(q) ||
-        t.cliente?.toLowerCase().includes(q) ||
-        t.proximaAccao?.toLowerCase().includes(q) ||
-        t.tipo?.toLowerCase().includes(q)
+    return projetos.filter(
+      (p) =>
+        p.titulo.toLowerCase().includes(q) ||
+        p.clienteNome?.toLowerCase().includes(q) ||
+        p.proximaAccao?.toLowerCase().includes(q) ||
+        p.tipo?.toLowerCase().includes(q)
     );
-  }, [tarefas, filter]);
+  }, [projetos, filter]);
 
   const table = useReactTable({
     data: filteredData,
@@ -127,7 +127,7 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
         />
         <Input
           type="search"
-          placeholder="Pesquisar tarefas..."
+          placeholder="Pesquisar projetos..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="pl-10 bg-white/70 border-dune-deep/15 rounded-btn focus-visible:ring-ember"
@@ -167,7 +167,7 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} className="px-4 py-12 text-center text-ink-mute">
-                    Sem tarefas para mostrar.
+                    Sem projetos para mostrar.
                   </td>
                 </tr>
               ) : (
@@ -193,7 +193,7 @@ export function TarefasTable({ tarefas }: { tarefas: TarefaPublic[] }) {
       </div>
 
       <p className="font-mono text-[11px] uppercase tracking-tight text-ink-mute tabular-nums">
-        {filteredData.length} de {tarefas.length} tarefas
+        {filteredData.length} de {projetos.length} projetos
       </p>
     </div>
   );

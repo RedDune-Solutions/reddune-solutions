@@ -5,28 +5,36 @@ import {
   isOverdue,
   isToday,
   isWithinNextDays,
+  parseIsoDate,
 } from "@/lib/dates";
-import { STATUS_GROUPS, type TarefaPublic } from "@/types/tarefa";
+import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
 
 type Props = {
-  tarefas: TarefaPublic[];
+  projetos: Projeto[];
 };
 
-export function TodayWidget({ tarefas }: Props) {
+export function TodayWidget({ projetos }: Props) {
   const now = new Date();
 
-  const active = tarefas.filter(
-    (t) =>
-      STATUS_GROUPS.ativo.includes(t.status) ||
-      STATUS_GROUPS.proximo.includes(t.status) ||
-      STATUS_GROUPS.aguarda.includes(t.status)
+  const active = projetos.filter(
+    (p) =>
+      STATUS_GROUPS.ativo.includes(p.status) ||
+      STATUS_GROUPS.proximo.includes(p.status) ||
+      STATUS_GROUPS.aguarda.includes(p.status)
   );
 
   const overdue = active
-    .filter((t) => t.prazo && isOverdue(t.prazo, now))
-    .sort((a, b) => (a.prazo ?? "").localeCompare(b.prazo ?? ""));
-  const today = active.filter((t) => isToday(t.prazo, now));
-  const upcoming = active.filter((t) => isWithinNextDays(t.prazo, 7, now));
+    .filter((p) => p.prazo && isOverdue(p.prazo, now))
+    .sort((a, b) => {
+      const aDate = parseIsoDate(a.prazo ?? null);
+      const bDate = parseIsoDate(b.prazo ?? null);
+      if (!aDate && !bDate) return 0;
+      if (!aDate) return 1;
+      if (!bDate) return -1;
+      return aDate.getTime() - bDate.getTime();
+    });
+  const today = active.filter((p) => isToday(p.prazo, now));
+  const upcoming = active.filter((p) => isWithinNextDays(p.prazo, 7, now));
 
   if (overdue.length === 0 && today.length === 0 && upcoming.length === 0) {
     return null;
@@ -45,7 +53,7 @@ export function TodayWidget({ tarefas }: Props) {
           </p>
           <h2 className="mt-2 font-display text-xl md:text-2xl font-semibold leading-tight tracking-tight text-ink">
             {overdue.length > 0 || today.length > 0
-              ? "Tarefas a tratar agora"
+              ? "Projetos a tratar agora"
               : "Próximos prazos"}
           </h2>
         </div>
@@ -61,7 +69,7 @@ export function TodayWidget({ tarefas }: Props) {
       <div className="mt-6 space-y-6">
         {overdue.length > 0 && (
           <Group
-            label="Atrasadas"
+            label="Atrasados"
             count={overdue.length}
             icon={AlertCircle}
             tone="destructive"
@@ -102,7 +110,7 @@ function Group({
   count: number;
   icon: LucideIcon;
   tone: "destructive" | "accent" | "muted";
-  items: TarefaPublic[];
+  items: Projeto[];
 }) {
   const toneClasses = {
     destructive: "text-dune",
@@ -120,8 +128,8 @@ function Group({
         <span className="tabular-nums text-ink-mute">{count}</span>
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {items.map((tarefa) => (
-          <TarefaCard key={tarefa.id} tarefa={tarefa} />
+        {items.map((projeto) => (
+          <TarefaCard key={projeto.id} projeto={projeto} />
         ))}
       </div>
     </div>

@@ -15,21 +15,21 @@ import {
 } from "@/components/ui/select";
 import {
   STATUS_LABELS,
-  TAREFA_STATUS,
-  type TarefaPublic,
-  type TarefaStatus,
-} from "@/types/tarefa";
+  PROJETO_STATUS,
+  type Projeto,
+  type ProjetoStatus,
+} from "@/types/projeto";
 
 type Props = {
-  tarefa: TarefaPublic;
+  projeto: Projeto;
 };
 
-export function EditTarefaActions({ tarefa }: Props) {
+export function EditTarefaActions({ projeto }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [proxOpen, setProxOpen] = useState(false);
-  const [proxValue, setProxValue] = useState(tarefa.proximaAccao ?? "");
+  const [proxValue, setProxValue] = useState(projeto.proximaAccao ?? "");
   const [success, setSuccess] = useState<string | null>(null);
 
   async function submitEdit(
@@ -39,11 +39,11 @@ export function EditTarefaActions({ tarefa }: Props) {
     setError(null);
     setSuccess(null);
     try {
-      const res = await fetch("/api/tarefas/edit", {
+      const res = await fetch("/api/projetos/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tarefaId: tarefa.id,
+          projetoId: projeto.id,
           field,
           newValue,
         }),
@@ -70,7 +70,7 @@ export function EditTarefaActions({ tarefa }: Props) {
             Mudar estado
           </Label>
           <Select
-            value={tarefa.status}
+            value={projeto.status}
             onValueChange={(v) => submitEdit("status", v)}
             disabled={pending}
           >
@@ -78,9 +78,9 @@ export function EditTarefaActions({ tarefa }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {TAREFA_STATUS.map((s) => (
+              {PROJETO_STATUS.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {STATUS_LABELS[s as TarefaStatus]}
+                  {STATUS_LABELS[s as ProjetoStatus]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -147,7 +147,7 @@ export function EditTarefaActions({ tarefa }: Props) {
               size="sm"
               onClick={() => {
                 setProxOpen(false);
-                setProxValue(tarefa.proximaAccao ?? "");
+                setProxValue(projeto.proximaAccao ?? "");
               }}
               className="text-ink-soft hover:text-ember"
             >

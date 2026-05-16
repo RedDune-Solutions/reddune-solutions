@@ -12,20 +12,20 @@ import {
 import { cn } from "@/lib/utils";
 import {
   STATUS_LABELS,
-  TAREFA_STATUS,
-  type TarefaStatus,
-} from "@/types/tarefa";
+  PROJETO_STATUS,
+  type ProjetoStatus,
+} from "@/types/projeto";
 
 type Props = {
-  tarefaId: string;
-  status: TarefaStatus;
+  projetoId: string;
+  status: ProjetoStatus;
   className?: string;
   triggerClassName?: string;
   stopPropagation?: boolean;
 };
 
 export function InlineStatusSelect({
-  tarefaId,
+  projetoId,
   status,
   className,
   triggerClassName,
@@ -33,19 +33,19 @@ export function InlineStatusSelect({
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [current, setCurrent] = useState<TarefaStatus>(status);
+  const [current, setCurrent] = useState<ProjetoStatus>(status);
   const [error, setError] = useState<string | null>(null);
 
   async function onChange(next: string) {
-    const newStatus = next as TarefaStatus;
+    const newStatus = next as ProjetoStatus;
     const previous = current;
     setCurrent(newStatus);
     setError(null);
     try {
-      const res = await fetch("/api/tarefas/edit", {
+      const res = await fetch("/api/projetos/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tarefaId, field: "status", newValue: newStatus }),
+        body: JSON.stringify({ projetoId, field: "status", newValue: newStatus }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -77,7 +77,7 @@ export function InlineStatusSelect({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {TAREFA_STATUS.map((s) => (
+          {PROJETO_STATUS.map((s) => (
             <SelectItem key={s} value={s}>
               {STATUS_LABELS[s]}
             </SelectItem>

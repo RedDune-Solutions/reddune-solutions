@@ -19,9 +19,9 @@ export function GlobalSearch({ defaultValue }: Props) {
     const trimmed = value.trim();
     startTransition(() => {
       if (trimmed) {
-        router.push(`/painel/tarefas?q=${encodeURIComponent(trimmed)}`);
+        router.push(`/painel/projetos?q=${encodeURIComponent(trimmed)}`);
       } else {
-        router.push("/painel/tarefas");
+        router.push("/painel/projetos");
       }
     });
   }
@@ -46,9 +46,9 @@ export function GlobalSearch({ defaultValue }: Props) {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Pesquisar tarefas..."
+        placeholder="Pesquisar projectos..."
         className="h-9 pl-8 pr-3 bg-white/70 border-dune-deep/15 rounded-btn focus-visible:ring-ember"
-        aria-label="Pesquisar tarefas"
+        aria-label="Pesquisar projectos"
       />
     </form>
   );

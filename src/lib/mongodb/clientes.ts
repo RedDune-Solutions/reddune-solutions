@@ -1,6 +1,6 @@
 import "server-only";
 import clientPromise from "./client";
-import type { ClienteFicha } from "@/types/cliente";
+import type { Cliente } from "@/types/cliente";
 
 const COLLECTION = "clientes";
 
@@ -9,40 +9,31 @@ async function getDb() {
   return client.db(process.env.MONGODB_DB_NAME);
 }
 
-export async function getAllClientes(): Promise<ClienteFicha[]> {
+export async function getAllClientes(): Promise<Cliente[]> {
   const db = await getDb();
   return db
-    .collection<ClienteFicha>(COLLECTION)
+    .collection<Cliente>(COLLECTION)
     .find({}, { projection: { _id: 0 } })
+    .sort({ nome: 1 })
     .toArray();
 }
 
-export async function getClienteBySlug(slug: string): Promise<ClienteFicha | null> {
+export async function getClienteById(id: string): Promise<Cliente | null> {
   const db = await getDb();
-  const all = await db
-    .collection<ClienteFicha>(COLLECTION)
-    .find({}, { projection: { _id: 0 } })
-    .toArray();
-  const target = slug.toLowerCase();
-  return (
-    all.find((c) => {
-      const nome = String(c.nome ?? "").toLowerCase();
-      const file = String(c.sourcePath ?? "").split("/").pop()?.replace(/\.md$/, "").toLowerCase() ?? "";
-      return nome === target || file === target;
-    }) ?? null
-  );
+  return db
+    .collection<Cliente>(COLLECTION)
+    .findOne({ id }, { projection: { _id: 0 } });
 }
 
-export async function replaceClientes(
-  items: ClienteFicha[]
-): Promise<{ count: number; updatedAt: string }> {
+export async function upsertCliente(cliente: Cliente): Promise<void> {
   const db = await getDb();
-  const col = db.collection<ClienteFicha>(COLLECTION);
-  await col.deleteMany({});
-  if (items.length > 0) await col.insertMany(items as ClienteFicha[]);
-  await Promise.all([
-    col.createIndex({ sourcePath: 1 }, { unique: true }),
-    col.createIndex({ nome: 1 }),
-  ]);
-  return { count: items.length, updatedAt: new Date().toISOString() };
+  const col = db.collection<Cliente>(COLLECTION);
+  await col.updateOne({ id: cliente.id }, { $set: cliente }, { upsert: true });
+  await col.createIndex({ id: 1 }, { unique: true });
+}
+
+export async function deleteCliente(id: string): Promise<boolean> {
+  const db = await getDb();
+  const result = await db.collection<Cliente>(COLLECTION).deleteOne({ id });
+  return result.deletedCount > 0;
 }

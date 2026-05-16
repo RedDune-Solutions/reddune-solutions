@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllProjetos } from "@/lib/mongodb/projetos";
+import { getAllTarefas } from "@/lib/mongodb/tarefas";
 import { Topbar } from "@/components/painel/Topbar";
 import { MonthCalendar } from "@/components/painel/MonthCalendar";
 import { Button } from "@/components/ui/button";
@@ -30,9 +31,9 @@ export default async function CalendarioPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const [tarefas, meta, params] = await Promise.all([
+  const [projetos, tarefas, params] = await Promise.all([
+    getAllProjetos(),
     getAllTarefas(),
-    getSyncMeta(),
     searchParams,
   ]);
 
@@ -47,9 +48,7 @@ export default async function CalendarioPage({
     <>
       <Topbar
         title="Calendário"
-        description="Tarefas com prazo agendado."
-        syncedAt={meta?.updatedAt}
-        syncCount={meta?.count}
+        description="Projectos e tarefas com prazo agendado."
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-6">
@@ -79,6 +78,7 @@ export default async function CalendarioPage({
         <MonthCalendar
           year={target.year}
           monthIndex={target.monthIndex}
+          projetos={projetos}
           tarefas={tarefas}
         />
       </div>

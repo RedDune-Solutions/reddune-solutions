@@ -1,14 +1,10 @@
-export type ClienteFicha = Record<string, unknown> & {
-  _id?: string;
-  sourcePath: string;
-};
-
-export type ParceirFicha = Record<string, unknown> & {
-  _id?: string;
-  sourcePath: string;
-};
-
-export type SyncMetaFichas = {
-  clientes: { count: number; updatedAt: string };
-  parceiros: { count: number; updatedAt: string };
-};
+export interface Cliente {
+  id: string;
+  nome: string;
+  email: string | null;
+  telefone: string | null;
+  nif: string | null;
+  morada: string | null;
+  notas: string | null;
+  criadoEm: string;
+}

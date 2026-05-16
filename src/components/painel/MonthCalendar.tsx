@@ -6,65 +6,78 @@ import {
   isToday,
   parseIsoDate,
 } from "@/lib/dates";
-import type { TarefaPublic, TarefaStatus } from "@/types/tarefa";
+import type { Projeto, ProjetoStatus } from "@/types/projeto";
+import type { Tarefa } from "@/types/tarefa";
+
+type CalendarEntry =
+  | { kind: "projeto"; item: Projeto }
+  | { kind: "tarefa"; item: Tarefa };
 
 type Props = {
   year: number;
   monthIndex: number;
-  tarefas: TarefaPublic[];
+  projetos: Projeto[];
+  tarefas?: Tarefa[];
 };
 
 const DAYS_HEADER = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
-/**
- * Oasis status dots — mirrors oasisStatusColors from lib/chart-theme but
- * uses Tailwind tokens directly (utility-first inside this file).
- */
-const STATUS_DOT: Record<TarefaStatus, string> = {
+const STATUS_DOT: Record<ProjetoStatus, string> = {
   proximo: "bg-apricot",
   "em-curso": "bg-ember",
-  "aguarda-cliente": "bg-peach",
-  "aguarda-pecas": "bg-peach",
-  "aguarda-fornecedor": "bg-peach",
+  "aguarda-cliente": "bg-amber-400",
+  "aguarda-pecas": "bg-orange-400",
+  "aguarda-fornecedor": "bg-yellow-400",
   pronto: "bg-emerald-500",
+  entregue: "bg-teal-500",
   fechado: "bg-ink-mute/60",
   cancelado: "bg-dune",
-  garantia: "bg-cream-deep",
+  garantia: "bg-violet-400",
   suspenso: "bg-ink-mute/60",
-  bloqueado: "bg-dune-deep",
-  "em-divida": "bg-dune-deep",
+  bloqueado: "bg-rose-700",
+  "em-divida": "bg-rose-500",
 };
 
-export function MonthCalendar({ year, monthIndex, tarefas }: Props) {
+export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Props) {
   const totalDays = daysInMonth(year, monthIndex);
   const firstWeekday = firstWeekdayOfMonth(year, monthIndex);
   const totalCells = Math.ceil((firstWeekday + totalDays) / 7) * 7;
 
-  // Build map of day -> tarefas
-  const byDay = new Map<number, TarefaPublic[]>();
-  for (const t of tarefas) {
-    const d = parseIsoDate(t.prazo);
-    if (!d) continue;
-    if (d.getFullYear() !== year || d.getMonth() !== monthIndex) continue;
-    const day = d.getDate();
+  const byDay = new Map<number, CalendarEntry[]>();
+
+  function addToDay(day: number, entry: CalendarEntry) {
     const list = byDay.get(day) ?? [];
-    list.push(t);
+    list.push(entry);
     byDay.set(day, list);
   }
 
-  const cells: Array<{ day: number | null; items: TarefaPublic[] }> = [];
+  for (const p of projetos) {
+    const d = parseIsoDate(p.prazo);
+    if (!d) continue;
+    if (d.getFullYear() !== year || d.getMonth() !== monthIndex) continue;
+    addToDay(d.getDate(), { kind: "projeto", item: p });
+  }
+
+  for (const t of tarefas) {
+    if (!t.prazo) continue;
+    const d = parseIsoDate(t.prazo);
+    if (!d) continue;
+    if (d.getFullYear() !== year || d.getMonth() !== monthIndex) continue;
+    addToDay(d.getDate(), { kind: "tarefa", item: t });
+  }
+
+  const cells: Array<{ day: number | null; entries: CalendarEntry[] }> = [];
   for (let i = 0; i < totalCells; i++) {
     const dayNum = i - firstWeekday + 1;
     if (dayNum < 1 || dayNum > totalDays) {
-      cells.push({ day: null, items: [] });
+      cells.push({ day: null, entries: [] });
     } else {
-      cells.push({ day: dayNum, items: byDay.get(dayNum) ?? [] });
+      cells.push({ day: dayNum, entries: byDay.get(dayNum) ?? [] });
     }
   }
 
   return (
     <div className="rounded-card border border-dune-deep/10 bg-sand-warm/70 overflow-hidden shadow-warm">
-      {/* Header */}
       <div className="grid grid-cols-7 border-b border-dune-deep/10 bg-cream-deep">
         {DAYS_HEADER.map((d) => (
           <div
@@ -76,7 +89,6 @@ export function MonthCalendar({ year, monthIndex, tarefas }: Props) {
         ))}
       </div>
 
-      {/* Cells */}
       <div className="grid grid-cols-7 [&>*:nth-child(7n)]:border-r-0">
         {cells.map((cell, idx) => {
           if (cell.day === null) {
@@ -90,6 +102,9 @@ export function MonthCalendar({ year, monthIndex, tarefas }: Props) {
           }
           const dateForDay = new Date(year, monthIndex, cell.day);
           const todayCell = isToday(dateForDay.toISOString());
+          const visible = cell.entries.slice(0, 3);
+          const overflow = cell.entries.length - visible.length;
+
           return (
             <div
               key={`day-${cell.day}`}
@@ -109,33 +124,57 @@ export function MonthCalendar({ year, monthIndex, tarefas }: Props) {
                 >
                   {cell.day}
                 </span>
-                {cell.items.length > 3 && (
+                {overflow > 0 && (
                   <span className="font-mono text-[10px] text-ink-mute tabular-nums">
-                    +{cell.items.length - 3}
+                    +{overflow}
                   </span>
                 )}
               </div>
               <ul className="space-y-1">
-                {cell.items.slice(0, 3).map((t) => (
-                  <li key={t.id}>
-                    <Link
-                      href={`/painel/tarefas/${t.id}`}
-                      className="block group"
-                      title={`${t.titulo}${t.cliente ? ` — ${t.cliente}` : ""}`}
-                    >
-                      <span className="flex items-center gap-1.5 rounded-sm bg-white/70 hover:bg-white px-1.5 py-0.5 text-[11px] font-medium text-ink transition-colors">
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full shrink-0",
-                            STATUS_DOT[t.status]
-                          )}
-                          aria-hidden="true"
-                        />
-                        <span className="truncate">{t.titulo}</span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
+                {visible.map((entry, i) => {
+                  if (entry.kind === "projeto") {
+                    const p = entry.item;
+                    return (
+                      <li key={`p-${p.id}-${i}`}>
+                        <Link
+                          href={`/painel/projetos/${p.id}`}
+                          className="block group"
+                          title={`${p.titulo}${p.clienteNome ? ` — ${p.clienteNome}` : ""}`}
+                        >
+                          <span className="flex items-center gap-1.5 rounded-sm bg-white/70 hover:bg-white px-1.5 py-0.5 text-[11px] font-medium text-ink transition-colors">
+                            <span
+                              className={cn("h-1.5 w-1.5 rounded-full shrink-0", STATUS_DOT[p.status])}
+                              aria-hidden="true"
+                            />
+                            <span className="truncate">{p.titulo}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  } else {
+                    const t = entry.item;
+                    return (
+                      <li key={`t-${t.id}-${i}`}>
+                        <Link
+                          href={`/painel/projetos/${t.projetoId}`}
+                          className="block group"
+                          title={`Tarefa: ${t.titulo}`}
+                        >
+                          <span className="flex items-center gap-1.5 rounded-sm bg-white/50 hover:bg-white/80 px-1.5 py-0.5 text-[11px] text-ink-soft transition-colors">
+                            <span
+                              className={cn(
+                                "h-1.5 w-1.5 rounded-full shrink-0 border border-ink-mute/40",
+                                t.feita ? "bg-emerald-400" : "bg-white"
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="truncate italic">{t.titulo}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  }
+                })}
               </ul>
             </div>
           );

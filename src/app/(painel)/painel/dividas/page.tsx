@@ -1,5 +1,5 @@
 import { AlertTriangle } from "lucide-react";
-import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { Topbar } from "@/components/painel/Topbar";
 import { TarefasTable } from "@/components/painel/TarefasTable";
 import { KpiCard } from "@/components/painel/KpiCard";
@@ -7,18 +7,16 @@ import { KpiCard } from "@/components/painel/KpiCard";
 export const dynamic = "force-dynamic";
 
 export default async function DividasPage() {
-  const [allTarefas, meta] = await Promise.all([getAllTarefas(), getSyncMeta()]);
+  const allProjetos = await getAllProjetos();
 
-  const dividas = allTarefas.filter((t) => t.status === "em-divida");
-  const totalValor = dividas.reduce((sum, t) => sum + (t.valorEstimado ?? 0), 0);
+  const dividas = allProjetos.filter((p) => p.status === "em-divida");
+  const totalValor = dividas.reduce((sum, p) => sum + (p.valorEstimado ?? 0), 0);
 
   return (
     <>
       <Topbar
         title="Em dívida"
         description={`${dividas.length} projecto${dividas.length === 1 ? "" : "s"} com pagamento pendente.`}
-        syncedAt={meta?.updatedAt}
-        syncCount={meta?.count}
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-8">
@@ -47,12 +45,12 @@ export default async function DividasPage() {
           <div className="rounded-2xl border border-dashed border-border bg-cream/30 px-6 py-16 text-center">
             <p className="text-sm text-muted-foreground">
               Sem projectos em dívida. Usa o status{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">em-divida</code> no
-              Obsidian para marcar projectos por cobrar.
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">em-divida</code> para
+              marcar projectos por cobrar.
             </p>
           </div>
         ) : (
-          <TarefasTable tarefas={dividas} />
+          <TarefasTable projetos={dividas} />
         )}
       </div>
     </>

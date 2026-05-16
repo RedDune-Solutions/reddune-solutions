@@ -2,22 +2,19 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { patchTarefa } from "@/lib/mongodb/tarefas";
-import { TAREFA_STATUS } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
 
-const payloadSchema = z.discriminatedUnion("field", [
-  z.object({
-    tarefaId: z.string().min(1),
-    field: z.literal("status"),
-    newValue: z.enum(TAREFA_STATUS),
+const payloadSchema = z.object({
+  tarefaId: z.string().min(1),
+  patch: z.object({
+    feita: z.boolean().optional(),
+    titulo: z.string().min(1).max(300).optional(),
+    prazo: z.string().nullable().optional(),
+    notas: z.string().max(1000).nullable().optional(),
+    ordem: z.number().int().optional(),
   }),
-  z.object({
-    tarefaId: z.string().min(1),
-    field: z.literal("proximaAccao"),
-    newValue: z.string().max(500),
-  }),
-]);
+});
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -40,12 +37,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const patch =
-    parsed.data.field === "status"
-      ? { status: parsed.data.newValue }
-      : { proximaAccao: parsed.data.newValue || null };
-
-  const ok = await patchTarefa(parsed.data.tarefaId, patch);
+  const ok = await patchTarefa(parsed.data.tarefaId, parsed.data.patch);
   if (!ok) {
     return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
   }

@@ -3,11 +3,43 @@ import { cn } from "@/lib/utils";
 import { CalendarDays, User, ArrowRight } from "lucide-react";
 import { InlineStatusSelect } from "./InlineStatusSelect";
 import { TarefaRowMenu } from "./TarefaRowMenu";
-import type { TarefaPublic } from "@/types/tarefa";
+import type { Projeto, ProjetoStatus } from "@/types/projeto";
 
 type Props = {
-  tarefa: TarefaPublic;
+  projeto: Projeto;
   className?: string;
+};
+
+const STATUS_RIBBON: Record<ProjetoStatus, string> = {
+  proximo: "border-l-ember",
+  "em-curso": "border-l-sky-500",
+  "aguarda-cliente": "border-l-amber-500",
+  "aguarda-pecas": "border-l-orange-400",
+  "aguarda-fornecedor": "border-l-yellow-400",
+  pronto: "border-l-emerald-500",
+  entregue: "border-l-teal-500",
+  fechado: "border-l-slate-400",
+  cancelado: "border-l-slate-300",
+  garantia: "border-l-violet-400",
+  suspenso: "border-l-slate-400",
+  bloqueado: "border-l-rose-700",
+  "em-divida": "border-l-rose-500",
+};
+
+const STATUS_BG: Record<ProjetoStatus, string> = {
+  proximo: "bg-ember/5",
+  "em-curso": "bg-sky-500/5",
+  "aguarda-cliente": "bg-amber-500/5",
+  "aguarda-pecas": "bg-orange-400/5",
+  "aguarda-fornecedor": "bg-yellow-400/5",
+  pronto: "bg-emerald-500/5",
+  entregue: "bg-teal-500/5",
+  fechado: "bg-slate-100/60",
+  cancelado: "bg-slate-100/40",
+  garantia: "bg-violet-400/5",
+  suspenso: "bg-slate-100/60",
+  bloqueado: "bg-rose-700/5",
+  "em-divida": "bg-rose-500/5",
 };
 
 function formatDate(iso: string | null): string | null {
@@ -23,58 +55,69 @@ function formatDate(iso: string | null): string | null {
   }
 }
 
-export function TarefaCard({ tarefa, className }: Props) {
-  const prazo = formatDate(tarefa.prazo);
+export function TarefaCard({ projeto, className }: Props) {
+  const prazo = formatDate(projeto.prazo);
+  const isPast =
+    projeto.prazo && new Date(projeto.prazo) < new Date() && projeto.status !== "fechado";
 
   return (
     <Link
-      href={`/painel/tarefas/${tarefa.id}`}
+      href={`/painel/projetos/${projeto.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-card border border-dune-deep/10 bg-white/70 p-5 shadow-warm",
-        "transition-all duration-300 hover:border-ember/30 hover:-translate-y-0.5 hover:shadow-warm-lg",
+        "group relative block overflow-hidden rounded-card border border-dune-deep/10 border-l-4 shadow-warm",
+        "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-warm-lg hover:border-r-dune-deep/20",
+        STATUS_RIBBON[projeto.status],
+        STATUS_BG[projeto.status],
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <InlineStatusSelect tarefaId={tarefa.id} status={tarefa.status} />
-        <TarefaRowMenu tarefa={tarefa} />
-      </div>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <InlineStatusSelect projetoId={projeto.id} status={projeto.status} />
+          <TarefaRowMenu projeto={projeto} />
+        </div>
 
-      <h3 className="mt-3 font-display text-lg font-semibold leading-tight tracking-tight line-clamp-2 text-ink">
-        {tarefa.titulo}
-      </h3>
+        <h3 className="font-display text-base font-semibold leading-snug tracking-tight line-clamp-2 text-ink">
+          {projeto.titulo}
+        </h3>
 
-      {tarefa.proximaAccao && (
-        <p className="mt-2 text-sm text-ink-soft leading-relaxed">
-          <span className="inline-flex max-w-full items-start gap-1.5">
-            <ArrowRight
-              className="size-3.5 shrink-0 mt-0.5 text-ink-mute"
-              strokeWidth={2.25}
-              aria-hidden
-            />
-            <span className="min-w-0 line-clamp-2">{tarefa.proximaAccao}</span>
-          </span>
-        </p>
-      )}
+        {projeto.proximaAccao && (
+          <div className="mt-2.5 rounded-md bg-black/5 px-3 py-2">
+            <p className="text-xs text-ink-soft leading-relaxed flex items-start gap-1.5">
+              <ArrowRight
+                className="size-3 shrink-0 mt-0.5 text-ink-mute"
+                strokeWidth={2.5}
+                aria-hidden
+              />
+              <span className="line-clamp-2">{projeto.proximaAccao}</span>
+            </p>
+          </div>
+        )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-mute">
-        {tarefa.cliente && (
-          <span className="inline-flex items-center gap-1.5">
-            <User className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="truncate max-w-[160px]">{tarefa.cliente}</span>
-          </span>
-        )}
-        {prazo && (
-          <span className="inline-flex items-center gap-1.5 tabular-nums">
-            <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-            {prazo}
-          </span>
-        )}
-        {tarefa.tipo && (
-          <span className="inline-flex items-center gap-1.5 font-mono uppercase tracking-tight">
-            #{tarefa.tipo.replace("-", " ")}
-          </span>
-        )}
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-ink-mute">
+          {projeto.clienteNome && (
+            <span className="inline-flex items-center gap-1">
+              <User className="h-3 w-3" aria-hidden="true" />
+              <span className="truncate max-w-[140px]">{projeto.clienteNome}</span>
+            </span>
+          )}
+          {prazo && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 tabular-nums",
+                isPast && "text-rose-500 font-semibold"
+              )}
+            >
+              <CalendarDays className="h-3 w-3" aria-hidden="true" />
+              {prazo}
+            </span>
+          )}
+          {projeto.tipo && (
+            <span className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
+              {projeto.tipo.replace("-", " ")}
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

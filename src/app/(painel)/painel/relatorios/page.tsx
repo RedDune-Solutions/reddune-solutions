@@ -1,24 +1,25 @@
 import { Euro, Clock, ListChecks, Users } from "lucide-react";
-import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllProjetos } from "@/lib/mongodb/projetos";
+import { getAllClientes } from "@/lib/mongodb/clientes";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { StatusPie } from "@/components/painel/charts/StatusPie";
 import { TipoBar } from "@/components/painel/charts/TipoBar";
 import { ValorMensal } from "@/components/painel/charts/ValorMensal";
-import { STATUS_GROUPS, TAREFA_STATUS, type TarefaStatus, type TarefaPublic } from "@/types/tarefa";
+import { STATUS_GROUPS, PROJETO_STATUS, type ProjetoStatus, type Projeto } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
 function monthKey(iso: string): string {
-  return iso.slice(0, 7); // YYYY-MM
+  return iso.slice(0, 7);
 }
 
-function buildValorMensal(tarefas: TarefaPublic[]): Array<{ mes: string; valor: number }> {
+function buildValorMensal(projetos: Projeto[]): Array<{ mes: string; valor: number }> {
   const map = new Map<string, number>();
-  for (const t of tarefas) {
-    if (!t.dataCriado || !t.valorEstimado) continue;
-    const key = monthKey(t.dataCriado);
-    map.set(key, (map.get(key) ?? 0) + t.valorEstimado);
+  for (const p of projetos) {
+    if (!p.dataCriado || !p.valorEstimado) continue;
+    const key = monthKey(p.dataCriado);
+    map.set(key, (map.get(key) ?? 0) + p.valorEstimado);
   }
   return [...map.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
@@ -26,11 +27,11 @@ function buildValorMensal(tarefas: TarefaPublic[]): Array<{ mes: string; valor: 
     .map(([mes, valor]) => ({ mes, valor }));
 }
 
-function topClientesPorValor(tarefas: TarefaPublic[]): Array<{ cliente: string; valor: number }> {
+function topClientesPorValor(projetos: Projeto[]): Array<{ cliente: string; valor: number }> {
   const map = new Map<string, number>();
-  for (const t of tarefas) {
-    if (!t.cliente || !t.valorEstimado) continue;
-    map.set(t.cliente, (map.get(t.cliente) ?? 0) + t.valorEstimado);
+  for (const p of projetos) {
+    if (!p.clienteNome || !p.valorEstimado) continue;
+    map.set(p.clienteNome, (map.get(p.clienteNome) ?? 0) + p.valorEstimado);
   }
   return [...map.entries()]
     .map(([cliente, valor]) => ({ cliente, valor }))
@@ -39,50 +40,38 @@ function topClientesPorValor(tarefas: TarefaPublic[]): Array<{ cliente: string; 
 }
 
 export default async function RelatoriosPage() {
-  const [tarefas, meta] = await Promise.all([getAllTarefas(), getSyncMeta()]);
+  const [projetos, clientes] = await Promise.all([getAllProjetos(), getAllClientes()]);
 
-  const activas = tarefas.filter(
-    (t) =>
-      STATUS_GROUPS.ativo.includes(t.status) ||
-      STATUS_GROUPS.proximo.includes(t.status) ||
-      STATUS_GROUPS.aguarda.includes(t.status) ||
-      STATUS_GROUPS.pronto.includes(t.status)
+  const activos = projetos.filter(
+    (p) =>
+      STATUS_GROUPS.ativo.includes(p.status) ||
+      STATUS_GROUPS.proximo.includes(p.status) ||
+      STATUS_GROUPS.aguarda.includes(p.status) ||
+      STATUS_GROUPS.pronto.includes(p.status)
   );
 
-  const valorTotalActivo = activas.reduce(
-    (s, t) => s + (t.valorEstimado ?? 0),
-    0
-  );
+  const valorTotalActivo = activos.reduce((s, p) => s + (p.valorEstimado ?? 0), 0);
 
-  const clientesUnique = new Set(
-    tarefas.map((t) => t.cliente).filter((c): c is string => Boolean(c))
-  );
-
-  const statusData = TAREFA_STATUS.map((status) => ({
+  const statusData = PROJETO_STATUS.map((status) => ({
     status,
-    count: tarefas.filter((t) => t.status === status).length,
+    count: projetos.filter((p) => p.status === status).length,
   }));
 
   const tipoMap = new Map<string, number>();
-  for (const t of tarefas) {
-    if (!t.tipo) continue;
-    tipoMap.set(t.tipo, (tipoMap.get(t.tipo) ?? 0) + 1);
+  for (const p of projetos) {
+    if (!p.tipo) continue;
+    tipoMap.set(p.tipo, (tipoMap.get(p.tipo) ?? 0) + 1);
   }
   const tipoData = [...tipoMap.entries()]
     .map(([tipo, count]) => ({ tipo, count }))
     .sort((a, b) => b.count - a.count);
 
-  const valorMensal = buildValorMensal(tarefas);
-  const topClientes = topClientesPorValor(tarefas);
+  const valorMensal = buildValorMensal(projetos);
+  const topClientes = topClientesPorValor(projetos);
 
   return (
     <>
-      <Topbar
-        title="Relatórios"
-        description="Métricas e distribuições."
-        syncedAt={meta?.updatedAt}
-        syncCount={meta?.count}
-      />
+      <Topbar title="Relatórios" description="Métricas e distribuições." />
 
       <div className="px-6 lg:px-8 py-8 space-y-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -91,27 +80,27 @@ export default async function RelatoriosPage() {
             value={`${valorTotalActivo.toFixed(0)}€`}
             icon={Euro}
             tone="default"
-            hint={`${activas.length} tarefas activas`}
+            hint={`${activos.length} projectos activos`}
           />
           <KpiCard
-            label="Tarefas totais"
-            value={tarefas.length}
+            label="Projectos totais"
+            value={projetos.length}
             icon={ListChecks}
             tone="accent"
           />
           <KpiCard
-            label="Clientes únicos"
-            value={clientesUnique.size}
+            label="Clientes"
+            value={clientes.length}
             icon={Users}
             tone="green"
           />
           <KpiCard
-            label="Concluídas/arquivo"
+            label="Concluídos/arquivo"
             value={
-              tarefas.filter(
-                (t) =>
-                  STATUS_GROUPS.arquivo.includes(t.status as TarefaStatus) ||
-                  STATUS_GROUPS.pronto.includes(t.status as TarefaStatus)
+              projetos.filter(
+                (p) =>
+                  STATUS_GROUPS.arquivo.includes(p.status as ProjetoStatus) ||
+                  STATUS_GROUPS.pronto.includes(p.status as ProjetoStatus)
               ).length
             }
             icon={Clock}
@@ -123,7 +112,7 @@ export default async function RelatoriosPage() {
           <article className="rounded-lg border border-border bg-surface p-6">
             <h2 className="font-headline text-lg font-semibold mb-1">Por estado</h2>
             <p className="text-xs text-muted-foreground mb-4">
-              Distribuição actual de tarefas.
+              Distribuição actual de projectos.
             </p>
             <StatusPie data={statusData} />
           </article>
@@ -139,7 +128,7 @@ export default async function RelatoriosPage() {
           <article className="rounded-lg border border-border bg-surface p-6 lg:col-span-2">
             <h2 className="font-headline text-lg font-semibold mb-1">Valor estimado por mês</h2>
             <p className="text-xs text-muted-foreground mb-4">
-              Soma dos `valor-estimado` por mês de criação (últimos 12 meses com dados).
+              Soma do valor estimado por mês de criação (últimos 12 meses com dados).
             </p>
             <ValorMensal data={valorMensal} />
           </article>

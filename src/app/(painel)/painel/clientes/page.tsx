@@ -1,96 +1,91 @@
 import Link from "next/link";
 import { Users, ArrowUpRight, FileText } from "lucide-react";
 import { getAllClientes } from "@/lib/mongodb/clientes";
-import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
-import { STATUS_GROUPS } from "@/types/tarefa";
-import { clienteToSlug } from "@/lib/slug";
+import { NovoClienteButton } from "@/components/painel/NovoClienteButton";
+import { STATUS_GROUPS } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientesPage() {
-  const [clientes, tarefas, meta] = await Promise.all([
+  const [clientes, projetos] = await Promise.all([
     getAllClientes(),
-    getAllTarefas(),
-    getSyncMeta(),
+    getAllProjetos(),
   ]);
 
-  const tarefaCountByNome = new Map<string, { total: number; ativas: number }>();
-  for (const t of tarefas) {
-    if (!t.cliente) continue;
-    const key = t.cliente.trim().toLowerCase();
-    const existing = tarefaCountByNome.get(key) ?? { total: 0, ativas: 0 };
+  const projetoCountByCliente = new Map<string, { total: number; ativas: number }>();
+  for (const p of projetos) {
+    if (!p.clienteId) continue;
+    const existing = projetoCountByCliente.get(p.clienteId) ?? { total: 0, ativas: 0 };
     existing.total += 1;
     if (
-      STATUS_GROUPS.ativo.includes(t.status) ||
-      STATUS_GROUPS.proximo.includes(t.status) ||
-      STATUS_GROUPS.aguarda.includes(t.status)
+      STATUS_GROUPS.ativo.includes(p.status) ||
+      STATUS_GROUPS.proximo.includes(p.status) ||
+      STATUS_GROUPS.aguarda.includes(p.status)
     ) {
       existing.ativas += 1;
     }
-    tarefaCountByNome.set(key, existing);
+    projetoCountByCliente.set(p.clienteId, existing);
   }
 
-  const sorted = [...clientes].sort((a, b) => {
-    const nomeA = String(a.nome ?? a.sourcePath ?? "");
-    const nomeB = String(b.nome ?? b.sourcePath ?? "");
-    return nomeA.localeCompare(nomeB, "pt");
-  });
+  const sorted = [...clientes].sort((a, b) =>
+    String(a.nome).localeCompare(String(b.nome), "pt")
+  );
 
-  const comProjetos = sorted.filter((c) => {
-    const nome = String(c.nome ?? "").trim().toLowerCase();
-    return (tarefaCountByNome.get(nome)?.total ?? 0) > 0;
-  }).length;
+  const comProjetos = sorted.filter(
+    (c) => (projetoCountByCliente.get(c.id)?.total ?? 0) > 0
+  ).length;
 
   return (
     <>
       <Topbar
         title="Clientes"
-        description={`${clientes.length} ficha${clientes.length === 1 ? "" : "s"} sincronizadas do Obsidian.`}
-        syncedAt={meta?.updatedAt}
-        syncCount={meta?.count}
+        description={`${clientes.length} cliente${clientes.length === 1 ? "" : "s"} registado${clientes.length === 1 ? "" : "s"}.`}
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-8">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <KpiCard label="Total de clientes" value={clientes.length} icon={Users} tone="default" />
-          <KpiCard label="Com projectos activos" value={comProjetos} icon={FileText} tone="accent" />
+        <div className="flex items-center justify-between">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <KpiCard label="Total de clientes" value={clientes.length} icon={Users} tone="default" />
+            <KpiCard label="Com projectos activos" value={comProjetos} icon={FileText} tone="accent" />
+          </div>
+          <NovoClienteButton />
         </div>
 
         {sorted.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Sem fichas de clientes. Corre o sync do Obsidian para importar a pasta{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">01_Clientes (Fichas)</code>.
-          </p>
+          <div className="rounded-2xl border border-dashed border-border bg-cream/30 px-6 py-16 text-center">
+            <Users className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden="true" />
+            <h2 className="mt-4 font-headline text-2xl font-semibold tracking-tight">
+              Sem clientes
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Clica em <strong>Novo cliente</strong> para adicionar o primeiro.
+            </p>
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sorted.map((cliente, idx) => {
-              const nome = String(cliente.nome ?? "").trim();
-              const nomeKey = nome.toLowerCase();
-              const counts = tarefaCountByNome.get(nomeKey);
-              const displayName =
-                (nome || String(cliente.sourcePath).split("/").pop()?.replace(".md", "")) ?? "—";
-
-              const slug = clienteToSlug(displayName);
+            {sorted.map((cliente) => {
+              const counts = projetoCountByCliente.get(cliente.id);
               return (
                 <Link
-                  key={String(cliente.sourcePath ?? idx)}
-                  href={`/painel/clientes/${slug}`}
+                  key={cliente.id}
+                  href={`/painel/clientes/${cliente.id}`}
                   className="group relative flex items-start justify-between gap-3 rounded-lg border border-border bg-surface p-5 transition-all duration-300 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className="min-w-0 flex-1">
                     <h3 className="font-headline text-base font-semibold text-foreground leading-tight truncate">
-                      {displayName}
+                      {cliente.nome}
                     </h3>
-                    {typeof cliente.email === "string" && cliente.email && (
+                    {cliente.email && (
                       <p className="mt-1 text-xs text-muted-foreground truncate">
                         {cliente.email}
                       </p>
                     )}
-                    {typeof cliente.nif !== "undefined" && cliente.nif !== null && (
+                    {cliente.nif && (
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        NIF: {String(cliente.nif)}
+                        NIF: {cliente.nif}
                       </p>
                     )}
                     <p className="mt-2 text-xs text-muted-foreground tabular-nums">

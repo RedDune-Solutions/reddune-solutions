@@ -49,6 +49,7 @@ export const oasisStatusColors = {
   "aguarda-pecas": "#f3c79b",    // peach
   "aguarda-fornecedor": "#f3c79b", // peach
   pronto: "#10b981",             // emerald-500 (semantic)
+  entregue: "#14b8a6",           // teal-500
   fechado: "#8c7563",            // ink-mute
   cancelado: "#a8201a",          // dune
   garantia: "#ecdfc2",           // cream-deep
