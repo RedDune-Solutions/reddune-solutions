@@ -93,6 +93,7 @@ export async function POST(request: Request) {
       local: t.local ?? null,
       notasResumo: typeof t.notasResumo === "string" ? t.notasResumo : null,
       bodyMd: typeof t.bodyMd === "string" ? t.bodyMd : null,
+      linhas: null,
     };
 
     await projetosCol.updateOne({ id: projeto.id }, { $set: projeto }, { upsert: true });

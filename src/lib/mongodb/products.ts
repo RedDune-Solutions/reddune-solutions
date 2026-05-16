@@ -1,7 +1,7 @@
 import "server-only";
 import clientPromise from "./client";
 import type { Product, ProductCategory, ProductCondition } from "@/types/product";
-import { WithId, Document } from "mongodb";
+import { WithId, Document, ObjectId } from "mongodb";
 
 const DB_NAME = "website";
 const COLLECTION = "loja";
@@ -60,6 +60,32 @@ export async function getAllProducts(): Promise<Product[]> {
   }
 }
 
+export async function getAllProductsAdmin(): Promise<Product[]> {
+  try {
+    const col = await getCollection();
+    const docs = await col
+      .find({})
+      .sort({ featured: -1, createdAt: -1 })
+      .toArray();
+    return docs.map(mapDoc).filter((p): p is Product => p !== null);
+  } catch (error) {
+    console.error("getAllProductsAdmin error:", error);
+    return [];
+  }
+}
+
+export async function getProductById(id: string): Promise<Product | null> {
+  try {
+    if (!ObjectId.isValid(id)) return null;
+    const col = await getCollection();
+    const doc = await col.findOne({ _id: new ObjectId(id) });
+    return doc ? mapDoc(doc) : null;
+  } catch (error) {
+    console.error("getProductById error:", error);
+    return null;
+  }
+}
+
 export async function getProductsByCategory(
   category: ProductCategory
 ): Promise<Product[]> {
@@ -74,4 +100,38 @@ export async function getProductsByCategory(
     console.error("getProductsByCategory error:", error);
     return [];
   }
+}
+
+type ProductInput = Omit<Product, "id" | "createdAt"> & {
+  id?: string;
+  createdAt?: string;
+};
+
+export async function upsertProduct(input: ProductInput): Promise<string> {
+  const col = await getCollection();
+  const doc = {
+    name: input.name,
+    description: input.description,
+    category: input.category,
+    condition: input.condition,
+    price: input.price,
+    imageUrls: input.imageUrls,
+    available: input.available,
+    featured: input.featured,
+    createdAt: input.createdAt ? new Date(input.createdAt) : new Date(),
+  };
+
+  if (input.id && ObjectId.isValid(input.id)) {
+    await col.updateOne({ _id: new ObjectId(input.id) }, { $set: doc });
+    return input.id;
+  }
+  const result = await col.insertOne({ ...doc, createdAt: new Date() });
+  return result.insertedId.toString();
+}
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const col = await getCollection();
+  const result = await col.deleteOne({ _id: new ObjectId(id) });
+  return result.deletedCount > 0;
 }

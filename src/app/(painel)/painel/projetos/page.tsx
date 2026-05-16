@@ -1,14 +1,23 @@
-import Link from "next/link";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
+import { applyFilters } from "@/lib/filter-projetos";
 import { Topbar } from "@/components/painel/Topbar";
-import { StatusBadge } from "@/components/painel/StatusBadge";
+import { KanbanBoard } from "@/components/painel/KanbanBoard";
+import { TarefasTable } from "@/components/painel/TarefasTable";
+import { ViewToggle, type PainelView } from "@/components/painel/ViewToggle";
+import { FilterBar } from "@/components/painel/FilterBar";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
-import { GlobalSearch } from "@/components/painel/GlobalSearch";
+import { PROJETO_STATUS, PROJETO_TIPO, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ q?: string }>;
+type SearchParams = Promise<{
+  view?: string;
+  status?: string;
+  tipo?: string;
+  cliente?: string;
+  q?: string;
+}>;
 
 export default async function ProjetosPage({
   searchParams,
@@ -21,78 +30,44 @@ export default async function ProjetosPage({
     searchParams,
   ]);
 
-  const q = params.q?.trim().toLowerCase() ?? "";
-  const projetos = q
-    ? allProjetos.filter(
-        (p) =>
-          p.titulo.toLowerCase().includes(q) ||
-          (p.clienteNome?.toLowerCase().includes(q) ?? false)
-      )
-    : allProjetos;
+  const view: PainelView = params.view === "lista" ? "lista" : "kanban";
+
+  const statusParam =
+    params.status && PROJETO_STATUS.includes(params.status as ProjetoStatus)
+      ? (params.status as ProjetoStatus)
+      : undefined;
+  const tipoParam =
+    params.tipo && PROJETO_TIPO.includes(params.tipo as ProjetoTipo)
+      ? (params.tipo as ProjetoTipo)
+      : undefined;
+
+  const projetos = applyFilters(allProjetos, {
+    status: statusParam,
+    tipo: tipoParam,
+    clienteNome: params.cliente,
+    q: params.q,
+  });
 
   return (
     <>
       <Topbar
         title="Projectos"
-        description="Todos os projectos registados."
+        description="Estado e organização do trabalho."
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <GlobalSearch defaultValue={params.q} />
-          <NovaTarefaButton clientes={clientes} />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <FilterBar projetos={allProjetos} />
+          <div className="flex items-center gap-2">
+            <ViewToggle current={view} />
+            <NovaTarefaButton clientes={clientes} />
+          </div>
         </div>
 
-        {projetos.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {q ? `Sem resultados para "${params.q}".` : "Sem projectos ainda."}
-          </p>
+        {view === "kanban" ? (
+          <KanbanBoard projetos={projetos} />
         ) : (
-          <div className="rounded-lg border border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3 text-left">Projecto</th>
-                  <th className="px-4 py-3 text-left hidden md:table-cell">Cliente</th>
-                  <th className="px-4 py-3 text-left">Estado</th>
-                  <th className="px-4 py-3 text-left hidden lg:table-cell">Prazo</th>
-                  <th className="px-4 py-3 text-left hidden lg:table-cell">Tipo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {projetos.map((p) => (
-                  <tr key={p.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/painel/projetos/${p.id}`}
-                        className="font-medium text-foreground hover:text-primary transition-colors"
-                      >
-                        {p.titulo}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">
-                      {p.clienteNome ?? "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={p.status} />
-                    </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground tabular-nums">
-                      {p.prazo
-                        ? new Date(p.prazo).toLocaleDateString("pt-PT", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground capitalize">
-                      {p.tipo?.replace("-", " ") ?? "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TarefasTable projetos={projetos} />
         )}
       </div>
     </>

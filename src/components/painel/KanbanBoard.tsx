@@ -10,6 +10,7 @@ const MAIN_COLUMNS: ProjetoStatus[] = [
   "aguarda-fornecedor",
   "pronto",
   "entregue",
+  "em-divida",
 ];
 
 const ARCHIVE_STATUSES: ProjetoStatus[] = [
@@ -18,7 +19,6 @@ const ARCHIVE_STATUSES: ProjetoStatus[] = [
   "garantia",
   "suspenso",
   "bloqueado",
-  "em-divida",
 ];
 
 type Props = {

@@ -18,6 +18,7 @@ import { getAllClientes } from "@/lib/mongodb/clientes";
 import { Topbar } from "@/components/painel/Topbar";
 import { StatusBadge } from "@/components/painel/StatusBadge";
 import { EditTarefaActions } from "@/components/painel/EditTarefaActions";
+import { LinhasBreakdown } from "@/components/painel/LinhasBreakdown";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
 import { Markdown } from "@/components/painel/Markdown";
@@ -120,6 +121,17 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
               </div>
               <TarefaChecklist tarefas={tarefas} projetoId={projeto.id} />
             </section>
+
+            {/* Breakdown linhas */}
+            {projeto.linhas && projeto.linhas.length > 0 && (
+              <section className="rounded-xl border border-border bg-card p-6">
+                <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-4">
+                  <Euro className="h-3.5 w-3.5" aria-hidden="true" />
+                  Custos
+                </p>
+                <LinhasBreakdown linhas={projeto.linhas} />
+              </section>
+            )}
 
             {/* Notas */}
             {projeto.bodyMd ? (

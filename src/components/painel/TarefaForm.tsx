@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +23,11 @@ import {
   type ProjetoStatus,
   type ProjetoTipo,
   type ProjetoResponsavel,
+  type ProjetoLinha,
 } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
+import { ClienteQuickForm } from "./ClienteQuickForm";
+import { LinhasEditor, computeTotal } from "./LinhasEditor";
 
 type Props = {
   projeto?: Projeto;
@@ -41,33 +44,73 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
 
   const [titulo, setTitulo] = useState(projeto?.titulo ?? "");
   const [clienteId, setClienteId] = useState(projeto?.clienteId ?? "");
+  const [clientesList, setClientesList] = useState<Cliente[]>(clientes);
+  const [showQuickClient, setShowQuickClient] = useState(false);
   const [status, setStatus] = useState<ProjetoStatus>(projeto?.status ?? "proximo");
   const [tipo, setTipo] = useState<ProjetoTipo | "">(projeto?.tipo ?? "");
   const [responsavel, setResponsavel] = useState<ProjetoResponsavel | "">(
     projeto?.responsavel ?? ""
   );
   const [prazo, setPrazo] = useState(projeto?.prazo ?? "");
-  const [valorEstimado, setValorEstimado] = useState(
+
+  // Linhas state + legacy valorEstimado fallback
+  const initialLinhas: ProjetoLinha[] = projeto?.linhas ?? [];
+  const [linhas, setLinhas] = useState<ProjetoLinha[]>(initialLinhas);
+  // If projeto has valorEstimado but no linhas, show legacy input until user converts
+  const hasLegacyValor =
+    projeto && !projeto.linhas && projeto.valorEstimado != null;
+  const [useLegacy, setUseLegacy] = useState(!!hasLegacyValor);
+  const [valorLegacy, setValorLegacy] = useState(
     projeto?.valorEstimado != null ? String(projeto.valorEstimado) : ""
   );
+
   const [proximaAccao, setProximaAccao] = useState(projeto?.proximaAccao ?? "");
   const [notasResumo, setNotasResumo] = useState(projeto?.notasResumo ?? "");
+
+  function handleClienteCreated(c: Cliente) {
+    setClientesList((prev) => [...prev, c]);
+    setClienteId(c.id);
+    setShowQuickClient(false);
+  }
+
+  function convertLegacyToLinhas() {
+    const v = Number(valorLegacy.replace(",", "."));
+    if (Number.isFinite(v) && v > 0) {
+      setLinhas([
+        {
+          id: `l_${Date.now()}`,
+          descricao: "Valor estimado",
+          categoria: "outro",
+          quantidade: 1,
+          precoUnit: v,
+        },
+      ]);
+    }
+    setUseLegacy(false);
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const valor = valorEstimado.trim()
-        ? Number(valorEstimado.replace(",", "."))
-        : null;
-      if (valor !== null && !Number.isFinite(valor)) {
-        setError("Valor estimado inválido.");
-        setSubmitting(false);
-        return;
+      let valorEstimado: number | null = null;
+      let linhasToSend: ProjetoLinha[] | null = null;
+
+      if (useLegacy) {
+        const v = valorLegacy.trim() ? Number(valorLegacy.replace(",", ".")) : null;
+        if (v !== null && !Number.isFinite(v)) {
+          setError("Valor estimado inválido.");
+          setSubmitting(false);
+          return;
+        }
+        valorEstimado = v;
+      } else if (linhas.length > 0) {
+        linhasToSend = linhas;
+        valorEstimado = computeTotal(linhas);
       }
 
-      const selectedCliente = clientes.find((c) => c.id === clienteId);
+      const selectedCliente = clientesList.find((c) => c.id === clienteId);
 
       const payload = {
         id: projeto?.id,
@@ -78,7 +121,8 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         tipo: tipo || null,
         responsavel: responsavel || null,
         prazo: prazo || null,
-        valorEstimado: valor,
+        valorEstimado,
+        linhas: linhasToSend,
         proximaAccao: proximaAccao.trim() || null,
         notasResumo: notasResumo.trim() || null,
       };
@@ -153,9 +197,28 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         </div>
       </div>
 
-      {clientes.length > 0 && (
-        <div className="space-y-1">
+      {/* Cliente — Select + Quick create */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
           <Label>Cliente</Label>
+          {!showQuickClient && (
+            <button
+              type="button"
+              onClick={() => setShowQuickClient(true)}
+              disabled={isBusy}
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <UserPlus className="h-3 w-3" aria-hidden="true" />
+              Criar novo
+            </button>
+          )}
+        </div>
+        {showQuickClient ? (
+          <ClienteQuickForm
+            onCreated={handleClienteCreated}
+            onCancel={() => setShowQuickClient(false)}
+          />
+        ) : (
           <Select
             value={clienteId || "__none"}
             onValueChange={(v) => setClienteId(v === "__none" ? "" : v)}
@@ -164,13 +227,13 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
             <SelectTrigger><SelectValue placeholder="— Sem cliente —" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__none">— Sem cliente —</SelectItem>
-              {clientes.map((c) => (
+              {clientesList.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
@@ -203,16 +266,32 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         </div>
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="valor">Valor estimado (€)</Label>
-        <Input
-          id="valor"
-          inputMode="decimal"
-          value={valorEstimado}
-          onChange={(e) => setValorEstimado(e.target.value)}
-          placeholder="0,00"
-          disabled={isBusy}
-        />
+      {/* Valor — linhas ou legacy */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>Valor</Label>
+          {useLegacy && (
+            <button
+              type="button"
+              onClick={convertLegacyToLinhas}
+              disabled={isBusy}
+              className="text-xs text-primary hover:underline"
+            >
+              Converter em linhas
+            </button>
+          )}
+        </div>
+        {useLegacy ? (
+          <Input
+            inputMode="decimal"
+            value={valorLegacy}
+            onChange={(e) => setValorLegacy(e.target.value)}
+            placeholder="0,00"
+            disabled={isBusy}
+          />
+        ) : (
+          <LinhasEditor linhas={linhas} onChange={setLinhas} disabled={isBusy} />
+        )}
       </div>
 
       <div className="space-y-1">

@@ -43,7 +43,7 @@ export const STATUS_GROUPS = {
     "bloqueado",
   ] as ProjetoStatus[],
   pronto: ["pronto", "entregue"] as ProjetoStatus[],
-  arquivo: ["fechado", "cancelado", "garantia", "em-divida"] as ProjetoStatus[],
+  arquivo: ["fechado", "cancelado", "garantia"] as ProjetoStatus[],
 };
 
 export const PROJETO_TIPO = [
@@ -71,6 +71,23 @@ export type ProjetoResponsavel = (typeof PROJETO_RESPONSAVEL)[number];
 export const PROJETO_LOCAL = ["oficina", "casa-cliente", "remoto"] as const;
 export type ProjetoLocal = (typeof PROJETO_LOCAL)[number];
 
+export const LINHA_CATEGORIA = ["peca", "mao-obra", "outro"] as const;
+export type LinhaCategoria = (typeof LINHA_CATEGORIA)[number];
+
+export const LINHA_CATEGORIA_LABEL: Record<LinhaCategoria, string> = {
+  peca: "Peça",
+  "mao-obra": "Mão-de-obra",
+  outro: "Outro",
+};
+
+export interface ProjetoLinha {
+  id: string;
+  descricao: string;
+  categoria: LinhaCategoria;
+  quantidade: number;
+  precoUnit: number;
+}
+
 export interface Projeto {
   id: string;
   titulo: string;
@@ -89,4 +106,5 @@ export interface Projeto {
   local: ProjetoLocal | null;
   notasResumo: string | null;
   bodyMd: string | null;
+  linhas: ProjetoLinha[] | null;
 }

@@ -99,16 +99,25 @@ export function NotasClient({ notas }: Props) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {notas.map((nota) => (
-            <button
+            <div
               key={nota.id}
               onClick={() => openEdit(nota)}
-              className="group text-left rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-sm transition-all"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openEdit(nota);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              className="group text-left rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-sm text-foreground line-clamp-1">
                   {nota.titulo}
                 </h3>
                 <button
+                  type="button"
                   onClick={(e) => handleDelete(nota.id, e)}
                   className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-0.5 rounded"
                   aria-label="Apagar nota"
@@ -123,7 +132,7 @@ export function NotasClient({ notas }: Props) {
               <p className="mt-3 text-[10px] text-muted-foreground/60 font-mono">
                 {formatDate(nota.atualizadoEm)}
               </p>
-            </button>
+            </div>
           ))}
         </div>
       )}

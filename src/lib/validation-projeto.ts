@@ -1,5 +1,19 @@
 import { z } from "zod";
-import { PROJETO_STATUS, PROJETO_TIPO, PROJETO_RESPONSAVEL, PROJETO_LOCAL } from "@/types/projeto";
+import {
+  PROJETO_STATUS,
+  PROJETO_TIPO,
+  PROJETO_RESPONSAVEL,
+  PROJETO_LOCAL,
+  LINHA_CATEGORIA,
+} from "@/types/projeto";
+
+export const linhaSchema = z.object({
+  id: z.string().min(1).max(128),
+  descricao: z.string().max(300),
+  categoria: z.enum(LINHA_CATEGORIA),
+  quantidade: z.number().finite().min(0),
+  precoUnit: z.number().finite(),
+});
 
 export const projetoSchema = z.object({
   id: z.string().min(1).max(128),
@@ -19,6 +33,7 @@ export const projetoSchema = z.object({
   local: z.enum(PROJETO_LOCAL).nullable(),
   notasResumo: z.string().max(500).nullable(),
   bodyMd: z.string().max(50000).nullable(),
+  linhas: z.array(linhaSchema).nullable(),
 });
 
 export const projetoInputSchema = projetoSchema.partial({ id: true });

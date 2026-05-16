@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { signOutAction } from "@/lib/auth-actions";
 
-export function SignOutButton({ className }: { className?: string }) {
+type Props = {
+  className?: string;
+  iconOnly?: boolean;
+};
+
+export function SignOutButton({ className, iconOnly }: Props) {
   const [pending, startTransition] = useTransition();
 
   return (
@@ -17,12 +22,14 @@ export function SignOutButton({ className }: { className?: string }) {
       <Button
         type="submit"
         variant="ghost"
-        size="sm"
+        size={iconOnly ? "icon" : "sm"}
         disabled={pending}
         className={className}
+        aria-label={iconOnly ? "Sair" : undefined}
+        title={iconOnly ? "Sair" : undefined}
       >
         <LogOut className="h-4 w-4" aria-hidden="true" />
-        Sair
+        {!iconOnly && "Sair"}
       </Button>
     </form>
   );

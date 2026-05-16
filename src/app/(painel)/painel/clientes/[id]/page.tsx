@@ -9,6 +9,8 @@ import {
   Mail,
   Phone,
   MapPin,
+  FileText,
+  CreditCard,
 } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getClienteById } from "@/lib/mongodb/clientes";
@@ -23,6 +25,34 @@ import { parseIsoDate } from "@/lib/dates";
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ id: string }>;
+
+function Campo({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: string | null | undefined;
+  href?: string;
+}) {
+  const empty = !value;
+  return (
+    <div className="space-y-0.5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+        {label}
+      </p>
+      {empty ? (
+        <p className="text-sm text-muted-foreground/50 italic">Sem informação</p>
+      ) : href ? (
+        <a href={href} className="text-sm text-foreground hover:text-primary transition-colors truncate block">
+          {value}
+        </a>
+      ) : (
+        <p className="text-sm text-foreground">{value}</p>
+      )}
+    </div>
+  );
+}
 
 export default async function ClienteDetailPage({ params }: { params: Params }) {
   const { id } = await params;
@@ -56,7 +86,7 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
         description={`${projetos.length} projecto${projetos.length === 1 ? "" : "s"} no histórico.`}
       />
 
-      <div className="px-6 lg:px-8 py-8 space-y-10 max-w-6xl">
+      <div className="px-6 lg:px-8 py-8 space-y-8 max-w-6xl">
         <div className="flex items-center justify-between">
           <Button asChild variant="ghost" size="sm" className="-ml-3">
             <Link href="/painel/clientes">
@@ -67,49 +97,40 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
           <NovoClienteButton cliente={cliente} />
         </div>
 
-        {(cliente.email || cliente.telefone || cliente.nif || cliente.morada) && (
-          <div className="rounded-xl border border-border bg-card p-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {cliente.email && (
-              <a
-                href={`mailto:${cliente.email}`}
-                className="inline-flex items-center gap-2 text-sm hover:text-primary"
-              >
-                <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="truncate">{cliente.email}</span>
-              </a>
-            )}
-            {cliente.telefone && (
-              <a
-                href={`tel:${cliente.telefone}`}
-                className="inline-flex items-center gap-2 text-sm hover:text-primary"
-              >
-                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                {cliente.telefone}
-              </a>
-            )}
-            {cliente.nif && (
-              <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                NIF: <strong className="text-foreground">{cliente.nif}</strong>
+        {/* Ficha completa — sempre visível */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-5">
+            Ficha do cliente
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <Campo
+              label="Email"
+              value={cliente.email}
+              href={cliente.email ? `mailto:${cliente.email}` : undefined}
+            />
+            <Campo
+              label="Telefone"
+              value={cliente.telefone}
+              href={cliente.telefone ? `tel:${cliente.telefone}` : undefined}
+            />
+            <Campo label="NIF" value={cliente.nif} />
+            <Campo label="Morada" value={cliente.morada} />
+            <div className="sm:col-span-2 space-y-0.5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+                Notas
               </p>
-            )}
-            {cliente.morada && (
-              <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 shrink-0" />
-                <span className="truncate">{cliente.morada}</span>
-              </p>
-            )}
+              {cliente.notas ? (
+                <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                  {cliente.notas}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground/50 italic">Sem informação</p>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
-        {cliente.notas && (
-          <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2">
-              Notas
-            </p>
-            <p className="text-sm text-foreground/90 whitespace-pre-wrap">{cliente.notas}</p>
-          </div>
-        )}
-
+        {/* KPIs */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Projectos" value={projetos.length} icon={ListChecks} tone="default" />
           <KpiCard label="Em curso/espera" value={active.length} icon={AlertCircle} tone="accent" />
@@ -123,9 +144,10 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
           />
         </div>
 
+        {/* Activos */}
         {active.length > 0 && (
           <section>
-            <h2 className="font-headline text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="font-headline text-lg font-semibold tracking-tight mb-4">
               Activos
             </h2>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -136,13 +158,18 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
           </section>
         )}
 
+        {/* Histórico */}
         {projetos.length > 0 && (
           <section>
-            <h2 className="font-headline text-xl md:text-2xl font-semibold tracking-tight mb-4">
+            <h2 className="font-headline text-lg font-semibold tracking-tight mb-4">
               Histórico completo
             </h2>
             <ProjetoTimeline projetos={projetos} />
           </section>
+        )}
+
+        {projetos.length === 0 && (
+          <p className="text-sm text-muted-foreground">Sem projectos associados a este cliente.</p>
         )}
       </div>
     </>

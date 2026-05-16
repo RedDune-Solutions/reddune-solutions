@@ -50,6 +50,7 @@ export async function POST(request: Request) {
     local: input.local ?? null,
     notasResumo: input.notasResumo ?? null,
     bodyMd: input.bodyMd ?? null,
+    linhas: input.linhas ?? null,
   };
 
   await upsertProjeto(projeto);
