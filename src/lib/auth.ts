@@ -2,6 +2,7 @@ import "server-only";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { logAuthEvent } from "@/lib/mongodb/audit";
+import { authConfig as edgeAuthConfig } from "@/lib/auth.config";
 
 function getAllowedEmails(): Set<string> {
   const raw = process.env.AUTH_ALLOWED_EMAILS ?? "";
@@ -25,14 +26,11 @@ function timingSafeEqual(a: string, b: string): boolean {
 const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 dias
 
 const authConfig: NextAuthConfig = {
+  ...edgeAuthConfig,
   session: {
     strategy: "jwt",
     maxAge: SESSION_MAX_AGE_SECONDS,
     updateAge: 24 * 60 * 60,
-  },
-  pages: {
-    signIn: "/entrar",
-    error: "/entrar",
   },
   providers: [
     Credentials({
