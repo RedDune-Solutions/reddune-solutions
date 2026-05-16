@@ -22,16 +22,21 @@ export async function logAuthEvent(event: {
   userAgent?: string | null;
   details?: Record<string, unknown>;
 }): Promise<void> {
-  const db = await getDb();
-  await db.collection(AUDIT).insertOne({
-    userId: event.userId ?? null,
-    email: event.email ?? null,
-    type: event.type,
-    ip: event.ip ?? null,
-    userAgent: event.userAgent ?? null,
-    details: event.details ?? {},
-    at: new Date(),
-  });
-  await db.collection(AUDIT).createIndex({ at: -1 });
-  await db.collection(AUDIT).createIndex({ email: 1, type: 1, at: -1 });
+  try {
+    const db = await getDb();
+    await db.collection(AUDIT).insertOne({
+      userId: event.userId ?? null,
+      email: event.email ?? null,
+      type: event.type,
+      ip: event.ip ?? null,
+      userAgent: event.userAgent ?? null,
+      details: event.details ?? {},
+      at: new Date(),
+    });
+    await db.collection(AUDIT).createIndex({ at: -1 });
+    await db.collection(AUDIT).createIndex({ email: 1, type: 1, at: -1 });
+  } catch (err) {
+    // Audit log failure must never break auth flow
+    console.error("logAuthEvent failed:", err);
+  }
 }
