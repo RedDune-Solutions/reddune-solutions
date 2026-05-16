@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { getTarefaById } from "@/lib/mongodb/tarefas";
-import { queueEdit } from "@/lib/mongodb/edits";
+import { patchTarefa } from "@/lib/mongodb/tarefas";
 import { TAREFA_STATUS } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
@@ -41,34 +40,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const tarefa = await getTarefaById(parsed.data.tarefaId);
-  if (!tarefa) {
+  const patch =
+    parsed.data.field === "status"
+      ? { status: parsed.data.newValue }
+      : { proximaAccao: parsed.data.newValue || null };
+
+  const ok = await patchTarefa(parsed.data.tarefaId, patch);
+  if (!ok) {
     return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
   }
 
-  // Server reads sourcePath from MongoDB doc (TarefaPublic omits it),
-  // re-fetch full record to get sourcePath.
-  const client = await import("@/lib/mongodb/client").then((m) => m.default);
-  const db = (await client).db(process.env.MONGODB_DB_NAME);
-  const fullDoc = await db
-    .collection("tarefas")
-    .findOne({ id: parsed.data.tarefaId }, { projection: { sourcePath: 1 } });
-  const sourcePath = (fullDoc?.sourcePath as string | undefined) ?? null;
-  if (!sourcePath) {
-    return NextResponse.json(
-      { error: "Tarefa sem sourcePath" },
-      { status: 422 }
-    );
-  }
-
-  const editId = await queueEdit({
-    tarefaId: parsed.data.tarefaId,
-    sourcePath,
-    field: parsed.data.field,
-    newValue: parsed.data.newValue,
-    requestedBy: (session.user as { id?: string }).id ?? null,
-    requestedByEmail: session.user.email ?? null,
-  });
-
-  return NextResponse.json({ ok: true, editId });
+  return NextResponse.json({ ok: true });
 }

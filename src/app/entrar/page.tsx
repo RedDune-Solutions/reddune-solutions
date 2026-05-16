@@ -42,8 +42,7 @@ export default function EntrarPage() {
             Entra no painel
           </h1>
           <p className="mt-2 text-sm text-ink-soft leading-relaxed">
-            Área da equipa Reddune. Sem passwords — recebes um link de
-            acesso por email. Browser fica autenticado durante 30 dias.
+            Área da equipa Reddune. Browser fica autenticado durante 30 dias.
           </p>
 
           <div className="mt-8">

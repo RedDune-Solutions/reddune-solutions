@@ -10,6 +10,8 @@ import {
   CalendarDays,
   BarChart3,
   ExternalLink,
+  FolderKanban,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -17,7 +19,9 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 const NAV = [
   { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true },
   { href: "/painel/tarefas", label: "Tarefas", Icon: ListChecks },
+  { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban },
   { href: "/painel/clientes", label: "Clientes", Icon: Users },
+  { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
   { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
   { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },
 ];

@@ -42,6 +42,11 @@ const SCAN_DIRS = [
   "RedDune Solutions (Empresa)/03_Projetos - Internos",
 ];
 
+const FICHA_DIRS = {
+  clientes: "RedDune Solutions (Empresa)/01_Clientes (Fichas)",
+  parceiros: "RedDune Solutions (Empresa)/04_Parceiros (Fichas)",
+};
+
 const STATUS_NORMALIZE = {
   "próximo": "proximo",
   "proximo": "proximo",
@@ -56,6 +61,8 @@ const STATUS_NORMALIZE = {
   "garantia": "garantia",
   "suspenso": "suspenso",
   "bloqueado": "bloqueado",
+  "em-divida": "em-divida",
+  "em-dívida": "em-divida",
 };
 
 const TIPO_NORMALIZE = {
@@ -83,6 +90,7 @@ const TIPO_NORMALIZE = {
 };
 
 const VALID_RESPONSAVEL = new Set(["eu", "cliente", "fornecedor"]);
+const VALID_LOCAL = new Set(["oficina", "casa-cliente", "remoto"]);
 
 function hashId(input) {
   return createHash("sha1").update(input).digest("hex").slice(0, 16);
@@ -170,6 +178,15 @@ function parseProject(relPath, fileContent) {
   const rawResponsavel = String(fm.responsável ?? fm.responsavel ?? "").trim().toLowerCase();
   const responsavel = VALID_RESPONSAVEL.has(rawResponsavel) ? rawResponsavel : null;
 
+  const rawLocal = String(fm.local ?? "").trim().toLowerCase();
+  const local = VALID_LOCAL.has(rawLocal) ? rawLocal : null;
+
+  const rawMetodo = String(fm["método-pagamento"] ?? fm["metodo-pagamento"] ?? "").trim();
+  const metodoPagamento = rawMetodo.length > 0 ? rawMetodo.slice(0, 100) : null;
+
+  const bodyRaw = (parsed.content ?? "").trim();
+  const bodyMd = bodyRaw.length > 0 ? bodyRaw.slice(0, 50000) : null;
+
   return {
     id,
     titulo,
@@ -182,9 +199,36 @@ function parseProject(relPath, fileContent) {
     responsavel,
     prazo: toIsoDate(fm["data-prevista"]),
     dataCriado: toIsoDate(fm["data-criado"]),
+    dataFechado: toIsoDate(fm["data-fechado"]),
     valorEstimado: toNumberOrNull(fm["valor-estimado"]),
+    valorPago: toNumberOrNull(fm["valor-pago"]),
+    metodoPagamento,
+    local,
     notasResumo: summarizeBody(parsed.content),
+    bodyMd,
     pasta: folder,
+    sourcePath: relPath.replace(/\\/g, "/"),
+    origin: "obsidian",
+  };
+}
+
+function parseFicha(relPath, fileContent) {
+  const parsed = matter(fileContent);
+  const fm = parsed.data ?? {};
+  const sanitized = Object.fromEntries(
+    Object.entries(fm).map(([k, v]) => [
+      k,
+      v instanceof Date ? v.toISOString().slice(0, 10) : v,
+    ])
+  );
+  const fileName = relPath.split("/").pop() ?? "";
+  const nome = fileName.replace(/\.md$/, "");
+  const bodyRaw = (parsed.content ?? "").trim();
+  const bodyMd = bodyRaw.length > 0 ? bodyRaw.slice(0, 50000) : null;
+  return {
+    ...sanitized,
+    nome: sanitized.nome ?? nome,
+    bodyMd,
     sourcePath: relPath.replace(/\\/g, "/"),
   };
 }
@@ -230,6 +274,32 @@ async function collectMarkdown() {
   return all;
 }
 
+async function collectFichas(dirKey) {
+  const dir = FICHA_DIRS[dirKey];
+  const abs = path.join(VAULT_ROOT, dir);
+  const fichas = [];
+  let files;
+  try {
+    files = await walkMarkdown(abs);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      console.warn(`[sync-obsidian] pasta fichas não encontrada: ${dir}`);
+      return [];
+    }
+    throw error;
+  }
+  for (const rel of files) {
+    const fullRel = `${dir}/${rel}`;
+    try {
+      const content = await readFile(path.join(VAULT_ROOT, fullRel), "utf8");
+      fichas.push(parseFicha(fullRel, content));
+    } catch (error) {
+      console.warn(`[sync-obsidian] ignorado ficha ${fullRel}: ${error.message}`);
+    }
+  }
+  return fichas;
+}
+
 async function main() {
   console.log(`[sync-obsidian] Vault: ${VAULT_ROOT}`);
   const relPaths = await collectMarkdown();
@@ -267,9 +337,20 @@ async function main() {
   console.log(`  - Clientes: ${summary.clientes}, Internos: ${summary.internos}`);
   console.log(`  - Por status:`, summary.porStatus);
 
+  // ── Fichas ────────────────────────────────────────────────────────────────
+  const [clientesFichas, parceirosFichas] = await Promise.all([
+    collectFichas("clientes"),
+    collectFichas("parceiros"),
+  ]);
+  console.log(
+    `[sync-obsidian] ${clientesFichas.length} fichas de clientes, ${parceirosFichas.length} fichas de parceiros`
+  );
+
   if (DRY_RUN) {
     console.log("[sync-obsidian] DRY_RUN=1 — não envia POST. Primeiras 3 tarefas:");
     console.log(JSON.stringify(tarefas.slice(0, 3), null, 2));
+    console.log("[sync-obsidian] Primeiras 2 fichas de clientes:");
+    console.log(JSON.stringify(clientesFichas.slice(0, 2), null, 2));
     return;
   }
 
@@ -278,6 +359,7 @@ async function main() {
     process.exit(1);
   }
 
+  // ── POST tarefas ──────────────────────────────────────────────────────────
   const endpoint = `${SITE_URL.replace(/\/$/, "")}/api/tarefas`;
   console.log(`[sync-obsidian] POST ${endpoint}`);
 
@@ -297,6 +379,27 @@ async function main() {
   }
 
   console.log(`[sync-obsidian] OK: ${text}`);
+
+  // ── POST fichas ───────────────────────────────────────────────────────────
+  const syncEndpoint = `${SITE_URL.replace(/\/$/, "")}/api/sync`;
+  console.log(`[sync-obsidian] POST ${syncEndpoint}`);
+
+  const syncResp = await fetch(syncEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SYNC_SECRET}`,
+    },
+    body: JSON.stringify({ clientes: clientesFichas, parceiros: parceirosFichas }),
+  });
+
+  const syncText = await syncResp.text();
+  if (!syncResp.ok) {
+    console.error(`[sync-obsidian] sync HTTP ${syncResp.status}: ${syncText}`);
+    process.exit(1);
+  }
+
+  console.log(`[sync-obsidian] sync OK: ${syncText}`);
 }
 
 main().catch((error) => {

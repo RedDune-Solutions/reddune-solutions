@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ListChecks, Hourglass, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
+import { ListChecks, Hourglass, CheckCircle2, AlertCircle, ArrowRight, Users, AlertTriangle } from "lucide-react";
 import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllClientes } from "@/lib/mongodb/clientes";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { TarefaCard } from "@/components/painel/TarefaCard";
@@ -11,7 +12,16 @@ import { STATUS_GROUPS } from "@/types/tarefa";
 export const dynamic = "force-dynamic";
 
 export default async function PainelOverviewPage() {
-  const [tarefas, meta] = await Promise.all([getAllTarefas(), getSyncMeta()]);
+  const [tarefas, clientes, meta] = await Promise.all([
+    getAllTarefas(),
+    getAllClientes(),
+    getSyncMeta(),
+  ]);
+
+  const dividasCount = tarefas.filter((t) => t.status === "em-divida").length;
+  const dividasValor = tarefas
+    .filter((t) => t.status === "em-divida")
+    .reduce((sum, t) => sum + (t.valorEstimado ?? 0), 0);
 
   const counts = {
     total: tarefas.length,
@@ -75,6 +85,28 @@ export default async function PainelOverviewPage() {
                 icon={CheckCircle2}
                 tone="green"
                 hint="Falta entregar/cobrar"
+              />
+            </div>
+
+            {/* KPIs secundários */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <KpiCard
+                label="Clientes (fichas)"
+                value={clientes.length}
+                icon={Users}
+                tone="default"
+                hint="Fichas importadas do Obsidian"
+              />
+              <KpiCard
+                label="Em dívida"
+                value={dividasCount}
+                icon={AlertTriangle}
+                tone="amber"
+                hint={
+                  dividasValor > 0
+                    ? `${dividasValor.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} € estimados`
+                    : "Sem valor estimado"
+                }
               />
             </div>
 

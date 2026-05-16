@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Euro, ListChecks, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Euro, ListChecks, AlertCircle, CheckCircle2, Mail, Phone, FileText, Tag } from "lucide-react";
 import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { getAllClientes } from "@/lib/mongodb/clientes";
 import { Topbar } from "@/components/painel/Topbar";
 import { TarefaCard } from "@/components/painel/TarefaCard";
 import { KpiCard } from "@/components/painel/KpiCard";
+import { Markdown } from "@/components/painel/Markdown";
 import { Button } from "@/components/ui/button";
-import { findClienteBySlug } from "@/lib/slug";
+import { findClienteBySlug, clienteToSlug } from "@/lib/slug";
 import { STATUS_GROUPS, type TarefaPublic } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
@@ -14,21 +16,38 @@ export const dynamic = "force-dynamic";
 type Params = Promise<{ slug: string }>;
 
 export default async function ClienteDetailPage({ params }: { params: Params }) {
-  const [{ slug }, allTarefas, meta] = await Promise.all([
+  const [{ slug }, allTarefas, allClientes, meta] = await Promise.all([
     params,
     getAllTarefas(),
+    getAllClientes(),
     getSyncMeta(),
   ]);
 
   const clientesUnique = Array.from(
-    new Set(
-      allTarefas
+    new Set([
+      ...allTarefas
         .map((t) => t.cliente)
-        .filter((c): c is string => Boolean(c && c.length > 0))
-    )
+        .filter((c): c is string => Boolean(c && c.length > 0)),
+      ...allClientes
+        .map((c) => String(c.nome ?? "").trim())
+        .filter((n) => n.length > 0),
+    ])
   );
   const clienteName = findClienteBySlug(slug, clientesUnique);
   if (!clienteName) notFound();
+
+  const ficha = allClientes.find((c) => {
+    const nome = String(c.nome ?? "").trim();
+    return clienteToSlug(nome) === clienteToSlug(clienteName);
+  });
+
+  const bodyMd = ficha && typeof ficha.bodyMd === "string" ? ficha.bodyMd : null;
+  const email = ficha && typeof ficha.email === "string" ? ficha.email : null;
+  const telefone = ficha && typeof ficha.telefone === "string" ? ficha.telefone : null;
+  const nif = ficha && (typeof ficha.nif === "string" || typeof ficha.nif === "number") ? String(ficha.nif) : null;
+  const relacao = ficha && typeof ficha["relação"] === "string" ? ficha["relação"] : null;
+  const estado = ficha && typeof ficha.estado === "string" ? ficha.estado : null;
+  const contactoPreferido = ficha && typeof ficha["contacto-preferido"] === "string" ? ficha["contacto-preferido"] : null;
 
   const tarefas = allTarefas.filter((t) => t.cliente === clienteName);
 
@@ -72,6 +91,46 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
             Voltar a clientes
           </Link>
         </Button>
+
+        {(estado || relacao || contactoPreferido) && (
+          <div className="flex flex-wrap gap-2">
+            {estado && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-cream/50 px-3 py-1 text-xs">
+                <Tag className="h-3 w-3" aria-hidden="true" /> {estado}
+              </span>
+            )}
+            {relacao && (
+              <span className="inline-flex items-center rounded-full border border-border bg-cream/50 px-3 py-1 text-xs">
+                {relacao}
+              </span>
+            )}
+            {contactoPreferido && (
+              <span className="inline-flex items-center rounded-full border border-border bg-cream/50 px-3 py-1 text-xs">
+                Contacto: {contactoPreferido}
+              </span>
+            )}
+          </div>
+        )}
+
+        {(email || telefone || nif) && (
+          <div className="rounded-xl border border-border bg-card p-5 grid gap-2 sm:grid-cols-3">
+            {email && (
+              <a href={`mailto:${email}`} className="inline-flex items-center gap-2 text-sm hover:text-primary">
+                <Mail className="h-4 w-4 text-muted-foreground" /> {email}
+              </a>
+            )}
+            {telefone && (
+              <a href={`tel:${telefone}`} className="inline-flex items-center gap-2 text-sm hover:text-primary">
+                <Phone className="h-4 w-4 text-muted-foreground" /> {telefone}
+              </a>
+            )}
+            {nif && (
+              <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                NIF: <strong className="text-foreground">{nif}</strong>
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
@@ -120,6 +179,16 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
               Histórico completo
             </h2>
             <ClienteTimeline tarefas={sorted} />
+          </section>
+        )}
+
+        {bodyMd && (
+          <section className="rounded-xl border border-border bg-card p-6">
+            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
+              <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+              Ficha completa
+            </p>
+            <Markdown>{bodyMd}</Markdown>
           </section>
         )}
       </div>

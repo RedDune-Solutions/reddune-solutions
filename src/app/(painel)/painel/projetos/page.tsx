@@ -1,9 +1,9 @@
 import { getAllTarefas, getSyncMeta } from "@/lib/mongodb/tarefas";
+import { applyFilters } from "@/lib/filter-tarefas";
 import { Topbar } from "@/components/painel/Topbar";
 import { KanbanBoard } from "@/components/painel/KanbanBoard";
 import { TarefasTable } from "@/components/painel/TarefasTable";
 import { ViewToggle, type PainelView } from "@/components/painel/ViewToggle";
-import { applyFilters } from "@/lib/filter-tarefas";
 import { FilterBar } from "@/components/painel/FilterBar";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { TAREFA_STATUS, TAREFA_TIPO, type TarefaStatus, type TarefaTipo } from "@/types/tarefa";
@@ -18,7 +18,7 @@ type SearchParams = Promise<{
   q?: string;
 }>;
 
-export default async function TarefasPage({
+export default async function ProjetosPage({
   searchParams,
 }: {
   searchParams: SearchParams;
@@ -30,6 +30,7 @@ export default async function TarefasPage({
   ]);
 
   const view: PainelView = params.view === "lista" ? "lista" : "kanban";
+
   const statusParam =
     params.status && TAREFA_STATUS.includes(params.status as TarefaStatus)
       ? (params.status as TarefaStatus)
@@ -49,8 +50,8 @@ export default async function TarefasPage({
   return (
     <>
       <Topbar
-        title="Tarefas"
-        description={`${tarefas.length} de ${allTarefas.length} tarefa${allTarefas.length === 1 ? "" : "s"} sincronizadas.`}
+        title="Projectos"
+        description={`${tarefas.length} de ${allTarefas.length} projecto${allTarefas.length === 1 ? "" : "s"}.`}
         syncedAt={meta?.updatedAt}
         syncCount={meta?.count}
       />

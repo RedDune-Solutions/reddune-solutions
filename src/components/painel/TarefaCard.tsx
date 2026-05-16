@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CalendarDays, User, ArrowUpRight, ArrowRight } from "lucide-react";
-import { StatusBadge } from "./StatusBadge";
+import { CalendarDays, User, ArrowRight } from "lucide-react";
+import { InlineStatusSelect } from "./InlineStatusSelect";
+import { TarefaRowMenu } from "./TarefaRowMenu";
 import type { TarefaPublic } from "@/types/tarefa";
 
 type Props = {
@@ -35,11 +36,8 @@ export function TarefaCard({ tarefa, className }: Props) {
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <StatusBadge status={tarefa.status} />
-        <ArrowUpRight
-          className="h-4 w-4 text-ink-mute transition-all duration-300 group-hover:text-ember group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-          aria-hidden="true"
-        />
+        <InlineStatusSelect tarefaId={tarefa.id} status={tarefa.status} />
+        <TarefaRowMenu tarefa={tarefa} />
       </div>
 
       <h3 className="mt-3 font-display text-lg font-semibold leading-tight tracking-tight line-clamp-2 text-ink">

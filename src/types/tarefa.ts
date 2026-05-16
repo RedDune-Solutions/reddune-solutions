@@ -10,6 +10,7 @@ export const TAREFA_STATUS = [
   "garantia",
   "suspenso",
   "bloqueado",
+  "em-divida",
 ] as const;
 
 export type TarefaStatus = (typeof TAREFA_STATUS)[number];
@@ -26,6 +27,7 @@ export const STATUS_LABELS: Record<TarefaStatus, string> = {
   garantia: "Garantia",
   suspenso: "Suspenso",
   bloqueado: "Bloqueado",
+  "em-divida": "Em dívida",
 };
 
 export const STATUS_GROUPS = {
@@ -39,7 +41,7 @@ export const STATUS_GROUPS = {
     "bloqueado",
   ] as TarefaStatus[],
   pronto: ["pronto"] as TarefaStatus[],
-  arquivo: ["fechado", "cancelado", "garantia"] as TarefaStatus[],
+  arquivo: ["fechado", "cancelado", "garantia", "em-divida"] as TarefaStatus[],
 };
 
 export const TAREFA_TIPO = [
@@ -67,6 +69,12 @@ export type TarefaResponsavel = (typeof TAREFA_RESPONSAVEL)[number];
 export const TAREFA_PASTA = ["clientes", "internos"] as const;
 export type TarefaPasta = (typeof TAREFA_PASTA)[number];
 
+export const TAREFA_ORIGIN = ["obsidian", "manual"] as const;
+export type TarefaOrigin = (typeof TAREFA_ORIGIN)[number];
+
+export const TAREFA_LOCAL = ["oficina", "casa-cliente", "remoto"] as const;
+export type TarefaLocal = (typeof TAREFA_LOCAL)[number];
+
 export interface Tarefa {
   id: string;
   titulo: string;
@@ -77,10 +85,16 @@ export interface Tarefa {
   responsavel: TarefaResponsavel | null;
   prazo: string | null;
   dataCriado: string | null;
+  dataFechado: string | null;
   valorEstimado: number | null;
+  valorPago: number | null;
+  metodoPagamento: string | null;
+  local: TarefaLocal | null;
   notasResumo: string | null;
+  bodyMd: string | null;
   pasta: TarefaPasta;
-  sourcePath: string;
+  sourcePath: string | null;
+  origin: TarefaOrigin;
 }
 
 export type TarefaPublic = Omit<Tarefa, "sourcePath">;

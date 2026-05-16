@@ -32,6 +32,7 @@ const STATUS_DOT: Record<TarefaStatus, string> = {
   garantia: "bg-cream-deep",
   suspenso: "bg-ink-mute/60",
   bloqueado: "bg-dune-deep",
+  "em-divida": "bg-dune-deep",
 };
 
 export function MonthCalendar({ year, monthIndex, tarefas }: Props) {

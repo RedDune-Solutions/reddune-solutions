@@ -64,7 +64,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const meta = await replaceTarefas(result.data.tarefas);
+    const normalized = result.data.tarefas.map((t) => ({
+      ...t,
+      dataFechado: t.dataFechado ?? null,
+      valorPago: t.valorPago ?? null,
+      metodoPagamento: t.metodoPagamento ?? null,
+      local: t.local ?? null,
+      bodyMd: t.bodyMd ?? null,
+    }));
+    const meta = await replaceTarefas(normalized);
     return NextResponse.json({ ok: true, ...meta });
   } catch (error) {
     console.error("POST /api/tarefas error:", error);
