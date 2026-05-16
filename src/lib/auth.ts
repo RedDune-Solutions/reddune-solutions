@@ -1,11 +1,6 @@
 import "server-only";
 import NextAuth, { type NextAuthConfig } from "next-auth";
-import Resend from "next-auth/providers/resend";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { render } from "@react-email/render";
-import clientPromise from "@/lib/mongodb/client";
-import { getResend } from "@/lib/resend";
-import { MagicLinkEmail } from "@/components/templates/MagicLinkEmail";
+import Credentials from "next-auth/providers/credentials";
 import { logAuthEvent } from "@/lib/mongodb/audit";
 
 function getAllowedEmails(): Set<string> {
@@ -18,78 +13,84 @@ function getAllowedEmails(): Set<string> {
   );
 }
 
-const MAGIC_LINK_MAX_AGE_SECONDS = 10 * 60; // 10 min — link curto, uso único
-const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 dias — browser fica logado
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
+const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 dias
 
 const authConfig: NextAuthConfig = {
-  adapter: MongoDBAdapter(clientPromise, {
-    databaseName: process.env.MONGODB_DB_NAME,
-  }),
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: SESSION_MAX_AGE_SECONDS,
-    updateAge: 24 * 60 * 60, // refresh sessão se activo no último dia
+    updateAge: 24 * 60 * 60,
   },
   pages: {
     signIn: "/entrar",
-    verifyRequest: "/entrar/verificar",
     error: "/entrar",
   },
   providers: [
-    Resend({
-      apiKey: process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY,
-      from: process.env.AUTH_EMAIL_FROM ?? "Reddune Solutions <onboarding@resend.dev>",
-      maxAge: MAGIC_LINK_MAX_AGE_SECONDS,
-      async sendVerificationRequest({ identifier: email, url, provider }) {
-        const host = new URL(url).host;
-        const html = await render(MagicLinkEmail({ url, host }));
-        const text = `Reddune Solutions — entrar no painel\n\nClica no link abaixo para entrar. Válido 10 minutos, uso único:\n${url}\n\nSe não pediste este acesso, ignora este e-mail.`;
+    Credentials({
+      name: "Password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = String(credentials?.email ?? "").trim().toLowerCase();
+        const password = String(credentials?.password ?? "");
 
-        const { error } = await getResend().emails.send({
-          from: provider.from as string,
-          to: email,
-          subject: `Entrar no painel da Reddune Solutions`,
-          html,
-          text,
-        });
+        if (!email || !password) return null;
 
-        if (error) {
-          throw new Error(`Resend error: ${error.message ?? "unknown"}`);
+        const allowed = getAllowedEmails();
+        if (!allowed.has(email)) {
+          await logAuthEvent({
+            email,
+            type: "signin-rejected",
+            details: { reason: "not-allowlisted" },
+          });
+          return null;
         }
 
-        await logAuthEvent({
+        const expected = process.env.AUTH_PASSWORD;
+        if (!expected) {
+          console.error("AUTH_PASSWORD não definido");
+          return null;
+        }
+
+        if (!timingSafeEqual(password, expected)) {
+          await logAuthEvent({
+            email,
+            type: "signin-rejected",
+            details: { reason: "wrong-password" },
+          });
+          return null;
+        }
+
+        return {
+          id: email,
           email,
-          type: "magic-link-request",
-          details: { maxAgeSeconds: MAGIC_LINK_MAX_AGE_SECONDS },
-        });
+          name: email.split("@")[0],
+        };
       },
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      const allowed = getAllowedEmails();
-      if (allowed.size === 0) {
-        await logAuthEvent({
-          email: user.email,
-          type: "signin-rejected",
-          details: { reason: "allowlist-empty" },
-        });
-        return false;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
       }
-      const email = user.email?.toLowerCase();
-      if (!email || !allowed.has(email)) {
-        await logAuthEvent({
-          email: user.email,
-          type: "signin-rejected",
-          details: { reason: "not-allowlisted" },
-        });
-        return false;
-      }
-      return true;
+      return token;
     },
-    async session({ session, user }) {
-      if (session.user && user?.id) {
-        session.user.id = user.id;
+    async session({ session, token }) {
+      if (session.user && token?.id) {
+        session.user.id = token.id as string;
       }
       return session;
     },

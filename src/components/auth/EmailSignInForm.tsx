@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 import { signInAction } from "@/lib/auth-actions";
 
 export function EmailSignInForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -22,16 +23,22 @@ export function EmailSignInForm() {
       setError("Endereço de email inválido.");
       return;
     }
+    if (!password) {
+      setError("Password obrigatória.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("email", trimmed);
+    formData.append("password", password);
 
     startTransition(async () => {
       const result = await signInAction(formData);
       if (result?.ok === false) {
         setError(result.error);
       } else {
-        router.push("/entrar/verificar");
+        router.push("/painel");
+        router.refresh();
       }
     });
   }
@@ -62,6 +69,29 @@ export function EmailSignInForm() {
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-sm font-medium">
+          Password
+        </Label>
+        <div className="relative">
+          <Lock
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={pending}
+            className="pl-10 h-11"
+          />
+        </div>
+      </div>
+
       {error && (
         <p
           role="alert"
@@ -79,16 +109,12 @@ export function EmailSignInForm() {
         {pending ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
-            A enviar link...
+            A entrar...
           </>
         ) : (
-          "Receber link de acesso"
+          "Entrar"
         )}
       </Button>
-
-      <p className="text-xs text-muted-foreground leading-relaxed text-center">
-        Vamos enviar um link mágico para o teu email. Acede a partir do mesmo dispositivo.
-      </p>
     </form>
   );
 }

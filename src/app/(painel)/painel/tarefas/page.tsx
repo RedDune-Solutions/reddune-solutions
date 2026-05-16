@@ -3,7 +3,8 @@ import { Topbar } from "@/components/painel/Topbar";
 import { KanbanBoard } from "@/components/painel/KanbanBoard";
 import { TarefasTable } from "@/components/painel/TarefasTable";
 import { ViewToggle, type PainelView } from "@/components/painel/ViewToggle";
-import { FilterBar, applyFilters } from "@/components/painel/FilterBar";
+import { applyFilters } from "@/lib/filter-tarefas";
+import { FilterBar } from "@/components/painel/FilterBar";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { TAREFA_STATUS, TAREFA_TIPO, type TarefaStatus, type TarefaTipo } from "@/types/tarefa";
 
