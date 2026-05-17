@@ -11,6 +11,8 @@ import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import { publicEnv } from "@/lib/env";
 import type { ServicoSlug } from "@/lib/servicos-content";
+import { getAllServicos } from "@/lib/mongodb/servicos";
+import { SERVICO_SLUG } from "@/types/servico";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -140,7 +142,7 @@ const SERVICE_VISUALS: ReadonlyArray<ServiceVisualConfig> = [
   },
 ] as const;
 
-function ServicesHubBody() {
+function ServicesHubBody({ precosDb }: { precosDb: Record<string, number | null> }) {
   const t = useTranslations("ServicosPage.hub");
 
   return (
@@ -231,9 +233,13 @@ function ServicesHubBody() {
                       "[&_b]:font-display [&_b]:font-bold [&_b]:not-italic [&_b]:text-ember [&_b]:text-base",
                     )}
                   >
-                    {t.rich(`cards.${svc.slug}.price`, {
-                      b: (chunks) => <b>{chunks}</b>,
-                    })}
+                    {precosDb[svc.slug] != null ? (
+                      <>desde <b>{precosDb[svc.slug]}€</b></>
+                    ) : (
+                      t.rich(`cards.${svc.slug}.price`, {
+                        b: (chunks) => <b>{chunks}</b>,
+                      })
+                    )}
                   </span>
                   <span
                     aria-hidden
@@ -373,13 +379,37 @@ function ServicosHero() {
   );
 }
 
-export default function ServicosPage() {
+export default async function ServicosPage() {
+  // Preço "desde" por slug: menor precoBase entre serviços ativos.
+  // Se slug tem só variantes, usa o menor preco das variantes.
+  const precosDb: Record<string, number | null> = Object.fromEntries(
+    SERVICO_SLUG.map((s) => [s, null])
+  );
+  try {
+    const servicos = await getAllServicos();
+    for (const slug of SERVICO_SLUG) {
+      const ativos = servicos.filter((s) => s.slug === slug && s.ativo);
+      let min: number | null = null;
+      for (const s of ativos) {
+        const candidates: number[] = [];
+        if (s.precoBase != null) candidates.push(s.precoBase);
+        if (s.variantes) s.variantes.forEach((v) => candidates.push(v.preco));
+        for (const c of candidates) {
+          if (min == null || c < min) min = c;
+        }
+      }
+      precosDb[slug] = min;
+    }
+  } catch {
+    // fallback silencioso ao i18n
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main id="main" className="flex-grow">
         <ServicosHero />
-        <ServicesHubBody />
+        <ServicesHubBody precosDb={precosDb} />
         <CTAWave />
       </main>
       <Footer />
