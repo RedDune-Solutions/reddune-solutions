@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 const NAV = [
   { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true },
@@ -40,12 +41,18 @@ const NAV = [
   { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase },
 ];
 
-export function MobileMenuButton() {
+type Props = {
+  user: { name?: string | null; email?: string | null };
+};
+
+export function MobileMenuButton({ user }: Props) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+
+  const initial = (user.name ?? user.email ?? "?").slice(0, 1).toUpperCase();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -110,18 +117,38 @@ export function MobileMenuButton() {
           </ul>
 
           <div className="mt-6 pt-4 border-t border-dune-deep/10">
+            <p className="px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-mute">
+              Atalhos
+            </p>
             <Link
               href="/"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-xs text-ink-soft hover:bg-cream-deep hover:text-ink transition-colors"
+              className="mt-2 flex items-center gap-2 rounded-md px-3 py-2 text-xs text-ink-soft hover:bg-cream-deep hover:text-ink transition-colors"
             >
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
               Ver site público
             </Link>
           </div>
         </nav>
+
+        <div className="shrink-0 border-t border-dune-deep/10 bg-sand-warm/40 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-ember/15 text-ember font-semibold text-sm">
+              {initial}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate text-ink">
+                {user.name ?? "Equipa"}
+              </p>
+              <p className="text-xs text-ink-mute truncate">{user.email}</p>
+            </div>
+          </div>
+          <div className="mt-3">
+            <SignOutButton className="w-full justify-start text-ink-soft hover:text-ember" />
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
