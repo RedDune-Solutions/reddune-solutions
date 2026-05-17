@@ -97,6 +97,7 @@ export function Portfolio({ items }: Props) {
                 item={item}
                 locale={locale}
                 tag={tagFor(item)}
+                displayTitle={tagFor(item)}
                 fallbackBg={bgFor(item)}
                 className="aspect-[4/5]"
                 imageSizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

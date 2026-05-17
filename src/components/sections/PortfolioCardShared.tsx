@@ -16,6 +16,8 @@ type Props = {
   item: PortfolioItem;
   locale: "pt" | "en";
   tag: string;
+  /** Título exibido no h4. Default: item.title[locale]. */
+  displayTitle?: string;
   fallbackBg: string;
   className?: string;
   style?: React.CSSProperties;
@@ -27,6 +29,7 @@ export function PortfolioCardShared({
   item,
   locale,
   tag,
+  displayTitle,
   fallbackBg,
   className,
   style,
@@ -35,6 +38,7 @@ export function PortfolioCardShared({
 }: Props) {
   const image = item.imageUrl;
   const href = item.url || hrefFallback || "/contacto?from=portfolio";
+  const title = displayTitle ?? item.title[locale];
 
   return (
     <Link
@@ -104,7 +108,7 @@ export function PortfolioCardShared({
             "[text-shadow:0_2px_8px_rgba(0,0,0,0.6)]"
           )}
         >
-          {item.title[locale]}
+          {title}
         </h4>
         <p className="text-[13px] opacity-85 text-cream-deep">{tag}</p>
         <span
