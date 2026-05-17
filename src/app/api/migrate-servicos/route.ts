@@ -113,6 +113,7 @@ export async function POST() {
           descricao: item.description ? stripHtml(item.description) : null,
           precoBase,
           precoMax,
+          precoDesde: false,
           variantes,
           precoTexto,
           nota,

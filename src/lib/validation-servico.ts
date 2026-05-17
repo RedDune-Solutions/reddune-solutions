@@ -14,6 +14,7 @@ export const servicoSchema = z.object({
   descricao: z.string().max(2000).nullish(),
   precoBase: z.number().finite().min(0).nullish(),
   precoMax: z.number().finite().min(0).nullish(),
+  precoDesde: z.boolean().optional(),
   variantes: z.array(variantePrecoSchema).max(20).nullish(),
   precoTexto: z.string().max(300).nullish(),
   nota: z.string().max(300).nullish(),

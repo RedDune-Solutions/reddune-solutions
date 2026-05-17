@@ -27,6 +27,7 @@ type Draft = {
   descricao: string;
   precoBase: string;
   precoMax: string;
+  precoDesde: boolean;
   precoTexto: string; // preservado mas não editável (legacy)
   nota: string;
   ordem: number;
@@ -46,6 +47,7 @@ function toDraft(s: Servico): Draft {
     descricao: s.descricao ?? "",
     precoBase: s.precoBase != null ? String(s.precoBase) : "",
     precoMax: s.precoMax != null ? String(s.precoMax) : "",
+    precoDesde: s.precoDesde ?? false,
     precoTexto: s.precoTexto ?? "",
     nota: s.nota ?? "",
     ordem: s.ordem,
@@ -69,6 +71,7 @@ function emptyDraft(ordem: number): Draft {
     descricao: "",
     precoBase: "",
     precoMax: "",
+    precoDesde: false,
     precoTexto: "",
     nota: "",
     ordem,
@@ -195,6 +198,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
           variantesPayload
             ? null
             : precoMax != null && Number.isFinite(precoMax) ? precoMax : null,
+        precoDesde: !variantesPayload && d.precoDesde,
         variantes: variantesPayload,
         nota: d.nota.trim() || null,
         ordem: d.ordem,
@@ -335,6 +339,17 @@ export function ServicosEditor({ slug, servicos }: Props) {
                         placeholder="ex: abatido se reparares"
                         className="h-8 text-sm"
                       />
+                    </div>
+                    <div className="col-span-12 flex items-center gap-2 pt-1">
+                      <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={d.precoDesde}
+                          onChange={(e) => update(idx, { precoDesde: e.target.checked })}
+                          className="h-4 w-4 rounded border-border accent-primary"
+                        />
+                        <span>Mostrar como <b>desde X€</b> (máximo indefinido)</span>
+                      </label>
                     </div>
                   </div>
                 ) : (

@@ -45,6 +45,8 @@ export async function POST(request: Request) {
     input.precoBase !== undefined ? input.precoBase ?? null : existing?.precoBase ?? null;
   const precoMax =
     input.precoMax !== undefined ? input.precoMax ?? null : existing?.precoMax ?? null;
+  const precoDesde =
+    input.precoDesde !== undefined ? (input.precoDesde ?? false) : (existing?.precoDesde ?? false);
 
   const servico: Servico = {
     id,
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
     descricao: input.descricao ?? existing?.descricao ?? null,
     precoBase: variantes && variantes.length > 0 ? null : precoBase,
     precoMax: variantes && variantes.length > 0 ? null : precoMax,
+    precoDesde,
     variantes: variantes && variantes.length > 0 ? variantes : null,
     precoTexto: input.precoTexto ?? existing?.precoTexto ?? null,
     nota: input.nota ?? existing?.nota ?? null,
