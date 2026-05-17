@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const isPt = locale !== "en";
 
   const title = isPt
-    ? "RedDune Solutions — Assistência Técnica & Serviços Web no Algarve"
-    : "RedDune Solutions — IT Support & Web Services in Algarve";
+    ? "RedDune Solutions - A resposta certa, para qualquer problema."
+    : "RedDune Solutions - The right answer, for any problem.";
   const description = isPt
     ? "Assistência técnica informática, montagem de PCs, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas."
     : "Computer repair, PC assembly, web development and data recovery in Fuseta, Algarve. Personalised IT service for individuals and businesses.";
