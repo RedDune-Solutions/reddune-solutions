@@ -18,6 +18,8 @@ type Props = {
   tag: string;
   /** Título exibido no h4. Default: item.title[locale]. */
   displayTitle?: string;
+  /** Força um href fixo ignorando item.url. */
+  hrefOverride?: string;
   fallbackBg: string;
   className?: string;
   style?: React.CSSProperties;
@@ -30,6 +32,7 @@ export function PortfolioCardShared({
   locale,
   tag,
   displayTitle,
+  hrefOverride,
   fallbackBg,
   className,
   style,
@@ -37,14 +40,14 @@ export function PortfolioCardShared({
   imageSizes,
 }: Props) {
   const image = item.imageUrl;
-  const href = item.url || hrefFallback || "/contacto?from=portfolio";
+  const href = hrefOverride ?? item.url || hrefFallback || "/contacto?from=portfolio";
   const title = displayTitle ?? item.title[locale];
 
   return (
     <Link
       href={href}
-      target={item.url ? "_blank" : undefined}
-      rel={item.url ? "noopener noreferrer" : undefined}
+      target={!hrefOverride && item.url ? "_blank" : undefined}
+      rel={!hrefOverride && item.url ? "noopener noreferrer" : undefined}
       aria-label={item.title[locale]}
       className={cn(
         "group relative block overflow-hidden rounded-[28px]",

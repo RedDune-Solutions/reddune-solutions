@@ -101,6 +101,7 @@ export function Portfolio({ items }: Props) {
                 fallbackBg={bgFor(item)}
                 className="aspect-[4/5]"
                 imageSizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                hrefOverride="/portfolio"
               />
             </Reveal>
           ))}
