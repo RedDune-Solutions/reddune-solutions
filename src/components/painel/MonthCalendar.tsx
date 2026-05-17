@@ -25,7 +25,8 @@ const DAYS_HEADER = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const STATUS_DOT: Record<ProjetoStatus, string> = {
   proximo: "bg-apricot",
   "em-curso": "bg-ember",
-  aguardando: "bg-amber-400",
+  "aguardando-cliente": "bg-amber-300",
+  "aguardando-encomenda": "bg-amber-400",
   terminado: "bg-amber-500",
   fechado: "bg-emerald-600",
   cancelado: "bg-ink-mute/60",

@@ -5,7 +5,8 @@ import { TarefaCard } from "./TarefaCard";
 const MAIN_COLUMNS: ProjetoStatus[] = [
   "em-curso",
   "proximo",
-  "aguardando",
+  "aguardando-cliente",
+  "aguardando-encomenda",
   "terminado",
 ];
 

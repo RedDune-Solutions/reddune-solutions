@@ -13,7 +13,8 @@ type Props = {
 const STATUS_RIBBON: Record<ProjetoStatus, string> = {
   proximo: "border-l-ember",
   "em-curso": "border-l-sky-500",
-  aguardando: "border-l-amber-500",
+  "aguardando-cliente": "border-l-amber-400",
+  "aguardando-encomenda": "border-l-amber-500",
   terminado: "border-l-amber-600",
   fechado: "border-l-emerald-600",
   cancelado: "border-l-slate-300",
@@ -22,7 +23,8 @@ const STATUS_RIBBON: Record<ProjetoStatus, string> = {
 const STATUS_BG: Record<ProjetoStatus, string> = {
   proximo: "bg-ember/5",
   "em-curso": "bg-sky-500/5",
-  aguardando: "bg-amber-500/5",
+  "aguardando-cliente": "bg-amber-400/5",
+  "aguardando-encomenda": "bg-amber-500/5",
   terminado: "bg-amber-500/5",
   fechado: "bg-emerald-500/5",
   cancelado: "bg-slate-100/40",

@@ -4,7 +4,8 @@ import { STATUS_LABELS, type ProjetoStatus } from "@/types/projeto";
 const STATUS_CLASSES: Record<ProjetoStatus, string> = {
   proximo: "bg-apricot text-ink border-apricot",
   "em-curso": "bg-ember text-cream border-ember",
-  aguardando: "bg-peach text-ink-soft border-peach",
+  "aguardando-cliente": "bg-peach/60 text-ink-soft border-peach",
+  "aguardando-encomenda": "bg-peach text-ink-soft border-peach",
   terminado: "bg-amber-500 text-white border-amber-500",
   fechado: "bg-emerald-600 text-white border-emerald-600",
   cancelado: "bg-ink-mute text-cream border-ink-mute",

@@ -6,15 +6,16 @@ import type { Projeto, ProjetoStatus } from "@/types/projeto";
 export const dynamic = "force-dynamic";
 
 const MAP: Record<string, ProjetoStatus> = {
-  "aguarda-cliente": "aguardando",
-  "aguarda-pecas": "aguardando",
-  "aguarda-fornecedor": "aguardando",
-  suspenso: "aguardando",
-  bloqueado: "aguardando",
+  "aguarda-cliente": "aguardando-cliente",
+  "aguarda-pecas": "aguardando-encomenda",
+  "aguarda-fornecedor": "aguardando-encomenda",
+  suspenso: "aguardando-encomenda",
+  bloqueado: "aguardando-encomenda",
   pronto: "terminado",
   entregue: "terminado",
   "em-divida": "terminado",
   garantia: "fechado",
+  aguardando: "aguardando-encomenda",
 };
 
 function addDays(iso: string, days: number): string {

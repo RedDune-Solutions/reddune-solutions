@@ -1,32 +1,34 @@
 "use client";
 
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { oasisChartPalette, oasisChartTheme } from "@/lib/chart-theme";
 
-type Datum = { mes: string; estimado: number; pago: number };
+type Datum = { metodo: string; valor: number; count: number };
 
-export function ValorMensal({ data }: { data: Datum[] }) {
+export function PagamentosPorMetodo({ data }: { data: Datum[] }) {
   if (data.length === 0) {
     return <p className="text-sm text-ink-mute">Sem dados.</p>;
   }
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={data} margin={{ top: 8, right: 12, left: -10, bottom: 8 }}>
+      <BarChart data={data} margin={{ top: 8, right: 12, left: -10, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={oasisChartTheme.grid} />
         <XAxis
-          dataKey="mes"
+          dataKey="metodo"
           stroke={oasisChartTheme.axisLine}
           tick={{ fill: oasisChartTheme.text, fontSize: 11 }}
           tickLine={false}
+          angle={-25}
+          textAnchor="end"
+          height={60}
         />
         <YAxis
           stroke={oasisChartTheme.axisLine}
@@ -42,27 +44,14 @@ export function ValorMensal({ data }: { data: Datum[] }) {
             fontSize: "12px",
             color: oasisChartTheme.text,
           }}
-          formatter={(v, name) => [`${Number(v).toFixed(0)}€`, name]}
+          cursor={{ fill: oasisChartTheme.cursor }}
+          formatter={(v, _name, item) => {
+            const count = (item?.payload as Datum | undefined)?.count ?? 0;
+            return [`${Number(v).toFixed(0)}€ (${count})`, "Valor"];
+          }}
         />
-        <Legend wrapperStyle={{ fontSize: "12px", color: oasisChartTheme.text }} />
-        <Line
-          type="monotone"
-          dataKey="estimado"
-          name="Estimado"
-          stroke={oasisChartPalette[0]}
-          strokeWidth={2.5}
-          dot={{ r: 3 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="pago"
-          name="Pago"
-          stroke={oasisChartPalette[4]}
-          strokeWidth={2.5}
-          dot={{ r: 3 }}
-          strokeDasharray="4 4"
-        />
-      </LineChart>
+        <Bar dataKey="valor" fill={oasisChartPalette[0]} radius={[6, 6, 0, 0]} />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

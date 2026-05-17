@@ -1,7 +1,8 @@
 export const PROJETO_STATUS = [
   "proximo",
   "em-curso",
-  "aguardando",
+  "aguardando-cliente",
+  "aguardando-encomenda",
   "terminado",
   "fechado",
   "cancelado",
@@ -12,7 +13,8 @@ export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
 export const STATUS_LABELS: Record<ProjetoStatus, string> = {
   proximo: "Próximo",
   "em-curso": "Em curso",
-  aguardando: "Aguardando",
+  "aguardando-cliente": "Aguarda cliente",
+  "aguardando-encomenda": "Aguarda encomenda",
   terminado: "Terminado",
   fechado: "Fechado",
   cancelado: "Cancelado",
@@ -21,9 +23,12 @@ export const STATUS_LABELS: Record<ProjetoStatus, string> = {
 export const STATUS_GROUPS = {
   ativo: ["em-curso"] as ProjetoStatus[],
   proximo: ["proximo"] as ProjetoStatus[],
-  aguarda: ["aguardando"] as ProjetoStatus[],
+  aguarda: ["aguardando-cliente", "aguardando-encomenda"] as ProjetoStatus[],
+  aguardaCliente: ["aguardando-cliente"] as ProjetoStatus[],
+  aguardaEncomenda: ["aguardando-encomenda"] as ProjetoStatus[],
   pronto: ["terminado"] as ProjetoStatus[],
   arquivo: ["fechado", "cancelado"] as ProjetoStatus[],
+  comprometido: ["em-curso", "aguardando-encomenda", "terminado"] as ProjetoStatus[],
 };
 
 export const PROJETO_TIPO = [

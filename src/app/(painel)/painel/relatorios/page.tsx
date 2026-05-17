@@ -1,13 +1,15 @@
-import { Euro, Clock, ListChecks, Users } from "lucide-react";
+import { Euro, Clock, ListChecks, Users, AlertCircle, Hourglass } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
-import type { Pagamento } from "@/types/pagamento";
+import { METODO_LABEL, type MetodoPagamento, type Pagamento } from "@/types/pagamento";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { StatusPie } from "@/components/painel/charts/StatusPie";
 import { TipoBar } from "@/components/painel/charts/TipoBar";
 import { ValorMensal } from "@/components/painel/charts/ValorMensal";
+import { PagamentosPorMetodo } from "@/components/painel/charts/PagamentosPorMetodo";
+import { ProjetosPorMes } from "@/components/painel/charts/ProjetosPorMes";
 import { STATUS_GROUPS, PROJETO_STATUS, type ProjetoStatus, type Projeto } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
@@ -16,17 +18,59 @@ function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }
 
-function buildValorMensal(projetos: Projeto[]): Array<{ mes: string; valor: number }> {
-  const map = new Map<string, number>();
+function buildValorMensal(
+  projetos: Projeto[],
+  pagamentos: Pagamento[]
+): Array<{ mes: string; estimado: number; pago: number }> {
+  const map = new Map<string, { estimado: number; pago: number }>();
+  const ensure = (k: string) => {
+    if (!map.has(k)) map.set(k, { estimado: 0, pago: 0 });
+    return map.get(k)!;
+  };
   for (const p of projetos) {
     if (!p.dataCriado || !p.valorEstimado) continue;
-    const key = monthKey(p.dataCriado);
-    map.set(key, (map.get(key) ?? 0) + p.valorEstimado);
+    if (p.status === "aguardando-cliente") continue; // não conta — orçamento não aceite
+    ensure(monthKey(p.dataCriado)).estimado += p.valorEstimado;
+  }
+  for (const pg of pagamentos) {
+    if (!pg.data || !pg.valor) continue;
+    ensure(monthKey(pg.data)).pago += pg.valor;
   }
   return [...map.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .slice(-12)
-    .map(([mes, valor]) => ({ mes, valor }));
+    .map(([mes, v]) => ({ mes, ...v }));
+}
+
+function buildPagamentosPorMetodo(pagamentos: Pagamento[]) {
+  const map = new Map<string, { valor: number; count: number }>();
+  for (const pg of pagamentos) {
+    const k = (pg.metodo ?? "outro") as MetodoPagamento;
+    const cur = map.get(k) ?? { valor: 0, count: 0 };
+    cur.valor += pg.valor;
+    cur.count += 1;
+    map.set(k, cur);
+  }
+  return [...map.entries()].map(([metodo, v]) => ({
+    metodo: METODO_LABEL[metodo as MetodoPagamento] ?? metodo,
+    ...v,
+  }));
+}
+
+function buildProjetosPorMes(projetos: Projeto[]) {
+  const map = new Map<string, { criados: number; fechados: number }>();
+  const ensure = (k: string) => {
+    if (!map.has(k)) map.set(k, { criados: 0, fechados: 0 });
+    return map.get(k)!;
+  };
+  for (const p of projetos) {
+    if (p.dataCriado) ensure(monthKey(p.dataCriado)).criados += 1;
+    if (p.dataFechado) ensure(monthKey(p.dataFechado)).fechados += 1;
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-12)
+    .map(([mes, v]) => ({ mes, ...v }));
 }
 
 function topClientesPorValorPago(
@@ -61,7 +105,13 @@ export default async function RelatoriosPage() {
       STATUS_GROUPS.pronto.includes(p.status)
   );
 
-  const valorTotalActivo = activos.reduce((s, p) => s + (p.valorEstimado ?? 0), 0);
+  const comprometidos = projetos.filter((p) =>
+    STATUS_GROUPS.comprometido.includes(p.status)
+  );
+  const valorTotalActivo = comprometidos.reduce((s, p) => s + (p.valorEstimado ?? 0), 0);
+
+  const aguardaCliente = projetos.filter((p) => p.status === "aguardando-cliente");
+  const valorPotencial = aguardaCliente.reduce((s, p) => s + (p.valorEstimado ?? 0), 0);
 
   const statusData = PROJETO_STATUS.map((status) => ({
     status,
@@ -77,8 +127,22 @@ export default async function RelatoriosPage() {
     .map(([tipo, count]) => ({ tipo, count }))
     .sort((a, b) => b.count - a.count);
 
-  const valorMensal = buildValorMensal(projetos);
+  const valorMensal = buildValorMensal(projetos, pagamentos);
+  const pagamentosPorMetodo = buildPagamentosPorMetodo(pagamentos);
+  const projetosPorMes = buildProjetosPorMes(projetos);
   const topClientes = topClientesPorValorPago(pagamentos, clientesMap);
+
+  const valorPagoTotal = pagamentos.reduce((s, p) => s + p.valor, 0);
+  const pagoPorProjeto = new Map<string, number>();
+  for (const pg of pagamentos) {
+    pagoPorProjeto.set(pg.projetoId, (pagoPorProjeto.get(pg.projetoId) ?? 0) + pg.valor);
+  }
+  const emDivida = projetos
+    .filter((p) => STATUS_GROUPS.pronto.includes(p.status))
+    .reduce((s, p) => {
+      const pago = pagoPorProjeto.get(p.id) ?? 0;
+      return s + Math.max(0, (p.valorEstimado ?? 0) - pago);
+    }, 0);
 
   return (
     <>
@@ -91,7 +155,14 @@ export default async function RelatoriosPage() {
             value={`${valorTotalActivo.toFixed(0)}€`}
             icon={Euro}
             tone="default"
-            hint={`${activos.length} projectos activos`}
+            hint={`${comprometidos.length} compromissos`}
+          />
+          <KpiCard
+            label="A aguardar cliente"
+            value={`${valorPotencial.toFixed(0)}€`}
+            icon={Hourglass}
+            tone="default"
+            hint={`${aguardaCliente.length} orçamentos pendentes`}
           />
           <KpiCard
             label="Projectos totais"
@@ -117,6 +188,18 @@ export default async function RelatoriosPage() {
             icon={Clock}
             tone="default"
           />
+          <KpiCard
+            label="Valor recebido total"
+            value={`${valorPagoTotal.toFixed(0)}€`}
+            icon={Euro}
+            tone="green"
+          />
+          <KpiCard
+            label="Em dívida"
+            value={`${emDivida.toFixed(0)}€`}
+            icon={AlertCircle}
+            tone="accent"
+          />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -137,11 +220,27 @@ export default async function RelatoriosPage() {
           </article>
 
           <article className="rounded-lg border border-border bg-surface p-6 lg:col-span-2">
-            <h2 className="font-headline text-lg font-semibold mb-1">Valor estimado por mês</h2>
+            <h2 className="font-headline text-lg font-semibold mb-1">Valor por mês: estimado vs pago</h2>
             <p className="text-xs text-muted-foreground mb-4">
-              Soma do valor estimado por mês de criação (últimos 12 meses com dados).
+              Estimado por mês de criação; pago por data do pagamento (últimos 12 meses).
             </p>
             <ValorMensal data={valorMensal} />
+          </article>
+
+          <article className="rounded-lg border border-border bg-surface p-6">
+            <h2 className="font-headline text-lg font-semibold mb-1">Pagamentos por método</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Total recebido por método de pagamento.
+            </p>
+            <PagamentosPorMetodo data={pagamentosPorMetodo} />
+          </article>
+
+          <article className="rounded-lg border border-border bg-surface p-6">
+            <h2 className="font-headline text-lg font-semibold mb-1">Projectos por mês</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Criados vs fechados (últimos 12 meses).
+            </p>
+            <ProjetosPorMes data={projetosPorMes} />
           </article>
 
           <article className="rounded-lg border border-border bg-surface p-6 lg:col-span-2">

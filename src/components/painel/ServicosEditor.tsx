@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  SERVICO_SLUG_LABEL,
   type Servico,
   type ServicoSlug,
   type VariantePreco,
@@ -235,9 +234,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-headline text-lg font-semibold">{SERVICO_SLUG_LABEL[slug]}</h2>
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-end">
         <Button size="sm" variant="outline" onClick={addNovo}>
           <Plus className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
           Adicionar
@@ -255,26 +253,26 @@ export function ServicosEditor({ slug, servicos }: Props) {
       ) : (
         <div className="space-y-3">
           {items.map((d, idx) => (
-            <div key={d.id ?? `new_${idx}`} className="rounded-md border border-border bg-background p-3 space-y-3">
+            <div key={d.id ?? `new_${idx}`} className="rounded-md border border-border-strong bg-surface-elevated p-3 space-y-3">
               {/* Linha 1: Título / Ordem / Activo */}
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-12 sm:col-span-8 space-y-1">
-                  <Label className="text-[10px] uppercase">Título *</Label>
+                  <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Título *</Label>
                   <Input
                     value={d.titulo}
                     onChange={(e) => update(idx, { titulo: e.target.value })}
-                    className="h-8 text-sm"
+                    className="h-8 text-base font-medium border-border-strong bg-background"
                   />
                 </div>
                 <div className="col-span-6 sm:col-span-2 space-y-1">
-                  <Label className="text-[10px] uppercase">Ordem</Label>
+                  <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Ordem</Label>
                   <Input
                     type="number"
                     step="1"
                     min="0"
                     value={d.ordem}
                     onChange={(e) => update(idx, { ordem: parseInt(e.target.value, 10) || 0 })}
-                    className="h-8 text-sm tabular-nums"
+                    className="h-8 text-sm tabular-nums border-border-strong bg-background"
                   />
                 </div>
                 <div className="col-span-6 sm:col-span-2 flex items-end justify-center">
@@ -291,7 +289,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
               </div>
 
               {/* Bloco de preço: toggle variantes */}
-              <div className="rounded border border-dashed border-border bg-muted/20 p-2.5 space-y-2">
+              <div className="rounded border border-dashed border-border-strong bg-muted/50 p-2.5 space-y-2">
                 <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
                   <input
                     type="checkbox"
@@ -306,7 +304,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
                 {!d.temVariantes ? (
                   <div className="grid grid-cols-12 gap-2">
                     <div className="col-span-5 sm:col-span-3 space-y-1">
-                      <Label className="text-[10px] uppercase">Preço mín (€)</Label>
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Preço mín (€)</Label>
                       <Input
                         type="number"
                         inputMode="numeric"
@@ -315,11 +313,11 @@ export function ServicosEditor({ slug, servicos }: Props) {
                         value={d.precoBase}
                         onChange={(e) => update(idx, { precoBase: e.target.value })}
                         placeholder="—"
-                        className="h-8 text-sm tabular-nums"
+                        className="h-8 text-sm tabular-nums border-border-strong bg-background"
                       />
                     </div>
                     <div className="col-span-5 sm:col-span-3 space-y-1">
-                      <Label className="text-[10px] uppercase">Preço máx (€)</Label>
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Preço máx (€)</Label>
                       <Input
                         type="number"
                         inputMode="numeric"
@@ -328,16 +326,16 @@ export function ServicosEditor({ slug, servicos }: Props) {
                         value={d.precoMax}
                         onChange={(e) => update(idx, { precoMax: e.target.value })}
                         placeholder="opcional"
-                        className="h-8 text-sm tabular-nums"
+                        className="h-8 text-sm tabular-nums border-border-strong bg-background"
                       />
                     </div>
                     <div className="col-span-12 sm:col-span-6 space-y-1">
-                      <Label className="text-[10px] uppercase">Nota (sufixo)</Label>
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Nota (sufixo)</Label>
                       <Input
                         value={d.nota}
                         onChange={(e) => update(idx, { nota: e.target.value })}
                         placeholder="ex: abatido se reparares"
-                        className="h-8 text-sm"
+                        className="h-8 text-sm border-border-strong bg-background"
                       />
                     </div>
                     <div className="col-span-12 flex items-center gap-2 pt-1">
@@ -358,16 +356,16 @@ export function ServicosEditor({ slug, servicos }: Props) {
                       {d.variantes.map((v, vIdx) => (
                         <div key={vIdx} className="grid grid-cols-12 gap-2 items-end">
                           <div className="col-span-12 sm:col-span-4 space-y-1">
-                            <Label className="text-[10px] uppercase">Label</Label>
+                            <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Label</Label>
                             <Input
                               value={v.label}
                               onChange={(e) => updateVariante(idx, vIdx, { label: e.target.value })}
                               placeholder="Desktop"
-                              className="h-8 text-sm"
+                              className="h-8 text-sm border-border-strong bg-background"
                             />
                           </div>
                           <div className="col-span-5 sm:col-span-3 space-y-1">
-                            <Label className="text-[10px] uppercase">Mín (€)</Label>
+                            <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Mín (€)</Label>
                             <Input
                               type="number"
                               inputMode="numeric"
@@ -375,11 +373,11 @@ export function ServicosEditor({ slug, servicos }: Props) {
                               min="0"
                               value={v.preco}
                               onChange={(e) => updateVariante(idx, vIdx, { preco: e.target.value })}
-                              className="h-8 text-sm tabular-nums"
+                              className="h-8 text-sm tabular-nums border-border-strong bg-background"
                             />
                           </div>
                           <div className="col-span-5 sm:col-span-3 space-y-1">
-                            <Label className="text-[10px] uppercase">Máx (€)</Label>
+                            <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Máx (€)</Label>
                             <Input
                               type="number"
                               inputMode="numeric"
@@ -388,7 +386,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
                               value={v.precoMax}
                               onChange={(e) => updateVariante(idx, vIdx, { precoMax: e.target.value })}
                               placeholder="opcional"
-                              className="h-8 text-sm tabular-nums"
+                              className="h-8 text-sm tabular-nums border-border-strong bg-background"
                             />
                           </div>
                           <div className="col-span-2 sm:col-span-2 flex items-end justify-end">
@@ -415,12 +413,12 @@ export function ServicosEditor({ slug, servicos }: Props) {
                       Adicionar variante
                     </Button>
                     <div className="space-y-1 pt-1">
-                      <Label className="text-[10px] uppercase">Nota (sufixo)</Label>
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Nota (sufixo)</Label>
                       <Input
                         value={d.nota}
                         onChange={(e) => update(idx, { nota: e.target.value })}
                         placeholder="opcional"
-                        className="h-8 text-sm"
+                        className="h-8 text-sm border-border-strong bg-background"
                       />
                     </div>
                   </div>
@@ -429,12 +427,12 @@ export function ServicosEditor({ slug, servicos }: Props) {
 
               {/* Descrição */}
               <div className="space-y-1">
-                <Label className="text-[10px] uppercase">Descrição</Label>
+                <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Descrição</Label>
                 <Textarea
                   value={d.descricao}
                   onChange={(e) => update(idx, { descricao: e.target.value })}
                   rows={2}
-                  className="text-sm"
+                  className="text-sm border-border-strong bg-background"
                 />
               </div>
 
@@ -464,6 +462,6 @@ export function ServicosEditor({ slug, servicos }: Props) {
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 }
