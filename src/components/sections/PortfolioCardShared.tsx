@@ -40,7 +40,7 @@ export function PortfolioCardShared({
   imageSizes,
 }: Props) {
   const image = item.imageUrl;
-  const href = hrefOverride ?? item.url || hrefFallback || "/contacto?from=portfolio";
+  const href = hrefOverride ?? (item.url || hrefFallback || "/contacto?from=portfolio");
   const title = displayTitle ?? item.title[locale];
 
   return (
