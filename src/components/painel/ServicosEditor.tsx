@@ -195,25 +195,14 @@ export function ServicosEditor({ slug, servicos }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-12 sm:col-span-6 space-y-1">
-                  <Label className="text-[10px] uppercase">Nota (sufixo do preço)</Label>
-                  <Input
-                    value={d.nota}
-                    onChange={(e) => update(idx, { nota: e.target.value })}
-                    placeholder="ex: abatido se reparares"
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="col-span-12 sm:col-span-6 space-y-1">
-                  <Label className="text-[10px] uppercase">Preço override (texto livre)</Label>
-                  <Input
-                    value={d.precoTexto}
-                    onChange={(e) => update(idx, { precoTexto: e.target.value })}
-                    placeholder='ex: "Desktop 20€ · Portátil 25€" — usa quando preço base não chega'
-                    className="h-8 text-sm font-mono"
-                  />
-                </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase">Nota (sufixo do preço)</Label>
+                <Input
+                  value={d.nota}
+                  onChange={(e) => update(idx, { nota: e.target.value })}
+                  placeholder="ex: abatido se reparares"
+                  className="h-8 text-sm"
+                />
               </div>
 
               <div className="space-y-1">
