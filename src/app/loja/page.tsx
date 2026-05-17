@@ -117,7 +117,7 @@ function WarrantyStrip() {
             { v: "6", unit: "meses", label: t("statRefurb.label"), sub: t("statRefurb.sub") },
             { v: "14", unit: "dias", label: t("statReturn.label"), sub: t("statReturn.sub") },
           ].map((cell, i) => (
-            <div key={`${cell.label}-${i}`} className="relative z-[1]">
+            <div key={`${cell.label}-${i}`} className="relative z-[1] text-center md:text-left">
               <div
                 className={cn(
                   "font-display font-bold tracking-[-0.03em]",

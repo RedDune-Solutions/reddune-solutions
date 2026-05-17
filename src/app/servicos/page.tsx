@@ -331,7 +331,7 @@ function ProcessStepsRow() {
           }}
         />
         {steps.map((step) => (
-          <div key={step.n} className="relative z-[1]">
+          <div key={step.n} className="relative z-[1] text-center md:text-left">
             <div
               className={cn(
                 "font-display font-bold tracking-[-0.03em]",
