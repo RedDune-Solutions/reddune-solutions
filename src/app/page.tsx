@@ -9,7 +9,7 @@ import { Portfolio } from "@/components/sections/Portfolio";
 import { StatsRow } from "@/components/sections/StatsRow";
 import { About } from "@/components/sections/About";
 import { CTAWave } from "@/components/sections/CTAWave";
-import { getAllPortfolioItems } from "@/lib/mongodb/portfolio";
+import { getDestaquesLanding, getAllPortfolioItems } from "@/lib/mongodb/portfolio";
 import { getLocale } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
 
@@ -51,7 +51,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const portfolioItems = await getAllPortfolioItems();
+  // Landing mostra apenas destaques marcados na dashboard (1 por categoria).
+  // Fallback para os 3 mais recentes se ainda não houver destaques marcados.
+  const destaques = await getDestaquesLanding();
+  const portfolioItems =
+    destaques.length > 0 ? destaques : (await getAllPortfolioItems()).slice(0, 3);
 
   return (
     <div className="flex flex-col min-h-screen">

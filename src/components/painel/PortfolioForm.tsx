@@ -6,13 +6,24 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { PortfolioItem } from "@/types/portfolio";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { PortfolioItem, PortfolioCategoria } from "@/types/portfolio";
+import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
+import { SERVICO_SLUG } from "@/types/servico";
 
 type Props = {
   item: PortfolioItem | null;
   onSaved?: () => void;
   onCancel?: () => void;
 };
+
+const NONE = "__none__";
 
 export function PortfolioForm({ item, onSaved, onCancel }: Props) {
   const router = useRouter();
@@ -21,6 +32,12 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
   const [titleEn, setTitleEn] = useState(item?.title.en ?? "");
   const [imageUrl, setImageUrl] = useState(item?.imageUrl ?? "");
   const [url, setUrl] = useState(item?.url ?? "");
+  const [categoria, setCategoria] = useState<PortfolioCategoria | null>(
+    item?.categoria ?? null
+  );
+  const [destaqueLanding, setDestaqueLanding] = useState<boolean>(
+    item?.destaqueLanding ?? false
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +45,10 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
     e.preventDefault();
     if (!titlePt.trim()) {
       setError("Título PT obrigatório.");
+      return;
+    }
+    if (destaqueLanding && !categoria) {
+      setError("Para destacar na landing precisas de escolher uma categoria.");
       return;
     }
     setSaving(true);
@@ -41,6 +62,8 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
           title: { pt: titlePt.trim(), en: titleEn.trim() || titlePt.trim() },
           imageUrl: imageUrl.trim(),
           url: url.trim(),
+          categoria,
+          destaqueLanding,
         }),
       });
       if (!res.ok) {
@@ -76,6 +99,45 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
         <Label htmlFor="url">URL do projeto</Label>
         <Input id="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." disabled={saving} className="font-mono text-xs" />
       </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="cat">Categoria</Label>
+        <Select
+          value={categoria ?? NONE}
+          onValueChange={(v) =>
+            setCategoria(v === NONE ? null : (v as PortfolioCategoria))
+          }
+          disabled={saving}
+        >
+          <SelectTrigger id="cat">
+            <SelectValue placeholder="Sem categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NONE}>Sem categoria</SelectItem>
+            {SERVICO_SLUG.map((s) => (
+              <SelectItem key={s} value={s}>
+                {PORTFOLIO_CATEGORIA_LABEL[s]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border bg-muted/30 p-3">
+        <input
+          type="checkbox"
+          checked={destaqueLanding}
+          onChange={(e) => setDestaqueLanding(e.target.checked)}
+          disabled={saving || !categoria}
+          className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+        />
+        <span className="text-sm">
+          <span className="font-medium">Destacar na landing</span>
+          <span className="block text-xs text-muted-foreground mt-0.5">
+            Substitui automaticamente o destaque anterior desta categoria. Precisa de categoria escolhida.
+          </span>
+        </span>
+      </label>
 
       {error && (
         <p className="text-xs text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded px-3 py-2">

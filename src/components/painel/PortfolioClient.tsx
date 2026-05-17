@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Trash2, Pencil, Briefcase, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Pencil, Briefcase, ExternalLink, Star } from "lucide-react";
+import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -89,6 +90,23 @@ export function PortfolioClient({ items }: Props) {
               </div>
               <div className="p-3 space-y-2">
                 <h3 className="font-semibold text-sm text-foreground line-clamp-2">{item.title.pt}</h3>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {item.categoria ? (
+                    <span className="inline-flex items-center text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                      {PORTFOLIO_CATEGORIA_LABEL[item.categoria]}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700">
+                      Sem categoria
+                    </span>
+                  )}
+                  {item.destaqueLanding && (
+                    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-ember/10 text-ember">
+                      <Star className="h-2.5 w-2.5" aria-hidden="true" />
+                      Landing
+                    </span>
+                  )}
+                </div>
                 {item.url && (
                   <p className="inline-flex items-center gap-1 text-xs text-muted-foreground truncate">
                     <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />

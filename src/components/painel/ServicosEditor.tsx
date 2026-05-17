@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,7 @@ import {
   SERVICO_SLUG_LABEL,
   type Servico,
   type ServicoSlug,
+  type VariantePreco,
 } from "@/types/servico";
 
 type Props = {
@@ -18,19 +19,26 @@ type Props = {
   servicos: Servico[];
 };
 
+type VarianteDraft = { label: string; preco: string };
+
 type Draft = {
-  id: string | null;          // null = ainda não persistido
+  id: string | null;
   titulo: string;
   descricao: string;
-  precoBase: string;          // input string
-  precoTexto: string;
+  precoBase: string;
+  precoTexto: string; // preservado mas não editável (legacy)
   nota: string;
   ordem: number;
   ativo: boolean;
+  temVariantes: boolean;
+  variantes: VarianteDraft[];
   dirty: boolean;
 };
 
+const DEFAULT_LABELS = ["Desktop", "Portátil", "Consola"];
+
 function toDraft(s: Servico): Draft {
+  const temVariantes = !!(s.variantes && s.variantes.length > 0);
   return {
     id: s.id,
     titulo: s.titulo,
@@ -40,6 +48,10 @@ function toDraft(s: Servico): Draft {
     nota: s.nota ?? "",
     ordem: s.ordem,
     ativo: s.ativo,
+    temVariantes,
+    variantes: temVariantes
+      ? s.variantes!.map((v) => ({ label: v.label, preco: String(v.preco) }))
+      : [],
     dirty: false,
   };
 }
@@ -54,6 +66,8 @@ function emptyDraft(ordem: number): Draft {
     nota: "",
     ordem,
     ativo: true,
+    temVariantes: false,
+    variantes: [],
     dirty: true,
   };
 }
@@ -71,27 +85,108 @@ export function ServicosEditor({ slug, servicos }: Props) {
     );
   }
 
+  function updateVariante(idx: number, vIdx: number, patch: Partial<VarianteDraft>) {
+    setItems((prev) =>
+      prev.map((d, i) => {
+        if (i !== idx) return d;
+        const next = [...d.variantes];
+        next[vIdx] = { ...next[vIdx]!, ...patch };
+        return { ...d, variantes: next, dirty: true };
+      })
+    );
+  }
+
+  function addVariante(idx: number) {
+    setItems((prev) =>
+      prev.map((d, i) => {
+        if (i !== idx) return d;
+        const label = DEFAULT_LABELS[d.variantes.length] ?? "";
+        return {
+          ...d,
+          variantes: [...d.variantes, { label, preco: "" }],
+          dirty: true,
+        };
+      })
+    );
+  }
+
+  function removeVariante(idx: number, vIdx: number) {
+    setItems((prev) =>
+      prev.map((d, i) => {
+        if (i !== idx) return d;
+        return { ...d, variantes: d.variantes.filter((_, j) => j !== vIdx), dirty: true };
+      })
+    );
+  }
+
+  function toggleVariantes(idx: number, on: boolean) {
+    setItems((prev) =>
+      prev.map((d, i) => {
+        if (i !== idx) return d;
+        if (on && d.variantes.length === 0) {
+          // Seed com 2 variantes default
+          return {
+            ...d,
+            temVariantes: true,
+            variantes: [
+              { label: "Desktop", preco: "" },
+              { label: "Portátil", preco: "" },
+            ],
+            dirty: true,
+          };
+        }
+        return { ...d, temVariantes: on, dirty: true };
+      })
+    );
+  }
+
   function addNovo() {
     setItems((prev) => [...prev, emptyDraft(prev.length)]);
   }
 
   async function save(idx: number) {
-    const d = items[idx];
+    const d = items[idx]!;
     if (!d.titulo.trim()) {
       setError("Título obrigatório.");
       return;
     }
+
+    let variantesPayload: VariantePreco[] | null = null;
+    if (d.temVariantes && d.variantes.length > 0) {
+      const parsed: VariantePreco[] = [];
+      for (const v of d.variantes) {
+        if (!v.label.trim()) {
+          setError("Todas as variantes precisam de um label.");
+          return;
+        }
+        const n = parseFloat(v.preco.replace(",", "."));
+        if (!Number.isFinite(n) || n < 0) {
+          setError(`Preço inválido na variante "${v.label}".`);
+          return;
+        }
+        parsed.push({ label: v.label.trim(), preco: n });
+      }
+      variantesPayload = parsed;
+    }
+
     setSavingId(d.id ?? `new_${idx}`);
     setError(null);
     try {
-      const precoBase = d.precoBase.trim() ? parseFloat(d.precoBase.replace(",", ".")) : null;
+      const precoBase = d.precoBase.trim()
+        ? parseFloat(d.precoBase.replace(",", "."))
+        : null;
       const payload = {
         id: d.id ?? undefined,
         slug,
         titulo: d.titulo.trim(),
         descricao: d.descricao.trim() || null,
-        precoBase: precoBase != null && Number.isFinite(precoBase) ? precoBase : null,
-        precoTexto: d.precoTexto.trim() || null,
+        precoBase:
+          variantesPayload
+            ? null
+            : precoBase != null && Number.isFinite(precoBase)
+            ? precoBase
+            : null,
+        variantes: variantesPayload,
         nota: d.nota.trim() || null,
         ordem: d.ordem,
         ativo: d.ativo,
@@ -117,7 +212,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
   }
 
   async function remove(idx: number) {
-    const d = items[idx];
+    const d = items[idx]!;
     if (d.id) {
       if (!confirm(`Apagar "${d.titulo}"?`)) return;
       await fetch(`/api/servicos/${encodeURIComponent(d.id)}`, { method: "DELETE" });
@@ -147,9 +242,10 @@ export function ServicosEditor({ slug, servicos }: Props) {
       ) : (
         <div className="space-y-3">
           {items.map((d, idx) => (
-            <div key={d.id ?? `new_${idx}`} className="rounded-md border border-border bg-background p-3 space-y-2">
+            <div key={d.id ?? `new_${idx}`} className="rounded-md border border-border bg-background p-3 space-y-3">
+              {/* Linha 1: Título / Ordem / Activo */}
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-12 sm:col-span-6 space-y-1">
+                <div className="col-span-12 sm:col-span-8 space-y-1">
                   <Label className="text-[10px] uppercase">Título *</Label>
                   <Input
                     value={d.titulo}
@@ -157,21 +253,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
                     className="h-8 text-sm"
                   />
                 </div>
-                <div className="col-span-6 sm:col-span-3 space-y-1">
-                  <Label className="text-[10px] uppercase">Preço (€)</Label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    step="1"
-                    min="0"
-                    value={d.precoBase}
-                    onChange={(e) => update(idx, { precoBase: e.target.value })}
-                    placeholder="—"
-                    className="h-8 text-sm tabular-nums"
-                    disabled={!!d.precoTexto.trim()}
-                  />
-                </div>
-                <div className="col-span-4 sm:col-span-2 space-y-1">
+                <div className="col-span-6 sm:col-span-2 space-y-1">
                   <Label className="text-[10px] uppercase">Ordem</Label>
                   <Input
                     type="number"
@@ -182,7 +264,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
                     className="h-8 text-sm tabular-nums"
                   />
                 </div>
-                <div className="col-span-2 sm:col-span-1 flex items-end justify-center">
+                <div className="col-span-6 sm:col-span-2 flex items-end justify-center">
                   <label className="inline-flex items-center gap-1 text-xs cursor-pointer">
                     <input
                       type="checkbox"
@@ -195,16 +277,107 @@ export function ServicosEditor({ slug, servicos }: Props) {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-[10px] uppercase">Nota (sufixo do preço)</Label>
-                <Input
-                  value={d.nota}
-                  onChange={(e) => update(idx, { nota: e.target.value })}
-                  placeholder="ex: abatido se reparares"
-                  className="h-8 text-sm"
-                />
+              {/* Bloco de preço: toggle variantes */}
+              <div className="rounded border border-dashed border-border bg-muted/20 p-2.5 space-y-2">
+                <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={d.temVariantes}
+                    onChange={(e) => toggleVariantes(idx, e.target.checked)}
+                    className="h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <span className="font-medium">Tem variantes</span>
+                  <span className="text-muted-foreground">(ex: desktop / portátil / consola)</span>
+                </label>
+
+                {!d.temVariantes ? (
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-6 sm:col-span-4 space-y-1">
+                      <Label className="text-[10px] uppercase">Preço (€)</Label>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        step="1"
+                        min="0"
+                        value={d.precoBase}
+                        onChange={(e) => update(idx, { precoBase: e.target.value })}
+                        placeholder="—"
+                        className="h-8 text-sm tabular-nums"
+                      />
+                    </div>
+                    <div className="col-span-12 sm:col-span-8 space-y-1">
+                      <Label className="text-[10px] uppercase">Nota (sufixo do preço)</Label>
+                      <Input
+                        value={d.nota}
+                        onChange={(e) => update(idx, { nota: e.target.value })}
+                        placeholder="ex: abatido se reparares"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="space-y-1.5">
+                      {d.variantes.map((v, vIdx) => (
+                        <div key={vIdx} className="grid grid-cols-12 gap-2 items-end">
+                          <div className="col-span-6 sm:col-span-7 space-y-1">
+                            <Label className="text-[10px] uppercase">Label</Label>
+                            <Input
+                              value={v.label}
+                              onChange={(e) => updateVariante(idx, vIdx, { label: e.target.value })}
+                              placeholder="Desktop"
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div className="col-span-5 sm:col-span-4 space-y-1">
+                            <Label className="text-[10px] uppercase">Preço (€)</Label>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              step="1"
+                              min="0"
+                              value={v.preco}
+                              onChange={(e) => updateVariante(idx, vIdx, { preco: e.target.value })}
+                              className="h-8 text-sm tabular-nums"
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeVariante(idx, vIdx)}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                              aria-label="Remover variante"
+                            >
+                              <X className="h-3.5 w-3.5" aria-hidden="true" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addVariante(idx)}
+                      className="h-7 text-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" aria-hidden="true" />
+                      Adicionar variante
+                    </Button>
+                    <div className="space-y-1 pt-1">
+                      <Label className="text-[10px] uppercase">Nota (sufixo)</Label>
+                      <Input
+                        value={d.nota}
+                        onChange={(e) => update(idx, { nota: e.target.value })}
+                        placeholder="opcional"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Descrição */}
               <div className="space-y-1">
                 <Label className="text-[10px] uppercase">Descrição</Label>
                 <Textarea

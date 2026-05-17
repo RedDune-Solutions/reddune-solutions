@@ -4,7 +4,12 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { auth } from "@/lib/auth";
 import { upsertServico } from "@/lib/mongodb/servicos";
-import { SERVICO_SLUG, type Servico, type ServicoSlug } from "@/types/servico";
+import {
+  SERVICO_SLUG,
+  type Servico,
+  type ServicoSlug,
+  type VariantePreco,
+} from "@/types/servico";
 
 export const dynamic = "force-dynamic";
 
@@ -12,30 +17,72 @@ function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, "").trim();
 }
 
+const VARIANTE_LABELS = /(Desktop|Portátil|Portatil|Consola|Office|Gaming|High[- ]?End|High)/i;
+
 /**
- * Tenta extrair preço base + nota dum string de preço.
- * Casos:
- *  - "<b>25€</b> · abatido se reparares" → { precoBase: 25, nota: "abatido se reparares" }
- *  - "Desktop <b>20–30€</b> · Portátil <b>25–35€</b>" → { precoTexto: <stripped>, precoBase: null }
- *  - "Sob orçamento" → { precoTexto: "Sob orçamento", precoBase: null }
+ * Extrai número (ou média de range "20–30") de uma string de variante.
+ * "Desktop 20–30€" → 25. "Portátil 35€" → 35.
  */
-function parsePrice(raw: string): { precoBase: number | null; precoTexto: string | null; nota: string | null } {
+function extractPriceNumber(s: string): number | null {
+  const nums = s.match(/\d+(?:[.,]\d+)?/g);
+  if (!nums || nums.length === 0) return null;
+  const parsed = nums.map((n) => parseFloat(n.replace(",", ".")));
+  if (parsed.length === 1) return parsed[0]!;
+  // Range → média arredondada
+  return Math.round((parsed[0]! + parsed[1]!) / 2);
+}
+
+/**
+ * Tenta dividir uma parte de variante em label + preço.
+ * "Desktop 20–30€" → { label: "Desktop", preco: 25 }
+ * "High-End 120–160€" → { label: "High-End", preco: 140 }
+ */
+function parseVariantePart(part: string): VariantePreco | null {
+  const trimmed = part.trim();
+  const labelMatch = trimmed.match(VARIANTE_LABELS);
+  const preco = extractPriceNumber(trimmed);
+  if (preco == null) return null;
+  const label = labelMatch ? labelMatch[0] : trimmed.replace(/[\d€.,\-–\s]+/g, "").trim();
+  if (!label) return null;
+  return { label, preco };
+}
+
+interface ParsedPrice {
+  precoBase: number | null;
+  variantes: VariantePreco[] | null;
+  precoTexto: string | null;
+  nota: string | null;
+}
+
+function parsePrice(raw: string): ParsedPrice {
   const stripped = stripHtml(raw);
-  // Multi-valor (vários números ou variantes com etiquetas "Desktop"/"Portátil"/"–")
-  const numeros = stripped.match(/\d+(?:[.,]\d+)?/g) ?? [];
-  const ehMultiVariante = numeros.length > 1 || /Desktop|Portátil|Office|Gaming|High|\/comp\.|km/i.test(stripped);
-  if (ehMultiVariante) {
-    return { precoBase: null, precoTexto: stripped, nota: null };
+  if (!stripped) return { precoBase: null, variantes: null, precoTexto: null, nota: null };
+
+  // Multi-variante: tem labels conhecidas OU múltiplos números com separador "·"
+  const hasMultiLabels = VARIANTE_LABELS.test(stripped);
+  const partes = stripped.split("·").map((s) => s.trim()).filter(Boolean);
+
+  if (hasMultiLabels && partes.length > 1) {
+    const variantes: VariantePreco[] = [];
+    for (const p of partes) {
+      const v = parseVariantePart(p);
+      if (v) variantes.push(v);
+    }
+    if (variantes.length > 0) {
+      return { precoBase: null, variantes, precoTexto: null, nota: null };
+    }
   }
+
+  // Single price + nota opcional
+  const numeros = stripped.match(/\d+(?:[.,]\d+)?/g) ?? [];
   if (numeros.length === 0) {
-    return { precoBase: null, precoTexto: stripped, nota: null };
+    // Sob orçamento ou texto especial
+    return { precoBase: null, variantes: null, precoTexto: stripped, nota: null };
   }
   const primeiro = numeros[0] ?? "0";
   const precoBase = parseFloat(primeiro.replace(",", "."));
-  // tudo após o primeiro "·" é nota
-  const partes = stripped.split("·").map((s) => s.trim());
   const nota = partes.length > 1 ? partes.slice(1).join(" · ") : null;
-  return { precoBase, precoTexto: null, nota };
+  return { precoBase, variantes: null, precoTexto: null, nota };
 }
 
 interface RawItem {
@@ -60,7 +107,7 @@ export async function POST() {
       let ordem = 0;
       for (const item of list) {
         const priceRaw = item.price ?? "";
-        const { precoBase, precoTexto, nota } = parsePrice(priceRaw);
+        const { precoBase, variantes, precoTexto, nota } = parsePrice(priceRaw);
         const now = new Date().toISOString();
         const servico: Servico = {
           id: `seed_${slug}_${ordem}`,
@@ -68,6 +115,7 @@ export async function POST() {
           titulo: stripHtml(item.title ?? "(sem título)"),
           descricao: item.description ? stripHtml(item.description) : null,
           precoBase,
+          variantes,
           precoTexto,
           nota,
           ordem,
@@ -86,7 +134,6 @@ export async function POST() {
     }
   }
 
-  // Suppress unused warning for randomUUID (mantido caso queiras gerar ids únicos no futuro)
   void randomUUID;
 
   return NextResponse.json({ ok: true, total, detalhes });

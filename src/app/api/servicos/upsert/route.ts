@@ -37,12 +37,20 @@ export async function POST(request: Request) {
     }
   }
 
+  // `variantes` e `precoBase` são mutuamente exclusivos na intenção do user.
+  // Se o input mandou `variantes` (mesmo []), respeita. Senão fallback ao existing.
+  const variantes =
+    input.variantes !== undefined ? input.variantes ?? null : existing?.variantes ?? null;
+  const precoBase =
+    input.precoBase !== undefined ? input.precoBase ?? null : existing?.precoBase ?? null;
+
   const servico: Servico = {
     id,
     slug: input.slug,
     titulo: input.titulo,
     descricao: input.descricao ?? existing?.descricao ?? null,
-    precoBase: input.precoBase ?? existing?.precoBase ?? null,
+    precoBase: variantes && variantes.length > 0 ? null : precoBase,
+    variantes: variantes && variantes.length > 0 ? variantes : null,
     precoTexto: input.precoTexto ?? existing?.precoTexto ?? null,
     nota: input.nota ?? existing?.nota ?? null,
     ordem,

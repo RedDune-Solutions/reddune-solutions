@@ -1,10 +1,17 @@
 import "server-only";
 import clientPromise from "./client";
-import type { PortfolioItem } from "@/types/portfolio";
+import type { PortfolioCategoria, PortfolioItem } from "@/types/portfolio";
+import { SERVICO_SLUG } from "@/types/servico";
 import { WithId, Document, ObjectId } from "mongodb";
 
 const DB_NAME = "website";
 const COLLECTION = "portfolio";
+
+const VALID_CATEGORIAS = new Set<string>(SERVICO_SLUG);
+
+function isCategoria(v: unknown): v is PortfolioCategoria {
+  return typeof v === "string" && VALID_CATEGORIAS.has(v);
+}
 
 function mapDoc(doc: WithId<Document>): PortfolioItem | null {
   if (
@@ -18,8 +25,12 @@ function mapDoc(doc: WithId<Document>): PortfolioItem | null {
   return {
     id: doc._id.toString(),
     title: { pt: doc.title.pt, en: doc.title.en },
-    imageUrl: typeof doc.imageUrl === "string" ? doc.imageUrl : "",
-    url: typeof doc.url === "string" ? doc.url : "",
+    imageUrl: doc.imageUrl,
+    url: doc.url,
+    categoria: isCategoria(doc.categoria) ? doc.categoria : null,
+    destaqueLanding: doc.destaqueLanding === true,
+    createdAt:
+      doc.createdAt instanceof Date ? doc.createdAt.toISOString() : undefined,
   };
 }
 
@@ -31,10 +42,37 @@ async function getCollection() {
 export async function getAllPortfolioItems(): Promise<PortfolioItem[]> {
   try {
     const col = await getCollection();
-    const docs = await col.find({}).sort({ featured: -1, createdAt: -1 }).toArray();
+    const docs = await col.find({}).sort({ destaqueLanding: -1, createdAt: -1 }).toArray();
     return docs.map(mapDoc).filter((p): p is PortfolioItem => p !== null);
   } catch (error) {
     console.error("getAllPortfolioItems error:", error);
+    return [];
+  }
+}
+
+/**
+ * Devolve no máximo 1 destaque por categoria. Se MongoDB tiver duplicados (defensivo),
+ * pega no createdAt mais recente.
+ */
+export async function getDestaquesLanding(): Promise<PortfolioItem[]> {
+  try {
+    const col = await getCollection();
+    const docs = await col
+      .find({ destaqueLanding: true })
+      .sort({ createdAt: -1 })
+      .toArray();
+    const seen = new Set<string>();
+    const out: PortfolioItem[] = [];
+    for (const d of docs) {
+      const item = mapDoc(d);
+      if (!item || !item.categoria) continue;
+      if (seen.has(item.categoria)) continue;
+      seen.add(item.categoria);
+      out.push(item);
+    }
+    return out;
+  } catch (error) {
+    console.error("getDestaquesLanding error:", error);
     return [];
   }
 }
@@ -51,22 +89,40 @@ export async function getPortfolioItemById(id: string): Promise<PortfolioItem | 
   }
 }
 
-type PortfolioInput = Omit<PortfolioItem, "id"> & { id?: string };
+type PortfolioInput = Omit<PortfolioItem, "id" | "createdAt"> & { id?: string };
 
 export async function upsertPortfolioItem(input: PortfolioInput): Promise<string> {
   const col = await getCollection();
-  const doc = {
+  const doc: Record<string, unknown> = {
     title: input.title,
     imageUrl: input.imageUrl,
     url: input.url,
+    categoria: input.categoria,
+    destaqueLanding: input.destaqueLanding,
   };
 
+  let savedId: string;
   if (input.id && ObjectId.isValid(input.id)) {
     await col.updateOne({ _id: new ObjectId(input.id) }, { $set: doc });
-    return input.id;
+    savedId = input.id;
+  } else {
+    const result = await col.insertOne({ ...doc, createdAt: new Date() });
+    savedId = result.insertedId.toString();
   }
-  const result = await col.insertOne({ ...doc, createdAt: new Date() });
-  return result.insertedId.toString();
+
+  // Exclusividade: apenas 1 destaque por categoria. Se este foi marcado, desmarcar outros.
+  if (input.destaqueLanding && input.categoria) {
+    await col.updateMany(
+      {
+        _id: { $ne: new ObjectId(savedId) },
+        categoria: input.categoria,
+        destaqueLanding: true,
+      },
+      { $set: { destaqueLanding: false } }
+    );
+  }
+
+  return savedId;
 }
 
 export async function deletePortfolioItem(id: string): Promise<boolean> {
