@@ -16,6 +16,7 @@ import {
   PROJETO_STATUS,
   PROJETO_TIPO,
   type Projeto,
+  type ProjetoStatus,
 } from "@/types/projeto";
 
 type Props = {
@@ -23,6 +24,8 @@ type Props = {
 };
 
 const ALL = "__all__";
+const ARCHIVED: ProjetoStatus[] = ["fechado", "cancelado", "garantia", "suspenso", "bloqueado"];
+const isArchived = (s: ProjetoStatus) => ARCHIVED.includes(s);
 
 const SELECT_TRIGGER_CLASSES =
   "bg-white/70 border-dune-deep/15 rounded-btn focus:ring-ember";
@@ -36,9 +39,11 @@ export function FilterBar({ projetos }: Props) {
   const tipo = params?.get("tipo") ?? "";
   const clienteNome = params?.get("cliente") ?? "";
 
+  const activos = projetos.filter((p) => !isArchived(p.status));
+
   const clientes = Array.from(
     new Set(
-      projetos
+      activos
         .map((p) => p.clienteNome)
         .filter((c): c is string => Boolean(c && c.length > 0))
     )
@@ -72,7 +77,7 @@ export function FilterBar({ projetos }: Props) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Todos estados</SelectItem>
-          {PROJETO_STATUS.map((s) => (
+          {PROJETO_STATUS.filter((s) => !isArchived(s)).map((s) => (
             <SelectItem key={s} value={s}>
               {STATUS_LABELS[s]}
             </SelectItem>

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Plus, Trash2, Pencil, ShoppingBag, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,19 +25,8 @@ export function LojaClient({ products }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
-
-  function openNew() {
-    setEditing(null);
-    setOpen(true);
-  }
-
-  function openEdit(p: Product) {
-    setEditing(p);
-    setOpen(true);
-  }
-
   async function handleDelete(id: string, e: React.MouseEvent) {
+    e.preventDefault();
     e.stopPropagation();
     if (!confirm("Apagar produto?")) return;
     await fetch(`/api/products/${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -45,7 +35,6 @@ export function LojaClient({ products }: Props) {
 
   function handleSaved() {
     setOpen(false);
-    setEditing(null);
     startTransition(() => router.refresh());
   }
 
@@ -57,16 +46,16 @@ export function LojaClient({ products }: Props) {
         </p>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="sm" onClick={openNew}>
+            <Button size="sm">
               <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
               Novo produto
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col p-0">
             <SheetHeader className="px-6 pt-6">
-              <SheetTitle>{editing ? "Editar produto" : "Novo produto"}</SheetTitle>
+              <SheetTitle>Novo produto</SheetTitle>
             </SheetHeader>
-            <ProductForm product={editing} onSaved={handleSaved} onCancel={() => setOpen(false)} />
+            <ProductForm product={null} onSaved={handleSaved} onCancel={() => setOpen(false)} />
           </SheetContent>
         </Sheet>
       </div>
@@ -79,18 +68,10 @@ export function LojaClient({ products }: Props) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <div
+            <Link
               key={p.id}
-              onClick={() => openEdit(p)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openEdit(p);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              className="group text-left rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40"
+              href={`/painel/loja/${p.id}`}
+              className="group text-left rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 block"
             >
               <div className="relative aspect-video bg-muted">
                 {p.imageUrls[0] ? (
@@ -147,7 +128,7 @@ export function LojaClient({ products }: Props) {
                   </button>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

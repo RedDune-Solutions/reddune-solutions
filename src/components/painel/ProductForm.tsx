@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +18,8 @@ import type { Product } from "@/types/product";
 
 type Props = {
   product: Product | null;
-  onSaved: () => void;
-  onCancel: () => void;
+  onSaved?: () => void;
+  onCancel?: () => void;
 };
 
 const CONDITION_OPTIONS = [
@@ -28,6 +29,8 @@ const CONDITION_OPTIONS = [
 ];
 
 export function ProductForm({ product, onSaved, onCancel }: Props) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [namePt, setNamePt] = useState(product?.name.pt ?? "");
   const [nameEn, setNameEn] = useState(product?.name.en ?? "");
   const [descPt, setDescPt] = useState(product?.description.pt ?? "");
@@ -78,7 +81,8 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
         setError(data.error ?? `HTTP ${res.status}`);
         return;
       }
-      onSaved();
+      startTransition(() => router.refresh());
+      onSaved?.();
     } finally {
       setSaving(false);
     }
@@ -189,9 +193,11 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
       )}
 
       <div className="flex items-center justify-end gap-2 pt-2 pb-6">
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
-          Cancelar
-        </Button>
+        {onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
+            Cancelar
+          </Button>
+        )}
         <Button type="submit" disabled={saving}>
           {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" aria-hidden="true" />}
           {product ? "Guardar" : "Criar produto"}

@@ -266,33 +266,35 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         </div>
       </div>
 
-      {/* Valor — linhas ou legacy */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Valor</Label>
-          {useLegacy && (
-            <button
-              type="button"
-              onClick={convertLegacyToLinhas}
+      {/* Valor — só ao editar */}
+      {projeto && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Valor</Label>
+            {useLegacy && (
+              <button
+                type="button"
+                onClick={convertLegacyToLinhas}
+                disabled={isBusy}
+                className="text-xs text-primary hover:underline"
+              >
+                Converter em linhas
+              </button>
+            )}
+          </div>
+          {useLegacy ? (
+            <Input
+              inputMode="numeric"
+              value={valorLegacy}
+              onChange={(e) => setValorLegacy(e.target.value)}
+              placeholder="0"
               disabled={isBusy}
-              className="text-xs text-primary hover:underline"
-            >
-              Converter em linhas
-            </button>
+            />
+          ) : (
+            <LinhasEditor linhas={linhas} onChange={setLinhas} disabled={isBusy} />
           )}
         </div>
-        {useLegacy ? (
-          <Input
-            inputMode="decimal"
-            value={valorLegacy}
-            onChange={(e) => setValorLegacy(e.target.value)}
-            placeholder="0,00"
-            disabled={isBusy}
-          />
-        ) : (
-          <LinhasEditor linhas={linhas} onChange={setLinhas} disabled={isBusy} />
-        )}
-      </div>
+      )}
 
       <div className="space-y-1">
         <Label htmlFor="proximaAccao">Próxima acção</Label>

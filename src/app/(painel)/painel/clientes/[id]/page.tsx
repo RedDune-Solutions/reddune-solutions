@@ -6,18 +6,15 @@ import {
   ListChecks,
   AlertCircle,
   CheckCircle2,
-  Mail,
-  Phone,
-  MapPin,
-  FileText,
-  CreditCard,
 } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getClienteById } from "@/lib/mongodb/clientes";
+import { getPagamentosByCliente } from "@/lib/mongodb/pagamentos";
+import { METODO_LABEL } from "@/types/pagamento";
 import { Topbar } from "@/components/painel/Topbar";
 import { TarefaCard } from "@/components/painel/TarefaCard";
 import { KpiCard } from "@/components/painel/KpiCard";
-import { NovoClienteButton } from "@/components/painel/NovoClienteButton";
+import { ClienteForm } from "@/components/painel/ClienteForm";
 import { Button } from "@/components/ui/button";
 import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
 import { parseIsoDate } from "@/lib/dates";
@@ -26,39 +23,12 @@ export const dynamic = "force-dynamic";
 
 type Params = Promise<{ id: string }>;
 
-function Campo({
-  label,
-  value,
-  href,
-}: {
-  label: string;
-  value: string | null | undefined;
-  href?: string;
-}) {
-  const empty = !value;
-  return (
-    <div className="space-y-0.5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-        {label}
-      </p>
-      {empty ? (
-        <p className="text-sm text-muted-foreground/50 italic">Sem informação</p>
-      ) : href ? (
-        <a href={href} className="text-sm text-foreground hover:text-primary transition-colors truncate block">
-          {value}
-        </a>
-      ) : (
-        <p className="text-sm text-foreground">{value}</p>
-      )}
-    </div>
-  );
-}
-
 export default async function ClienteDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const [cliente, allProjetos] = await Promise.all([
+  const [cliente, allProjetos, pagamentos] = await Promise.all([
     getClienteById(id),
     getAllProjetos(),
+    getPagamentosByCliente(id),
   ]);
 
   if (!cliente) notFound();
@@ -94,40 +64,14 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
               Voltar a clientes
             </Link>
           </Button>
-          <NovoClienteButton cliente={cliente} />
         </div>
 
-        {/* Ficha completa — sempre visível */}
+        {/* Ficha editável inline */}
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-5">
             Ficha do cliente
           </h2>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <Campo
-              label="Email"
-              value={cliente.email}
-              href={cliente.email ? `mailto:${cliente.email}` : undefined}
-            />
-            <Campo
-              label="Telefone"
-              value={cliente.telefone}
-              href={cliente.telefone ? `tel:${cliente.telefone}` : undefined}
-            />
-            <Campo label="NIF" value={cliente.nif} />
-            <Campo label="Morada" value={cliente.morada} />
-            <div className="sm:col-span-2 space-y-0.5">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-                Notas
-              </p>
-              {cliente.notas ? (
-                <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                  {cliente.notas}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground/50 italic">Sem informação</p>
-              )}
-            </div>
-          </div>
+          <ClienteForm cliente={cliente} />
         </div>
 
         {/* KPIs */}
@@ -158,6 +102,19 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
           </section>
         )}
 
+        {/* Pagamentos histórico */}
+        {pagamentos.length > 0 && (
+          <section>
+            <h2 className="font-headline text-lg font-semibold tracking-tight mb-4">
+              Histórico de pagamentos
+            </h2>
+            <PagamentosHistorico
+              pagamentos={pagamentos}
+              projetosMap={Object.fromEntries(projetos.map((p) => [p.id, p.titulo]))}
+            />
+          </section>
+        )}
+
         {/* Histórico */}
         {projetos.length > 0 && (
           <section>
@@ -173,6 +130,58 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
         )}
       </div>
     </>
+  );
+}
+
+function PagamentosHistorico({
+  pagamentos,
+  projetosMap,
+}: {
+  pagamentos: import("@/types/pagamento").Pagamento[];
+  projetosMap: Record<string, string>;
+}) {
+  const total = pagamentos.reduce((s, p) => s + p.valor, 0);
+  const grupos = new Map<string, typeof pagamentos>();
+  for (const p of pagamentos) {
+    const arr = grupos.get(p.projetoId) ?? [];
+    arr.push(p);
+    grupos.set(p.projetoId, arr);
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <p className="font-mono tabular-nums text-sm">
+        Total pago: <strong>{total}€</strong> <span className="text-muted-foreground">· {pagamentos.length} pagamento{pagamentos.length === 1 ? "" : "s"}</span>
+      </p>
+      {Array.from(grupos.entries()).map(([projetoId, lista]) => {
+        const sub = lista.reduce((s, p) => s + p.valor, 0);
+        return (
+          <div key={projetoId} className="border-t border-border pt-3">
+            <div className="flex items-center justify-between mb-2">
+              <Link
+                href={`/painel/projetos/${projetoId}`}
+                className="text-sm font-semibold hover:text-primary truncate"
+              >
+                {projetosMap[projetoId] ?? "(projeto removido)"}
+              </Link>
+              <span className="font-mono tabular-nums text-sm">{sub}€</span>
+            </div>
+            <ul className="space-y-1 text-xs">
+              {lista.map((p) => (
+                <li key={p.id} className="flex items-center gap-3 text-muted-foreground">
+                  <span className="tabular-nums w-24">
+                    {new Date(p.data).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" })}
+                  </span>
+                  <span className="font-mono tabular-nums w-16 text-foreground">{p.valor}€</span>
+                  {p.metodo && <span className="rounded bg-muted px-1.5 py-0.5">{METODO_LABEL[p.metodo]}</span>}
+                  {p.notas && <span className="truncate flex-1">{p.notas}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

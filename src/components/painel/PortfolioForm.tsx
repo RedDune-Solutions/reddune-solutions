@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +10,13 @@ import type { PortfolioItem } from "@/types/portfolio";
 
 type Props = {
   item: PortfolioItem | null;
-  onSaved: () => void;
-  onCancel: () => void;
+  onSaved?: () => void;
+  onCancel?: () => void;
 };
 
 export function PortfolioForm({ item, onSaved, onCancel }: Props) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [titlePt, setTitlePt] = useState(item?.title.pt ?? "");
   const [titleEn, setTitleEn] = useState(item?.title.en ?? "");
   const [imageUrl, setImageUrl] = useState(item?.imageUrl ?? "");
@@ -45,7 +48,8 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
         setError(data.error ?? `HTTP ${res.status}`);
         return;
       }
-      onSaved();
+      startTransition(() => router.refresh());
+      onSaved?.();
     } finally {
       setSaving(false);
     }
@@ -80,9 +84,11 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
       )}
 
       <div className="flex items-center justify-end gap-2 pt-2 pb-6">
-        <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
-          Cancelar
-        </Button>
+        {onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
+            Cancelar
+          </Button>
+        )}
         <Button type="submit" disabled={saving}>
           {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" aria-hidden="true" />}
           {item ? "Guardar" : "Criar trabalho"}

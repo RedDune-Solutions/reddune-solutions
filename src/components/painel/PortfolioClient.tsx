@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Plus, Trash2, Pencil, Briefcase, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,19 +24,8 @@ export function PortfolioClient({ items }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<PortfolioItem | null>(null);
-
-  function openNew() {
-    setEditing(null);
-    setOpen(true);
-  }
-
-  function openEdit(item: PortfolioItem) {
-    setEditing(item);
-    setOpen(true);
-  }
-
   async function handleDelete(id: string, e: React.MouseEvent) {
+    e.preventDefault();
     e.stopPropagation();
     if (!confirm("Apagar trabalho?")) return;
     await fetch(`/api/portfolio/${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -44,7 +34,6 @@ export function PortfolioClient({ items }: Props) {
 
   function handleSaved() {
     setOpen(false);
-    setEditing(null);
     startTransition(() => router.refresh());
   }
 
@@ -56,16 +45,16 @@ export function PortfolioClient({ items }: Props) {
         </p>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="sm" onClick={openNew}>
+            <Button size="sm">
               <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
               Novo trabalho
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
             <SheetHeader className="px-6 pt-6">
-              <SheetTitle>{editing ? "Editar trabalho" : "Novo trabalho"}</SheetTitle>
+              <SheetTitle>Novo trabalho</SheetTitle>
             </SheetHeader>
-            <PortfolioForm item={editing} onSaved={handleSaved} onCancel={() => setOpen(false)} />
+            <PortfolioForm item={null} onSaved={handleSaved} onCancel={() => setOpen(false)} />
           </SheetContent>
         </Sheet>
       </div>
@@ -78,18 +67,10 @@ export function PortfolioClient({ items }: Props) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <div
+            <Link
               key={item.id}
-              onClick={() => openEdit(item)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openEdit(item);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              className="group text-left rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40"
+              href={`/painel/portfolio/${item.id}`}
+              className="group text-left rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 block"
             >
               <div className="relative aspect-video bg-muted">
                 {item.imageUrl ? (
@@ -129,7 +110,7 @@ export function PortfolioClient({ items }: Props) {
                   </button>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

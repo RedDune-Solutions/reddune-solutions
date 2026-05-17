@@ -112,25 +112,26 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                 </Select>
                 <Input
                   type="number"
-                  inputMode="decimal"
-                  step="0.5"
+                  inputMode="numeric"
+                  step="1"
                   min="0"
                   placeholder="Qtd"
                   value={l.quantidade}
                   onChange={(e) =>
-                    updateLinha(l.id, { quantidade: Number(e.target.value) || 0 })
+                    updateLinha(l.id, { quantidade: parseInt(e.target.value, 10) || 0 })
                   }
                   disabled={disabled}
                   className="col-span-1 h-8 text-xs tabular-nums"
                 />
                 <Input
                   type="number"
-                  inputMode="decimal"
-                  step="0.01"
+                  inputMode="numeric"
+                  step="1"
+                  min="0"
                   placeholder="€"
                   value={l.precoUnit}
                   onChange={(e) =>
-                    updateLinha(l.id, { precoUnit: Number(e.target.value) || 0 })
+                    updateLinha(l.id, { precoUnit: parseInt(e.target.value, 10) || 0 })
                   }
                   disabled={disabled}
                   className="col-span-2 h-8 text-xs tabular-nums"

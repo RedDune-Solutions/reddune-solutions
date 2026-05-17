@@ -35,7 +35,7 @@ export default async function ClientesPage() {
   );
 
   const comProjetos = sorted.filter(
-    (c) => (projetoCountByCliente.get(c.id)?.total ?? 0) > 0
+    (c) => (projetoCountByCliente.get(c.id)?.ativas ?? 0) > 0
   ).length;
 
   return (
