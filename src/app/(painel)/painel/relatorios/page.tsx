@@ -97,11 +97,13 @@ export default async function RelatoriosPage() {
 
   const clientesMap = new Map(clientes.map((c) => [c.id, c.nome]));
 
+  // Activos: em-curso, proximo, aguarda-encomenda (aceite) e terminado (entregue, falta pagar).
+  // Exclui aguarda-cliente (orcamento nao aceite ainda).
   const activos = projetos.filter(
     (p) =>
       STATUS_GROUPS.ativo.includes(p.status) ||
       STATUS_GROUPS.proximo.includes(p.status) ||
-      STATUS_GROUPS.aguarda.includes(p.status) ||
+      STATUS_GROUPS.aguardaEncomenda.includes(p.status) ||
       STATUS_GROUPS.pronto.includes(p.status)
   );
 

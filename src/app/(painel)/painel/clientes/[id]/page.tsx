@@ -39,13 +39,10 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
     (p) =>
       STATUS_GROUPS.ativo.includes(p.status) ||
       STATUS_GROUPS.proximo.includes(p.status) ||
-      STATUS_GROUPS.aguarda.includes(p.status)
+      STATUS_GROUPS.aguardaEncomenda.includes(p.status) ||
+      STATUS_GROUPS.pronto.includes(p.status)
   );
-  const finished = projetos.filter(
-    (p) =>
-      STATUS_GROUPS.pronto.includes(p.status) ||
-      STATUS_GROUPS.arquivo.includes(p.status)
-  );
+  const finished = projetos.filter((p) => STATUS_GROUPS.arquivo.includes(p.status));
 
   const totalValor = projetos.reduce((sum, p) => sum + (p.valorEstimado ?? 0), 0);
 
