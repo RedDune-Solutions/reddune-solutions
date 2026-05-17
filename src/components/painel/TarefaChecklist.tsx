@@ -13,16 +13,12 @@ type Props = {
   projetoId: string;
 };
 
-function fmtPrazo(iso: string): string {
+function fmtData(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
   } catch {
     return iso;
   }
-}
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 export function TarefaChecklist({ tarefas, projetoId }: Props) {
@@ -141,7 +137,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
             onChange={(e) => setNovoPrazo(e.target.value)}
             disabled={adding}
             className="h-8 text-sm w-[150px]"
-            title="Prazo (opcional)"
+            title="Data (opcional)"
           />
           <Button type="submit" size="sm" disabled={adding || !novoTitulo.trim()} className="h-8">
             {adding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Adicionar"}
@@ -186,7 +182,6 @@ function TarefaItem({
 }) {
   const [editingPrazo, setEditingPrazo] = useState(false);
   const [valorPrazo, setValorPrazo] = useState(tarefa.prazo ?? "");
-  const vencida = !!tarefa.prazo && !tarefa.feita && tarefa.prazo < today();
 
   function commit() {
     setEditingPrazo(false);
@@ -196,9 +191,6 @@ function TarefaItem({
 
   return (
     <div className="group flex items-center gap-3 rounded-md border border-border/60 bg-card px-3 py-2">
-      {vencida && (
-        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-rose-500 shrink-0" title="Vencida" />
-      )}
       <input
         type="checkbox"
         checked={tarefa.feita}
@@ -234,14 +226,11 @@ function TarefaItem({
         <button
           type="button"
           onClick={() => setEditingPrazo(true)}
-          className={cn(
-            "inline-flex items-center gap-1 text-xs tabular-nums px-1.5 py-0.5 rounded hover:bg-muted",
-            vencida ? "text-rose-600 font-semibold" : "text-muted-foreground"
-          )}
-          title="Editar prazo"
+          className="inline-flex items-center gap-1 text-xs tabular-nums px-1.5 py-0.5 rounded hover:bg-muted text-muted-foreground"
+          title="Editar data"
         >
           <Calendar className="h-3 w-3" aria-hidden="true" />
-          {fmtPrazo(tarefa.prazo)}
+          {fmtData(tarefa.prazo)}
         </button>
       ) : (
         <button
@@ -249,7 +238,7 @@ function TarefaItem({
           onClick={() => setEditingPrazo(true)}
           className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition-opacity"
         >
-          + Prazo
+          + Data
         </button>
       )}
 

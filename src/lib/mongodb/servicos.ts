@@ -1,0 +1,48 @@
+import "server-only";
+import clientPromise from "./client";
+import type { Servico, ServicoSlug } from "@/types/servico";
+
+const COLLECTION = "servicos";
+
+async function getDb() {
+  const client = await clientPromise;
+  return client.db(process.env.MONGODB_DB_NAME);
+}
+
+export async function getAllServicos(): Promise<Servico[]> {
+  const db = await getDb();
+  return db
+    .collection<Servico>(COLLECTION)
+    .find({}, { projection: { _id: 0 } })
+    .sort({ slug: 1, ordem: 1 })
+    .toArray();
+}
+
+export async function getServicosBySlug(slug: ServicoSlug, soAtivos = true): Promise<Servico[]> {
+  const db = await getDb();
+  const filter = soAtivos ? { slug, ativo: true } : { slug };
+  return db
+    .collection<Servico>(COLLECTION)
+    .find(filter, { projection: { _id: 0 } })
+    .sort({ ordem: 1 })
+    .toArray();
+}
+
+export async function getServicoById(id: string): Promise<Servico | null> {
+  const db = await getDb();
+  return db.collection<Servico>(COLLECTION).findOne({ id }, { projection: { _id: 0 } });
+}
+
+export async function upsertServico(s: Servico): Promise<void> {
+  const db = await getDb();
+  const col = db.collection<Servico>(COLLECTION);
+  await col.updateOne({ id: s.id }, { $set: s }, { upsert: true });
+  await col.createIndex({ id: 1 }, { unique: true });
+  await col.createIndex({ slug: 1, ordem: 1 });
+}
+
+export async function deleteServico(id: string): Promise<boolean> {
+  const db = await getDb();
+  const result = await db.collection<Servico>(COLLECTION).deleteOne({ id });
+  return result.deletedCount > 0;
+}

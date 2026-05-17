@@ -17,6 +17,8 @@ import {
   type ServicoSlug,
   type ServiceContent,
 } from "@/lib/servicos-content";
+import { getServicosBySlug } from "@/lib/mongodb/servicos";
+import { formatPreco } from "@/types/servico";
 import {
   serviceLd,
   faqPageLd,
@@ -314,6 +316,20 @@ export default async function ServicoSlugPage({ params }: PageProps) {
 
   const locale = await getLocale();
   const content = await getServicoContent(locale, typedSlug);
+
+  // Override items.list with DB-backed serviços (admin-edited prices).
+  try {
+    const dbServicos = await getServicosBySlug(typedSlug, true);
+    if (dbServicos.length > 0) {
+      content.items.list = dbServicos.map((s) => ({
+        title: s.titulo,
+        description: s.descricao ?? "",
+        price: formatPreco(s),
+      }));
+    }
+  } catch (e) {
+    console.error("DB servicos fetch falhou, fallback ao JSON:", e);
+  }
 
   // Strip <em>...</em> for plain-text JSON-LD payload.
   const plainTitle = content.title.replace(/<\/?em>/g, "");
