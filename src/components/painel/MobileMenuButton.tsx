@@ -59,8 +59,8 @@ export function MobileMenuButton() {
         </button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="w-72 p-0 bg-cream border-dune-deep/10">
-        <SheetHeader className="px-4 pt-5 pb-4 border-b border-dune-deep/10">
+      <SheetContent side="left" className="w-72 p-0 bg-cream border-dune-deep/10 flex flex-col">
+        <SheetHeader className="shrink-0 px-4 pt-5 pb-4 border-b border-dune-deep/10">
           <SheetTitle asChild>
             <Link
               href="/"
@@ -79,7 +79,7 @@ export function MobileMenuButton() {
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="flex-1 px-3 py-5" aria-label="Navegação principal">
+        <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Navegação principal">
           <ul className="space-y-1">
             {NAV.map(({ href, label, Icon, exact }) => {
               const active = isActive(href, exact);
