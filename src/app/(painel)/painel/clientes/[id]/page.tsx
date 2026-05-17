@@ -49,6 +49,16 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
 
   const totalValor = projetos.reduce((sum, p) => sum + (p.valorEstimado ?? 0), 0);
 
+  const pagoPorProjeto = new Map<string, number>();
+  for (const p of pagamentos) {
+    pagoPorProjeto.set(p.projetoId, (pagoPorProjeto.get(p.projetoId) ?? 0) + p.valor);
+  }
+  const dividaTotal = projetos.reduce((sum, p) => {
+    if (p.status !== "terminado" || p.valorEstimado == null) return sum;
+    const restante = p.valorEstimado - (pagoPorProjeto.get(p.id) ?? 0);
+    return restante > 0 ? sum + restante : sum;
+  }, 0);
+
   return (
     <>
       <Topbar
@@ -85,6 +95,13 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
             icon={Euro}
             tone="default"
             hint="Soma de todos os projectos"
+          />
+          <KpiCard
+            label="Em dívida"
+            value={`${dividaTotal.toFixed(0)}€`}
+            icon={AlertCircle}
+            tone={dividaTotal > 0 ? "amber" : "green"}
+            hint="Valor por receber em projectos terminados"
           />
         </div>
 

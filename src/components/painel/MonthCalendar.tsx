@@ -25,17 +25,10 @@ const DAYS_HEADER = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const STATUS_DOT: Record<ProjetoStatus, string> = {
   proximo: "bg-apricot",
   "em-curso": "bg-ember",
-  "aguarda-cliente": "bg-amber-400",
-  "aguarda-pecas": "bg-orange-400",
-  "aguarda-fornecedor": "bg-yellow-400",
-  pronto: "bg-emerald-500",
-  entregue: "bg-teal-500",
-  fechado: "bg-ink-mute/60",
-  cancelado: "bg-dune",
-  garantia: "bg-violet-400",
-  suspenso: "bg-ink-mute/60",
-  bloqueado: "bg-rose-700",
-  "em-divida": "bg-rose-500",
+  aguardando: "bg-amber-400",
+  terminado: "bg-amber-500",
+  fechado: "bg-emerald-600",
+  cancelado: "bg-ink-mute/60",
 };
 
 export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Props) {

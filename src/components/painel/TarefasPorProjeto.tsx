@@ -22,17 +22,10 @@ type Props = {
 const STATUS_PRIORITY: Record<ProjetoStatus, number> = {
   "em-curso": 0,
   proximo: 1,
-  "aguarda-cliente": 2,
-  "aguarda-pecas": 3,
-  "aguarda-fornecedor": 4,
-  pronto: 5,
-  entregue: 6,
-  "em-divida": 7,
-  bloqueado: 8,
-  suspenso: 9,
-  garantia: 10,
-  fechado: 11,
-  cancelado: 12,
+  aguardando: 2,
+  terminado: 3,
+  fechado: 4,
+  cancelado: 5,
 };
 
 function startOfDay(d: Date): Date {

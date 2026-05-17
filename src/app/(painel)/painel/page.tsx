@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ListChecks, Hourglass, CheckCircle2, AlertCircle, ArrowRight, Users, AlertTriangle } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
+import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { TarefaCard } from "@/components/painel/TarefaCard";
@@ -12,15 +13,27 @@ import { STATUS_GROUPS } from "@/types/projeto";
 export const dynamic = "force-dynamic";
 
 export default async function PainelOverviewPage() {
-  const [projetos, clientes] = await Promise.all([
+  const [projetos, clientes, pagamentos] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
+    getAllPagamentos(),
   ]);
 
-  const dividasCount = projetos.filter((p) => p.status === "em-divida").length;
-  const dividasValor = projetos
-    .filter((p) => p.status === "em-divida")
-    .reduce((sum, p) => sum + (p.valorEstimado ?? 0), 0);
+  const pagoPorProjeto = new Map<string, number>();
+  for (const p of pagamentos) {
+    pagoPorProjeto.set(p.projetoId, (pagoPorProjeto.get(p.projetoId) ?? 0) + p.valor);
+  }
+  const dividas = projetos.filter(
+    (p) =>
+      p.status === "terminado" &&
+      p.valorEstimado != null &&
+      (pagoPorProjeto.get(p.id) ?? 0) < p.valorEstimado
+  );
+  const dividasCount = dividas.length;
+  const dividasValor = dividas.reduce(
+    (sum, p) => sum + ((p.valorEstimado ?? 0) - (pagoPorProjeto.get(p.id) ?? 0)),
+    0
+  );
 
   const counts = {
     total: projetos.length,

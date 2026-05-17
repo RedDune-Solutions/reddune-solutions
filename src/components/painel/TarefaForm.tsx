@@ -23,11 +23,9 @@ import {
   type ProjetoStatus,
   type ProjetoTipo,
   type ProjetoResponsavel,
-  type ProjetoLinha,
 } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
 import { ClienteQuickForm } from "./ClienteQuickForm";
-import { LinhasEditor, computeTotal } from "./LinhasEditor";
 
 type Props = {
   projeto?: Projeto;
@@ -52,18 +50,7 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     projeto?.responsavel ?? ""
   );
   const [prazo, setPrazo] = useState(projeto?.prazo ?? "");
-
-  // Linhas state + legacy valorEstimado fallback
-  const initialLinhas: ProjetoLinha[] = projeto?.linhas ?? [];
-  const [linhas, setLinhas] = useState<ProjetoLinha[]>(initialLinhas);
-  // If projeto has valorEstimado but no linhas, show legacy input until user converts
-  const hasLegacyValor =
-    projeto && !projeto.linhas && projeto.valorEstimado != null;
-  const [useLegacy, setUseLegacy] = useState(!!hasLegacyValor);
-  const [valorLegacy, setValorLegacy] = useState(
-    projeto?.valorEstimado != null ? String(projeto.valorEstimado) : ""
-  );
-
+  const [garantiaAte, setGarantiaAte] = useState(projeto?.garantiaAte ?? "");
   const [proximaAccao, setProximaAccao] = useState(projeto?.proximaAccao ?? "");
   const [notasResumo, setNotasResumo] = useState(projeto?.notasResumo ?? "");
 
@@ -73,44 +60,13 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     setShowQuickClient(false);
   }
 
-  function convertLegacyToLinhas() {
-    const v = Number(valorLegacy.replace(",", "."));
-    if (Number.isFinite(v) && v > 0) {
-      setLinhas([
-        {
-          id: `l_${Date.now()}`,
-          descricao: "Valor estimado",
-          categoria: "outro",
-          quantidade: 1,
-          precoUnit: v,
-        },
-      ]);
-    }
-    setUseLegacy(false);
-  }
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      let valorEstimado: number | null = null;
-      let linhasToSend: ProjetoLinha[] | null = null;
-
-      if (useLegacy) {
-        const v = valorLegacy.trim() ? Number(valorLegacy.replace(",", ".")) : null;
-        if (v !== null && !Number.isFinite(v)) {
-          setError("Valor estimado inválido.");
-          setSubmitting(false);
-          return;
-        }
-        valorEstimado = v;
-      } else if (linhas.length > 0) {
-        linhasToSend = linhas;
-        valorEstimado = computeTotal(linhas);
-      }
-
       const selectedCliente = clientesList.find((c) => c.id === clienteId);
+      const showGarantia = status === "terminado" || status === "fechado";
 
       const payload = {
         id: projeto?.id,
@@ -121,10 +77,9 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         tipo: tipo || null,
         responsavel: responsavel || null,
         prazo: prazo || null,
-        valorEstimado,
-        linhas: linhasToSend,
         proximaAccao: proximaAccao.trim() || null,
         notasResumo: notasResumo.trim() || null,
+        garantiaAte: showGarantia ? (garantiaAte || null) : null,
       };
 
       const res = await fetch("/api/projetos/upsert", {
@@ -266,33 +221,16 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         </div>
       </div>
 
-      {/* Valor — só ao editar */}
-      {projeto && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Valor</Label>
-            {useLegacy && (
-              <button
-                type="button"
-                onClick={convertLegacyToLinhas}
-                disabled={isBusy}
-                className="text-xs text-primary hover:underline"
-              >
-                Converter em linhas
-              </button>
-            )}
-          </div>
-          {useLegacy ? (
-            <Input
-              inputMode="numeric"
-              value={valorLegacy}
-              onChange={(e) => setValorLegacy(e.target.value)}
-              placeholder="0"
-              disabled={isBusy}
-            />
-          ) : (
-            <LinhasEditor linhas={linhas} onChange={setLinhas} disabled={isBusy} />
-          )}
+      {(status === "terminado" || status === "fechado") && (
+        <div className="space-y-1">
+          <Label htmlFor="garantiaAte">Garantia até</Label>
+          <Input
+            id="garantiaAte"
+            type="date"
+            value={garantiaAte ?? ""}
+            onChange={(e) => setGarantiaAte(e.target.value)}
+            disabled={isBusy}
+          />
         </div>
       )}
 

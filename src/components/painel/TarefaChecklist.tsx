@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -13,10 +13,23 @@ type Props = {
   projetoId: string;
 };
 
+function fmtPrazo(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
+  } catch {
+    return iso;
+  }
+}
+
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function TarefaChecklist({ tarefas, projetoId }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [novoTitulo, setNovoTitulo] = useState("");
+  const [novoPrazo, setNovoPrazo] = useState("");
   const [adding, setAdding] = useState(false);
   const [showInput, setShowInput] = useState(false);
 
@@ -25,6 +38,15 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tarefaId: tarefa.id, patch: { feita: !tarefa.feita } }),
+    });
+    startTransition(() => router.refresh());
+  }
+
+  async function updatePrazo(tarefa: Tarefa, prazo: string | null) {
+    await fetch("/api/tarefas/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tarefaId: tarefa.id, patch: { prazo } }),
     });
     startTransition(() => router.refresh());
   }
@@ -47,12 +69,13 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
           projetoId,
           titulo,
           feita: false,
-          prazo: null,
+          prazo: novoPrazo || null,
           notas: null,
           ordem: tarefas.length,
         }),
       });
       setNovoTitulo("");
+      setNovoPrazo("");
       setShowInput(false);
       startTransition(() => router.refresh());
     } finally {
@@ -75,6 +98,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
           tarefa={tarefa}
           onToggle={() => toggleFeita(tarefa)}
           onDelete={() => deletarTarefa(tarefa.id)}
+          onPrazo={(p) => updatePrazo(tarefa, p)}
           disabled={pending}
         />
       ))}
@@ -92,6 +116,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
                 tarefa={tarefa}
                 onToggle={() => toggleFeita(tarefa)}
                 onDelete={() => deletarTarefa(tarefa.id)}
+                onPrazo={(p) => updatePrazo(tarefa, p)}
                 disabled={pending}
               />
             ))}
@@ -100,7 +125,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
       )}
 
       {showInput ? (
-        <form onSubmit={adicionarTarefa} className="flex items-center gap-2 mt-2">
+        <form onSubmit={adicionarTarefa} className="flex flex-wrap items-center gap-2 mt-2">
           <Input
             value={novoTitulo}
             onChange={(e) => setNovoTitulo(e.target.value)}
@@ -108,7 +133,15 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
             autoFocus
             maxLength={300}
             disabled={adding}
-            className="h-8 text-sm"
+            className="h-8 text-sm flex-1 min-w-[180px]"
+          />
+          <Input
+            type="date"
+            value={novoPrazo}
+            onChange={(e) => setNovoPrazo(e.target.value)}
+            disabled={adding}
+            className="h-8 text-sm w-[150px]"
+            title="Prazo (opcional)"
           />
           <Button type="submit" size="sm" disabled={adding || !novoTitulo.trim()} className="h-8">
             {adding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Adicionar"}
@@ -118,7 +151,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
             variant="ghost"
             size="sm"
             className="h-8"
-            onClick={() => { setShowInput(false); setNovoTitulo(""); }}
+            onClick={() => { setShowInput(false); setNovoTitulo(""); setNovoPrazo(""); }}
           >
             Cancelar
           </Button>
@@ -142,15 +175,30 @@ function TarefaItem({
   tarefa,
   onToggle,
   onDelete,
+  onPrazo,
   disabled,
 }: {
   tarefa: Tarefa;
   onToggle: () => void;
   onDelete: () => void;
+  onPrazo: (prazo: string | null) => void;
   disabled: boolean;
 }) {
+  const [editingPrazo, setEditingPrazo] = useState(false);
+  const [valorPrazo, setValorPrazo] = useState(tarefa.prazo ?? "");
+  const vencida = !!tarefa.prazo && !tarefa.feita && tarefa.prazo < today();
+
+  function commit() {
+    setEditingPrazo(false);
+    const v = valorPrazo.trim() || null;
+    if (v !== (tarefa.prazo ?? null)) onPrazo(v);
+  }
+
   return (
     <div className="group flex items-center gap-3 rounded-md border border-border/60 bg-card px-3 py-2">
+      {vencida && (
+        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-rose-500 shrink-0" title="Vencida" />
+      )}
       <input
         type="checkbox"
         checked={tarefa.feita}
@@ -168,6 +216,43 @@ function TarefaItem({
       >
         {tarefa.titulo}
       </label>
+
+      {editingPrazo ? (
+        <Input
+          type="date"
+          value={valorPrazo}
+          autoFocus
+          onChange={(e) => setValorPrazo(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") { setValorPrazo(tarefa.prazo ?? ""); setEditingPrazo(false); }
+          }}
+          className="h-7 text-xs w-[140px]"
+        />
+      ) : tarefa.prazo ? (
+        <button
+          type="button"
+          onClick={() => setEditingPrazo(true)}
+          className={cn(
+            "inline-flex items-center gap-1 text-xs tabular-nums px-1.5 py-0.5 rounded hover:bg-muted",
+            vencida ? "text-rose-600 font-semibold" : "text-muted-foreground"
+          )}
+          title="Editar prazo"
+        >
+          <Calendar className="h-3 w-3" aria-hidden="true" />
+          {fmtPrazo(tarefa.prazo)}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setEditingPrazo(true)}
+          className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition-opacity"
+        >
+          + Prazo
+        </button>
+      )}
+
       <Button
         variant="ghost"
         size="sm"

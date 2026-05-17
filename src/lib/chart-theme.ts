@@ -43,19 +43,12 @@ export const oasisChartTheme = {
  * worldwide and survives the Oasis re-skin).
  */
 export const oasisStatusColors = {
-  "em-curso": "#d6422a",        // ember
-  proximo: "#e89968",            // apricot
-  "aguarda-cliente": "#f3c79b",  // peach
-  "aguarda-pecas": "#f3c79b",    // peach
-  "aguarda-fornecedor": "#f3c79b", // peach
-  pronto: "#10b981",             // emerald-500 (semantic)
-  entregue: "#14b8a6",           // teal-500
-  fechado: "#8c7563",            // ink-mute
-  cancelado: "#a8201a",          // dune
-  garantia: "#ecdfc2",           // cream-deep
-  suspenso: "#8c7563",           // ink-mute
-  bloqueado: "#5a0e0e",          // dune-deep
-  "em-divida": "#5a0e0e",        // dune-deep (debt, heavy)
+  "em-curso": "#d6422a",   // ember
+  proximo: "#e89968",       // apricot
+  aguardando: "#f3c79b",    // peach
+  terminado: "#f59e0b",     // amber-500 (alerta — falta pagar)
+  fechado: "#059669",       // emerald-600 (pago)
+  cancelado: "#8c7563",     // ink-mute
 } as const;
 
 export type OasisStatusKey = keyof typeof oasisStatusColors;

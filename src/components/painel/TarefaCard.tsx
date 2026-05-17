@@ -13,33 +13,19 @@ type Props = {
 const STATUS_RIBBON: Record<ProjetoStatus, string> = {
   proximo: "border-l-ember",
   "em-curso": "border-l-sky-500",
-  "aguarda-cliente": "border-l-amber-500",
-  "aguarda-pecas": "border-l-orange-400",
-  "aguarda-fornecedor": "border-l-yellow-400",
-  pronto: "border-l-emerald-500",
-  entregue: "border-l-teal-500",
-  fechado: "border-l-slate-400",
+  aguardando: "border-l-amber-500",
+  terminado: "border-l-amber-600",
+  fechado: "border-l-emerald-600",
   cancelado: "border-l-slate-300",
-  garantia: "border-l-violet-400",
-  suspenso: "border-l-slate-400",
-  bloqueado: "border-l-rose-700",
-  "em-divida": "border-l-rose-500",
 };
 
 const STATUS_BG: Record<ProjetoStatus, string> = {
   proximo: "bg-ember/5",
   "em-curso": "bg-sky-500/5",
-  "aguarda-cliente": "bg-amber-500/5",
-  "aguarda-pecas": "bg-orange-400/5",
-  "aguarda-fornecedor": "bg-yellow-400/5",
-  pronto: "bg-emerald-500/5",
-  entregue: "bg-teal-500/5",
-  fechado: "bg-slate-100/60",
+  aguardando: "bg-amber-500/5",
+  terminado: "bg-amber-500/5",
+  fechado: "bg-emerald-500/5",
   cancelado: "bg-slate-100/40",
-  garantia: "bg-violet-400/5",
-  suspenso: "bg-slate-100/60",
-  bloqueado: "bg-rose-700/5",
-  "em-divida": "bg-rose-500/5",
 };
 
 function formatDate(iso: string | null): string | null {

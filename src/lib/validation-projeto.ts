@@ -34,6 +34,7 @@ export const projetoSchema = z.object({
   notasResumo: z.string().max(500).nullish(),
   bodyMd: z.string().max(50000).nullish(),
   linhas: z.array(linhaSchema).nullish(),
+  garantiaAte: z.string().nullish(),
 });
 
 export const projetoInputSchema = projetoSchema.partial({ id: true });

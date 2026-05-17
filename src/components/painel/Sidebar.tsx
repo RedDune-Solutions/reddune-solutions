@@ -117,7 +117,7 @@ export function Sidebar({ user }: Props) {
       </div>
 
       <nav
-        className={cn("flex-1 py-5", isCollapsed ? "px-2" : "px-3")}
+        className={cn("flex-1 min-h-0 overflow-y-auto py-5", isCollapsed ? "px-2" : "px-3")}
         aria-label="Navegação principal"
       >
         <ul className="space-y-1">
@@ -202,7 +202,7 @@ export function Sidebar({ user }: Props) {
 
       <div
         className={cn(
-          "border-t border-dune-deep/10 bg-sand-warm/40",
+          "shrink-0 border-t border-dune-deep/10 bg-sand-warm/40",
           isCollapsed ? "px-2 py-3" : "px-4 py-4"
         )}
       >
@@ -216,7 +216,7 @@ export function Sidebar({ user }: Props) {
             </div>
             <SignOutButton
               iconOnly
-              className="text-ink-soft hover:text-ember"
+              className="text-ink-soft hover:bg-ember hover:text-cream"
             />
           </div>
         ) : (
@@ -233,7 +233,7 @@ export function Sidebar({ user }: Props) {
               </div>
             </div>
             <div className="mt-3">
-              <SignOutButton className="w-full justify-start text-ink-soft hover:text-ember" />
+              <SignOutButton className="w-full justify-start text-ink-soft hover:bg-ember hover:text-cream" />
             </div>
           </>
         )}

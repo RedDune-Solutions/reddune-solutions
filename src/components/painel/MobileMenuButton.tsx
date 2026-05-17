@@ -146,7 +146,7 @@ export function MobileMenuButton({ user }: Props) {
             </div>
           </div>
           <div className="mt-3">
-            <SignOutButton className="w-full justify-start text-ink-soft hover:text-ember" />
+            <SignOutButton className="w-full justify-start text-ink-soft hover:bg-ember hover:text-cream" />
           </div>
         </div>
       </SheetContent>

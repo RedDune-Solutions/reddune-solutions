@@ -1,17 +1,10 @@
 export const PROJETO_STATUS = [
   "proximo",
   "em-curso",
-  "aguarda-cliente",
-  "aguarda-pecas",
-  "aguarda-fornecedor",
-  "pronto",
-  "entregue",
+  "aguardando",
+  "terminado",
   "fechado",
   "cancelado",
-  "garantia",
-  "suspenso",
-  "bloqueado",
-  "em-divida",
 ] as const;
 
 export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
@@ -19,31 +12,18 @@ export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
 export const STATUS_LABELS: Record<ProjetoStatus, string> = {
   proximo: "Próximo",
   "em-curso": "Em curso",
-  "aguarda-cliente": "Aguarda cliente",
-  "aguarda-pecas": "Aguarda peças",
-  "aguarda-fornecedor": "Aguarda fornecedor",
-  pronto: "Pronto",
-  entregue: "Entregue",
+  aguardando: "Aguardando",
+  terminado: "Terminado",
   fechado: "Fechado",
   cancelado: "Cancelado",
-  garantia: "Garantia",
-  suspenso: "Suspenso",
-  bloqueado: "Bloqueado",
-  "em-divida": "Em dívida",
 };
 
 export const STATUS_GROUPS = {
   ativo: ["em-curso"] as ProjetoStatus[],
   proximo: ["proximo"] as ProjetoStatus[],
-  aguarda: [
-    "aguarda-cliente",
-    "aguarda-pecas",
-    "aguarda-fornecedor",
-    "suspenso",
-    "bloqueado",
-  ] as ProjetoStatus[],
-  pronto: ["pronto", "entregue"] as ProjetoStatus[],
-  arquivo: ["fechado", "cancelado", "garantia"] as ProjetoStatus[],
+  aguarda: ["aguardando"] as ProjetoStatus[],
+  pronto: ["terminado"] as ProjetoStatus[],
+  arquivo: ["fechado", "cancelado"] as ProjetoStatus[],
 };
 
 export const PROJETO_TIPO = [
@@ -107,4 +87,5 @@ export interface Projeto {
   notasResumo: string | null;
   bodyMd: string | null;
   linhas: ProjetoLinha[] | null;
+  garantiaAte: string | null;
 }

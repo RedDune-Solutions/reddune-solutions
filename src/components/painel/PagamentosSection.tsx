@@ -20,6 +20,8 @@ type Props = {
   projetoId: string;
   pagamentos: Pagamento[];
   valorEstimado?: number | null;
+  projetoStatus?: string;
+  projetoTitulo?: string;
 };
 
 function todayIso(): string {
@@ -34,7 +36,7 @@ function fmtDate(iso: string): string {
   }
 }
 
-export function PagamentosSection({ projetoId, pagamentos, valorEstimado }: Props) {
+export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projetoStatus, projetoTitulo }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
@@ -47,6 +49,17 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado }: Prop
 
   const totalPago = pagamentos.reduce((s, p) => s + p.valor, 0);
   const emDivida = valorEstimado != null ? valorEstimado - totalPago : null;
+  const canClose = projetoStatus === "terminado" && emDivida != null && emDivida <= 0;
+
+  async function fecharProjeto() {
+    if (!projetoTitulo) return;
+    await fetch("/api/projetos/upsert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: projetoId, titulo: projetoTitulo, status: "fechado" }),
+    });
+    startTransition(() => router.refresh());
+  }
 
   function reset() {
     setValor("");
@@ -132,6 +145,11 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado }: Prop
               </span>
             )}
           </>
+        )}
+        {canClose && (
+          <Button size="sm" variant="outline" onClick={fecharProjeto} className="ml-auto">
+            Marcar como fechado
+          </Button>
         )}
       </div>
 

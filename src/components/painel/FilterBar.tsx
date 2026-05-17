@@ -24,7 +24,7 @@ type Props = {
 };
 
 const ALL = "__all__";
-const ARCHIVED: ProjetoStatus[] = ["fechado", "cancelado", "garantia", "suspenso", "bloqueado"];
+const ARCHIVED: ProjetoStatus[] = ["fechado", "cancelado"];
 const isArchived = (s: ProjetoStatus) => ARCHIVED.includes(s);
 
 const SELECT_TRIGGER_CLASSES =

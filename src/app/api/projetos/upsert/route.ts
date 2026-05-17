@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
-import { upsertProjeto } from "@/lib/mongodb/projetos";
+import { upsertProjeto, getProjetoById } from "@/lib/mongodb/projetos";
 import { projetoInputSchema } from "@/lib/validation-projeto";
 import type { Projeto } from "@/types/projeto";
 
@@ -32,25 +32,38 @@ export async function POST(request: Request) {
   const id = input.id ?? randomUUID();
   const now = new Date().toISOString().slice(0, 10);
 
+  const existing = input.id ? await getProjetoById(input.id) : null;
+
+  // Merge: undefined no input preserva existing; null explícito apaga
+  const pick = <K extends keyof Projeto>(
+    key: K,
+    fallback: Projeto[K]
+  ): Projeto[K] => {
+    const v = (input as Record<string, unknown>)[key as string];
+    if (v === undefined) return existing?.[key] ?? fallback;
+    return v as Projeto[K];
+  };
+
   const projeto: Projeto = {
     id,
-    titulo: input.titulo,
-    clienteId: input.clienteId ?? null,
-    clienteNome: input.clienteNome ?? null,
-    proximaAccao: input.proximaAccao ?? null,
-    status: input.status ?? "proximo",
-    tipo: input.tipo ?? null,
-    responsavel: input.responsavel ?? null,
-    prazo: input.prazo ?? null,
-    dataCriado: input.id ? (input.dataCriado ?? null) : now,
-    dataFechado: input.dataFechado ?? null,
-    valorEstimado: input.valorEstimado ?? null,
-    valorPago: input.valorPago ?? null,
-    metodoPagamento: input.metodoPagamento ?? null,
-    local: input.local ?? null,
-    notasResumo: input.notasResumo ?? null,
-    bodyMd: input.bodyMd ?? null,
-    linhas: input.linhas ?? null,
+    titulo: input.titulo ?? existing?.titulo ?? "",
+    clienteId: pick("clienteId", null),
+    clienteNome: pick("clienteNome", null),
+    proximaAccao: pick("proximaAccao", null),
+    status: input.status ?? existing?.status ?? "proximo",
+    tipo: pick("tipo", null),
+    responsavel: pick("responsavel", null),
+    prazo: pick("prazo", null),
+    dataCriado: input.id ? (existing?.dataCriado ?? input.dataCriado ?? now) : now,
+    dataFechado: pick("dataFechado", null),
+    valorEstimado: pick("valorEstimado", null),
+    valorPago: pick("valorPago", null),
+    metodoPagamento: pick("metodoPagamento", null),
+    local: pick("local", null),
+    notasResumo: pick("notasResumo", null),
+    bodyMd: pick("bodyMd", null),
+    linhas: pick("linhas", null),
+    garantiaAte: pick("garantiaAte", null),
   };
 
   await upsertProjeto(projeto);

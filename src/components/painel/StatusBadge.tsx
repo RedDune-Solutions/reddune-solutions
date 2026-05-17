@@ -4,17 +4,10 @@ import { STATUS_LABELS, type ProjetoStatus } from "@/types/projeto";
 const STATUS_CLASSES: Record<ProjetoStatus, string> = {
   proximo: "bg-apricot text-ink border-apricot",
   "em-curso": "bg-ember text-cream border-ember",
-  "aguarda-cliente": "bg-peach text-ink-soft border-peach",
-  "aguarda-pecas": "bg-peach text-ink-soft border-peach",
-  "aguarda-fornecedor": "bg-peach text-ink-soft border-peach",
-  pronto: "bg-emerald-500 text-white border-emerald-500",
-  entregue: "bg-teal-500 text-white border-teal-500",
-  fechado: "bg-ink-mute text-cream border-ink-mute",
-  cancelado: "bg-dune text-cream border-dune",
-  garantia: "bg-cream-deep text-ink-soft border-cream-deep",
-  suspenso: "bg-ink-mute text-cream border-ink-mute",
-  bloqueado: "bg-dune-deep text-cream border-dune-deep",
-  "em-divida": "bg-dune-deep text-cream border-dune-deep",
+  aguardando: "bg-peach text-ink-soft border-peach",
+  terminado: "bg-amber-500 text-white border-amber-500",
+  fechado: "bg-emerald-600 text-white border-emerald-600",
+  cancelado: "bg-ink-mute text-cream border-ink-mute",
 };
 
 export function StatusBadge({

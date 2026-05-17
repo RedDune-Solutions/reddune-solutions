@@ -1,6 +1,8 @@
 import { Euro, Clock, ListChecks, Users } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
+import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
+import type { Pagamento } from "@/types/pagamento";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { StatusPie } from "@/components/painel/charts/StatusPie";
@@ -27,20 +29,29 @@ function buildValorMensal(projetos: Projeto[]): Array<{ mes: string; valor: numb
     .map(([mes, valor]) => ({ mes, valor }));
 }
 
-function topClientesPorValor(projetos: Projeto[]): Array<{ cliente: string; valor: number }> {
+function topClientesPorValorPago(
+  pagamentos: Pagamento[],
+  clientesMap: Map<string, string>
+): Array<{ cliente: string; valor: number }> {
   const map = new Map<string, number>();
-  for (const p of projetos) {
-    if (!p.clienteNome || !p.valorEstimado) continue;
-    map.set(p.clienteNome, (map.get(p.clienteNome) ?? 0) + p.valorEstimado);
+  for (const p of pagamentos) {
+    if (!p.clienteId) continue;
+    map.set(p.clienteId, (map.get(p.clienteId) ?? 0) + p.valor);
   }
   return [...map.entries()]
-    .map(([cliente, valor]) => ({ cliente, valor }))
+    .map(([id, valor]) => ({ cliente: clientesMap.get(id) ?? "(sem nome)", valor }))
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 5);
 }
 
 export default async function RelatoriosPage() {
-  const [projetos, clientes] = await Promise.all([getAllProjetos(), getAllClientes()]);
+  const [projetos, clientes, pagamentos] = await Promise.all([
+    getAllProjetos(),
+    getAllClientes(),
+    getAllPagamentos(),
+  ]);
+
+  const clientesMap = new Map(clientes.map((c) => [c.id, c.nome]));
 
   const activos = projetos.filter(
     (p) =>
@@ -67,7 +78,7 @@ export default async function RelatoriosPage() {
     .sort((a, b) => b.count - a.count);
 
   const valorMensal = buildValorMensal(projetos);
-  const topClientes = topClientesPorValor(projetos);
+  const topClientes = topClientesPorValorPago(pagamentos, clientesMap);
 
   return (
     <>
@@ -134,9 +145,9 @@ export default async function RelatoriosPage() {
           </article>
 
           <article className="rounded-lg border border-border bg-surface p-6 lg:col-span-2">
-            <h2 className="font-headline text-lg font-semibold mb-4">Top 5 clientes por valor</h2>
+            <h2 className="font-headline text-lg font-semibold mb-4">Top 5 clientes por valor pago</h2>
             {topClientes.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem dados de valor estimado por cliente.</p>
+              <p className="text-sm text-muted-foreground">Sem pagamentos registados.</p>
             ) : (
               <ol className="space-y-2">
                 {topClientes.map((c, i) => (

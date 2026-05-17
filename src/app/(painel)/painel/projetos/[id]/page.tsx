@@ -17,7 +17,7 @@ import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getPagamentosByProjeto } from "@/lib/mongodb/pagamentos";
 import { PagamentosSection } from "@/components/painel/PagamentosSection";
 import { Topbar } from "@/components/painel/Topbar";
-import { LinhasBreakdown } from "@/components/painel/LinhasBreakdown";
+import { CustosCard } from "@/components/painel/CustosCard";
 import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
 import { TarefaChecklist } from "@/components/painel/TarefaChecklist";
 import { TarefaForm } from "@/components/painel/TarefaForm";
@@ -103,22 +103,19 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
               projetoId={projeto.id}
               pagamentos={pagamentos}
               valorEstimado={projeto.valorEstimado}
+              projetoStatus={projeto.status}
+              projetoTitulo={projeto.titulo}
             />
 
-            {/* Breakdown linhas (read-only resumo) */}
-            {projeto.linhas && projeto.linhas.length > 0 && (
-              <section className="rounded-xl border border-border bg-card p-6">
-                <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-4">
-                  <Euro className="h-3.5 w-3.5" aria-hidden="true" />
-                  Custos
-                </p>
-                <LinhasBreakdown linhas={projeto.linhas} />
-              </section>
-            )}
+            {/* Custos editável */}
+            <CustosCard projeto={projeto} />
           </div>
 
           {/* ── Aside ── */}
           <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4 lg:sticky lg:top-6">
+            {/* Badges derivadas */}
+            <ProjetoBadges projeto={projeto} totalPago={pagamentos.reduce((s, p) => s + p.valor, 0)} />
+
             {/* Informações */}
             <div className="rounded-xl border border-border bg-surface-elevated p-5 space-y-3">
               <h2 className="font-headline text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-1">
@@ -157,6 +154,37 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
         </div>
       </div>
     </>
+  );
+}
+
+function ProjetoBadges({ projeto, totalPago }: { projeto: import("@/types/projeto").Projeto; totalPago: number }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const emDivida = projeto.status === "terminado" && projeto.valorEstimado != null && totalPago < projeto.valorEstimado;
+  const divida = emDivida ? (projeto.valorEstimado! - totalPago) : 0;
+  const garantia = projeto.garantiaAte;
+  const garantiaActiva = garantia && garantia >= today;
+  const garantiaExpirada = garantia && garantia < today;
+
+  if (!emDivida && !garantia) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {emDivida && (
+        <span className="inline-flex items-center rounded-full bg-rose-500/10 text-rose-700 border border-rose-500/30 px-3 py-1 text-xs font-semibold">
+          Em dívida: {divida}€
+        </span>
+      )}
+      {garantiaActiva && (
+        <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/30 px-3 py-1 text-xs font-medium">
+          Garantia até {formatDate(garantia!)}
+        </span>
+      )}
+      {garantiaExpirada && (
+        <span className="inline-flex items-center rounded-full bg-muted text-muted-foreground border border-border px-3 py-1 text-xs font-medium">
+          Garantia expirada
+        </span>
+      )}
+    </div>
   );
 }
 

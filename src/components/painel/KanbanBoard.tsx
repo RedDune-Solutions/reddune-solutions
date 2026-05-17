@@ -5,21 +5,11 @@ import { TarefaCard } from "./TarefaCard";
 const MAIN_COLUMNS: ProjetoStatus[] = [
   "em-curso",
   "proximo",
-  "aguarda-cliente",
-  "aguarda-pecas",
-  "aguarda-fornecedor",
-  "pronto",
-  "entregue",
-  "em-divida",
+  "aguardando",
+  "terminado",
 ];
 
-const ARCHIVE_STATUSES: ProjetoStatus[] = [
-  "fechado",
-  "cancelado",
-  "garantia",
-  "suspenso",
-  "bloqueado",
-];
+const ARCHIVE_STATUSES: ProjetoStatus[] = ["fechado", "cancelado"];
 
 type Props = {
   projetos: Projeto[];
@@ -36,7 +26,7 @@ export function KanbanBoard({ projetos, className }: Props) {
   const columns = MAIN_COLUMNS.filter(
     (status) =>
       (grouped[status]?.length ?? 0) > 0 ||
-      ["em-curso", "proximo"].includes(status)
+      (["em-curso", "proximo"] as ProjetoStatus[]).includes(status)
   );
 
   const archiveItems = ARCHIVE_STATUSES.flatMap((s) => grouped[s] ?? []);
