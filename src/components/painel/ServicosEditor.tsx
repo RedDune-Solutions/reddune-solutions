@@ -19,13 +19,14 @@ type Props = {
   servicos: Servico[];
 };
 
-type VarianteDraft = { label: string; preco: string };
+type VarianteDraft = { label: string; preco: string; precoMax: string };
 
 type Draft = {
   id: string | null;
   titulo: string;
   descricao: string;
   precoBase: string;
+  precoMax: string;
   precoTexto: string; // preservado mas não editável (legacy)
   nota: string;
   ordem: number;
@@ -44,13 +45,18 @@ function toDraft(s: Servico): Draft {
     titulo: s.titulo,
     descricao: s.descricao ?? "",
     precoBase: s.precoBase != null ? String(s.precoBase) : "",
+    precoMax: s.precoMax != null ? String(s.precoMax) : "",
     precoTexto: s.precoTexto ?? "",
     nota: s.nota ?? "",
     ordem: s.ordem,
     ativo: s.ativo,
     temVariantes,
     variantes: temVariantes
-      ? s.variantes!.map((v) => ({ label: v.label, preco: String(v.preco) }))
+      ? s.variantes!.map((v) => ({
+          label: v.label,
+          preco: String(v.preco),
+          precoMax: v.precoMax != null ? String(v.precoMax) : "",
+        }))
       : [],
     dirty: false,
   };
@@ -62,6 +68,7 @@ function emptyDraft(ordem: number): Draft {
     titulo: "",
     descricao: "",
     precoBase: "",
+    precoMax: "",
     precoTexto: "",
     nota: "",
     ordem,
@@ -103,7 +110,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
         const label = DEFAULT_LABELS[d.variantes.length] ?? "";
         return {
           ...d,
-          variantes: [...d.variantes, { label, preco: "" }],
+          variantes: [...d.variantes, { label, preco: "", precoMax: "" }],
           dirty: true,
         };
       })
@@ -129,8 +136,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
             ...d,
             temVariantes: true,
             variantes: [
-              { label: "Desktop", preco: "" },
-              { label: "Portátil", preco: "" },
+              { label: "Desktop", preco: "", precoMax: "" },
+              { label: "Portátil", preco: "", precoMax: "" },
             ],
             dirty: true,
           };
@@ -164,7 +171,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
           setError(`Preço inválido na variante "${v.label}".`);
           return;
         }
-        parsed.push({ label: v.label.trim(), preco: n });
+        const nMax = v.precoMax.trim() ? parseFloat(v.precoMax.replace(",", ".")) : null;
+        parsed.push({ label: v.label.trim(), preco: n, precoMax: nMax ?? null });
       }
       variantesPayload = parsed;
     }
@@ -172,9 +180,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
     setSavingId(d.id ?? `new_${idx}`);
     setError(null);
     try {
-      const precoBase = d.precoBase.trim()
-        ? parseFloat(d.precoBase.replace(",", "."))
-        : null;
+      const precoBase = d.precoBase.trim() ? parseFloat(d.precoBase.replace(",", ".")) : null;
+      const precoMax = d.precoMax.trim() ? parseFloat(d.precoMax.replace(",", ".")) : null;
       const payload = {
         id: d.id ?? undefined,
         slug,
@@ -183,9 +190,11 @@ export function ServicosEditor({ slug, servicos }: Props) {
         precoBase:
           variantesPayload
             ? null
-            : precoBase != null && Number.isFinite(precoBase)
-            ? precoBase
-            : null,
+            : precoBase != null && Number.isFinite(precoBase) ? precoBase : null,
+        precoMax:
+          variantesPayload
+            ? null
+            : precoMax != null && Number.isFinite(precoMax) ? precoMax : null,
         variantes: variantesPayload,
         nota: d.nota.trim() || null,
         ordem: d.ordem,
@@ -292,8 +301,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
 
                 {!d.temVariantes ? (
                   <div className="grid grid-cols-12 gap-2">
-                    <div className="col-span-6 sm:col-span-4 space-y-1">
-                      <Label className="text-[10px] uppercase">Preço (€)</Label>
+                    <div className="col-span-5 sm:col-span-3 space-y-1">
+                      <Label className="text-[10px] uppercase">Preço mín (€)</Label>
                       <Input
                         type="number"
                         inputMode="numeric"
@@ -305,8 +314,21 @@ export function ServicosEditor({ slug, servicos }: Props) {
                         className="h-8 text-sm tabular-nums"
                       />
                     </div>
-                    <div className="col-span-12 sm:col-span-8 space-y-1">
-                      <Label className="text-[10px] uppercase">Nota (sufixo do preço)</Label>
+                    <div className="col-span-5 sm:col-span-3 space-y-1">
+                      <Label className="text-[10px] uppercase">Preço máx (€)</Label>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        step="1"
+                        min="0"
+                        value={d.precoMax}
+                        onChange={(e) => update(idx, { precoMax: e.target.value })}
+                        placeholder="opcional"
+                        className="h-8 text-sm tabular-nums"
+                      />
+                    </div>
+                    <div className="col-span-12 sm:col-span-6 space-y-1">
+                      <Label className="text-[10px] uppercase">Nota (sufixo)</Label>
                       <Input
                         value={d.nota}
                         onChange={(e) => update(idx, { nota: e.target.value })}
@@ -320,7 +342,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
                     <div className="space-y-1.5">
                       {d.variantes.map((v, vIdx) => (
                         <div key={vIdx} className="grid grid-cols-12 gap-2 items-end">
-                          <div className="col-span-6 sm:col-span-7 space-y-1">
+                          <div className="col-span-12 sm:col-span-4 space-y-1">
                             <Label className="text-[10px] uppercase">Label</Label>
                             <Input
                               value={v.label}
@@ -329,8 +351,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
                               className="h-8 text-sm"
                             />
                           </div>
-                          <div className="col-span-5 sm:col-span-4 space-y-1">
-                            <Label className="text-[10px] uppercase">Preço (€)</Label>
+                          <div className="col-span-5 sm:col-span-3 space-y-1">
+                            <Label className="text-[10px] uppercase">Mín (€)</Label>
                             <Input
                               type="number"
                               inputMode="numeric"
@@ -341,7 +363,20 @@ export function ServicosEditor({ slug, servicos }: Props) {
                               className="h-8 text-sm tabular-nums"
                             />
                           </div>
-                          <div className="col-span-1">
+                          <div className="col-span-5 sm:col-span-3 space-y-1">
+                            <Label className="text-[10px] uppercase">Máx (€)</Label>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              step="1"
+                              min="0"
+                              value={v.precoMax}
+                              onChange={(e) => updateVariante(idx, vIdx, { precoMax: e.target.value })}
+                              placeholder="opcional"
+                              className="h-8 text-sm tabular-nums"
+                            />
+                          </div>
+                          <div className="col-span-2 sm:col-span-2 flex items-end justify-end">
                             <Button
                               size="sm"
                               variant="ghost"

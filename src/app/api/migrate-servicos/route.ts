@@ -20,35 +20,34 @@ function stripHtml(s: string): string {
 const VARIANTE_LABELS = /(Desktop|Portátil|Portatil|Consola|Office|Gaming|High[- ]?End|High)/i;
 
 /**
- * Extrai número (ou média de range "20–30") de uma string de variante.
- * "Desktop 20–30€" → 25. "Portátil 35€" → 35.
+ * Extrai min (+ max opcional) de uma string de preço.
+ * "20–30€" → { min: 20, max: 30 }. "35€" → { min: 35, max: null }.
  */
-function extractPriceNumber(s: string): number | null {
+function extractPriceRange(s: string): { min: number; max: number | null } | null {
   const nums = s.match(/\d+(?:[.,]\d+)?/g);
   if (!nums || nums.length === 0) return null;
   const parsed = nums.map((n) => parseFloat(n.replace(",", ".")));
-  if (parsed.length === 1) return parsed[0]!;
-  // Range → média arredondada
-  return Math.round((parsed[0]! + parsed[1]!) / 2);
+  return { min: parsed[0]!, max: parsed.length > 1 ? parsed[1]! : null };
 }
 
 /**
- * Tenta dividir uma parte de variante em label + preço.
- * "Desktop 20–30€" → { label: "Desktop", preco: 25 }
- * "High-End 120–160€" → { label: "High-End", preco: 140 }
+ * Tenta dividir uma parte de variante em label + preço (range opcional).
+ * "Desktop 20–30€" → { label: "Desktop", preco: 20, precoMax: 30 }
+ * "High-End 120–160€" → { label: "High-End", preco: 120, precoMax: 160 }
  */
 function parseVariantePart(part: string): VariantePreco | null {
   const trimmed = part.trim();
   const labelMatch = trimmed.match(VARIANTE_LABELS);
-  const preco = extractPriceNumber(trimmed);
-  if (preco == null) return null;
+  const range = extractPriceRange(trimmed);
+  if (range == null) return null;
   const label = labelMatch ? labelMatch[0] : trimmed.replace(/[\d€.,\-–\s]+/g, "").trim();
   if (!label) return null;
-  return { label, preco };
+  return { label, preco: range.min, precoMax: range.max };
 }
 
 interface ParsedPrice {
   precoBase: number | null;
+  precoMax?: number | null;
   variantes: VariantePreco[] | null;
   precoTexto: string | null;
   nota: string | null;
@@ -73,16 +72,14 @@ function parsePrice(raw: string): ParsedPrice {
     }
   }
 
-  // Single price + nota opcional
-  const numeros = stripped.match(/\d+(?:[.,]\d+)?/g) ?? [];
-  if (numeros.length === 0) {
+  // Single price (pode ser range) + nota opcional
+  const range = extractPriceRange(stripped);
+  if (range == null) {
     // Sob orçamento ou texto especial
     return { precoBase: null, variantes: null, precoTexto: stripped, nota: null };
   }
-  const primeiro = numeros[0] ?? "0";
-  const precoBase = parseFloat(primeiro.replace(",", "."));
   const nota = partes.length > 1 ? partes.slice(1).join(" · ") : null;
-  return { precoBase, variantes: null, precoTexto: null, nota };
+  return { precoBase: range.min, precoMax: range.max, variantes: null, precoTexto: null, nota };
 }
 
 interface RawItem {
@@ -107,7 +104,7 @@ export async function POST() {
       let ordem = 0;
       for (const item of list) {
         const priceRaw = item.price ?? "";
-        const { precoBase, variantes, precoTexto, nota } = parsePrice(priceRaw);
+        const { precoBase, precoMax = null, variantes, precoTexto, nota } = parsePrice(priceRaw);
         const now = new Date().toISOString();
         const servico: Servico = {
           id: `seed_${slug}_${ordem}`,
@@ -115,6 +112,7 @@ export async function POST() {
           titulo: stripHtml(item.title ?? "(sem título)"),
           descricao: item.description ? stripHtml(item.description) : null,
           precoBase,
+          precoMax,
           variantes,
           precoTexto,
           nota,
