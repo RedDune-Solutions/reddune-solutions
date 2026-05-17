@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const isPt = locale !== "en";
 
   const title = isPt
-    ? "Loja — RedDune Solutions | Computadores, Componentes e Acessórios"
-    : "Shop — RedDune Solutions | Computers, Components & Accessories";
+    ? "Loja - RedDune Solutions"
+    : "Shop - RedDune Solutions";
   const description = isPt
     ? "Compre computadores novos, recondicionados e segunda mão, componentes e acessórios em Fuseta, Algarve. Preços justos e qualidade garantida."
     : "Buy new, refurbished and second-hand computers, components and accessories in Fuseta, Algarve. Fair prices and guaranteed quality.";

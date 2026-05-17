@@ -5,7 +5,7 @@ import { EmailSignInForm } from "@/components/auth/EmailSignInForm";
 import { Eyebrow } from "@/components/site/Eyebrow";
 
 export const metadata: Metadata = {
-  title: "Entrar — Reddune Solutions",
+  title: "Entrar - RedDune Solutions",
   description: "Acede ao painel interno da Reddune Solutions.",
   robots: { index: false, follow: false },
 };

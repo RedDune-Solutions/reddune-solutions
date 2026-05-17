@@ -17,8 +17,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const isPt = locale !== "en";
 
   const title = isPt
-    ? "Contacto — RedDune Solutions | Orçamentos e Suporte Técnico"
-    : "Contact — RedDune Solutions | Quotes and Technical Support";
+    ? "Contacto - RedDune Solutions"
+    : "Contact - RedDune Solutions";
   const description = isPt
     ? "Entre em contacto com a RedDune Solutions para orçamentos, suporte técnico ou dúvidas sobre produtos. Respondemos rapidamente."
     : "Contact RedDune Solutions for quotes, technical support or product enquiries. We respond quickly.";

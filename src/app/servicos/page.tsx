@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const isPt = locale !== "en";
 
   const title = isPt
-    ? "Serviços — RedDune Solutions | Algarve"
-    : "Services — RedDune Solutions | Algarve";
+    ? "Serviços - RedDune Solutions"
+    : "Services - RedDune Solutions";
   const description = isPt
     ? "Três áreas de serviço — assistência técnica, web & digital, software & recuperação. Para particulares e empresas em Fuseta, Algarve."
     : "Three service areas — technical support, web & digital, software & recovery. For individuals and businesses in Fuseta, Algarve.";

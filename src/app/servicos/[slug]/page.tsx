@@ -45,7 +45,7 @@ export async function generateMetadata({
 
   // Strip <em>...</em> from title for plain-text metadata.
   const plainTitle = content.title.replace(/<\/?em>/g, "");
-  const fullTitle = `${plainTitle} — RedDune Solutions`;
+  const fullTitle = `${plainTitle} - RedDune Solutions`;
 
   return {
     title: fullTitle,
