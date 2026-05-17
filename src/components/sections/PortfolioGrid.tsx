@@ -15,6 +15,7 @@ import {
 
 type Props = {
   items: PortfolioItem[];
+  initialFilter?: string;
 };
 
 type FilterKey = "all" | PortfolioCategoria;
@@ -45,11 +46,15 @@ function bgFor(item: PortfolioItem): string {
     : DEFAULT_FALLBACK_BG;
 }
 
-export function PortfolioGrid({ items }: Props) {
+export function PortfolioGrid({ items, initialFilter }: Props) {
   const t = useTranslations("PortfolioPage");
   const rawLocale = useLocale();
   const locale = rawLocale === "en" ? "en" : "pt";
-  const [filter, setFilter] = useState<FilterKey>("all");
+  const validInitial: FilterKey =
+    initialFilter && (FILTER_KEYS as readonly string[]).includes(initialFilter)
+      ? (initialFilter as FilterKey)
+      : "all";
+  const [filter, setFilter] = useState<FilterKey>(validInitial);
 
   const decorated = useMemo(
     () =>

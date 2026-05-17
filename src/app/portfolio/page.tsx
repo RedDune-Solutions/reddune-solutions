@@ -139,8 +139,13 @@ function InstagramNote() {
   );
 }
 
-export default async function PortfolioPage() {
-  const items = await getAllPortfolioItems();
+export default async function PortfolioPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  const [items, sp] = await Promise.all([getAllPortfolioItems(), searchParams]);
+  const initialFilter = sp.categoria ?? "all";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -149,7 +154,7 @@ export default async function PortfolioPage() {
         <PortfolioHero />
         <PortfolioIntro />
         <section className="py-12 md:py-16">
-          <PortfolioGrid items={items} />
+          <PortfolioGrid items={items} initialFilter={initialFilter} />
         </section>
         <InstagramNote />
         <CTAWave />

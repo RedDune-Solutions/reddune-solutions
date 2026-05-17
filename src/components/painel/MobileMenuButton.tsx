@@ -36,7 +36,7 @@ const NAV = [
   { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
   { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
   { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },
-  { href: "/painel/precos", label: "Preços", Icon: Tag },
+  { href: "/painel/precos", label: "Serviços", Icon: Tag },
   { href: "/painel/loja", label: "Loja", Icon: ShoppingBag },
   { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase },
 ];
