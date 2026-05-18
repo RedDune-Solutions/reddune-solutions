@@ -11,6 +11,7 @@ type Props = {
 };
 
 const STATUS_RIBBON: Record<ProjetoStatus, string> = {
+  ideia: "border-l-violet-500",
   proximo: "border-l-ember",
   "em-curso": "border-l-sky-500",
   "aguardando-cliente": "border-l-amber-400",
@@ -21,6 +22,7 @@ const STATUS_RIBBON: Record<ProjetoStatus, string> = {
 };
 
 const STATUS_BG: Record<ProjetoStatus, string> = {
+  ideia: "bg-violet-500/5",
   proximo: "bg-ember/5",
   "em-curso": "bg-sky-500/5",
   "aguardando-cliente": "bg-amber-400/5",
@@ -52,8 +54,8 @@ export function TarefaCard({ projeto, className }: Props) {
     <Link
       href={`/painel/projetos/${projeto.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-card border border-dune-deep/10 border-l-4 shadow-warm",
-        "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-warm-lg hover:border-r-dune-deep/20",
+        "group relative block overflow-hidden rounded-card border border-dune-deep/10 border-l-4 shadow-sm",
+        "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-r-dune-deep/20",
         STATUS_RIBBON[projeto.status],
         STATUS_BG[projeto.status],
         className

@@ -27,6 +27,7 @@ const STATUS_PRIORITY: Record<ProjetoStatus, number> = {
   terminado: 3,
   fechado: 4,
   cancelado: 5,
+  ideia: 5,
 };
 
 function startOfDay(d: Date): Date {

@@ -1,4 +1,5 @@
 export const PROJETO_STATUS = [
+  "ideia",
   "proximo",
   "em-curso",
   "aguardando-cliente",
@@ -11,6 +12,7 @@ export const PROJETO_STATUS = [
 export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
 
 export const STATUS_LABELS: Record<ProjetoStatus, string> = {
+  ideia: "Ideia",
   proximo: "Próximo",
   "em-curso": "Em curso",
   "aguardando-cliente": "Aguarda cliente",
@@ -29,6 +31,7 @@ export const STATUS_GROUPS = {
   pronto: ["terminado"] as ProjetoStatus[],
   arquivo: ["fechado", "cancelado"] as ProjetoStatus[],
   comprometido: ["em-curso", "aguardando-encomenda", "terminado"] as ProjetoStatus[],
+  ideias: ["ideia"] as ProjetoStatus[],
 };
 
 export const PROJETO_TIPO = [
