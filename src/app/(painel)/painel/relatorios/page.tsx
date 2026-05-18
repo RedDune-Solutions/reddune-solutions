@@ -134,7 +134,10 @@ export default async function RelatoriosPage() {
   const projetosPorMes = buildProjetosPorMes(projetos);
   const topClientes = topClientesPorValorPago(pagamentos, clientesMap);
 
-  const valorPagoTotal = pagamentos.reduce((s, p) => s + p.valor, 0);
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const ganhosMes = pagamentos
+    .filter((p) => p.data?.startsWith(mesActual))
+    .reduce((s, p) => s + p.valor, 0);
   const pagoPorProjeto = new Map<string, number>();
   for (const pg of pagamentos) {
     pagoPorProjeto.set(pg.projetoId, (pagoPorProjeto.get(pg.projetoId) ?? 0) + pg.valor);
@@ -171,12 +174,14 @@ export default async function RelatoriosPage() {
             value={projetos.length}
             icon={ListChecks}
             tone="accent"
+            hint="Histórico completo"
           />
           <KpiCard
             label="Clientes"
             value={clientes.length}
             icon={Users}
             tone="green"
+            hint="Total na base"
           />
           <KpiCard
             label="Concluídos/arquivo"
@@ -189,18 +194,21 @@ export default async function RelatoriosPage() {
             }
             icon={Clock}
             tone="default"
+            hint="Terminados + arquivados"
           />
           <KpiCard
-            label="Valor recebido total"
-            value={`${valorPagoTotal.toFixed(0)}€`}
+            label="Ganhos este mês"
+            value={`${ganhosMes.toFixed(0)}€`}
             icon={Euro}
             tone="green"
+            hint="Pagamentos recebidos no mês actual"
           />
           <KpiCard
             label="Em dívida"
             value={`${emDivida.toFixed(0)}€`}
             icon={AlertCircle}
             tone="accent"
+            hint="Terminados por cobrar"
           />
         </div>
 
