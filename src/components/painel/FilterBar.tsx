@@ -15,9 +15,12 @@ import {
   STATUS_LABELS,
   PROJETO_STATUS,
   PROJETO_TIPO,
+  PROJETO_TIPO_LABEL,
+  CATEGORIA_TIPOS,
   type Projeto,
   type ProjetoStatus,
 } from "@/types/projeto";
+import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 
 type Props = {
   projetos: Projeto[];
@@ -36,8 +39,14 @@ export function FilterBar({ projetos }: Props) {
   const params = useSearchParams();
 
   const status = params?.get("status") ?? "";
+  const categoria = params?.get("categoria") ?? "";
   const tipo = params?.get("tipo") ?? "";
   const clienteNome = params?.get("cliente") ?? "";
+
+  const tipoOptions =
+    categoria && (SERVICO_SLUG as readonly string[]).includes(categoria)
+      ? CATEGORIA_TIPOS[categoria as ServicoSlug]
+      : PROJETO_TIPO;
 
   const activos = projetos.filter((p) => !isArchived(p.status));
 
@@ -67,7 +76,7 @@ export function FilterBar({ projetos }: Props) {
     router.replace(pathname ?? "/painel", { scroll: false });
   }, [pathname, router]);
 
-  const hasActive = Boolean(status || tipo || clienteNome);
+  const hasActive = Boolean(status || categoria || tipo || clienteNome);
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -85,15 +94,29 @@ export function FilterBar({ projetos }: Props) {
         </SelectContent>
       </Select>
 
+      <Select value={categoria || ALL} onValueChange={(v) => update("categoria", v)}>
+        <SelectTrigger className={`w-[180px] ${SELECT_TRIGGER_CLASSES}`}>
+          <SelectValue placeholder="Categoria" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>Todas categorias</SelectItem>
+          {SERVICO_SLUG.map((s) => (
+            <SelectItem key={s} value={s}>
+              {SERVICO_SLUG_LABEL[s]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       <Select value={tipo || ALL} onValueChange={(v) => update("tipo", v)}>
         <SelectTrigger className={`w-[160px] ${SELECT_TRIGGER_CLASSES}`}>
           <SelectValue placeholder="Tipo" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Todos tipos</SelectItem>
-          {PROJETO_TIPO.map((t) => (
-            <SelectItem key={t} value={t} className="capitalize">
-              {t.replace("-", " ")}
+          {tipoOptions.map((t) => (
+            <SelectItem key={t} value={t}>
+              {PROJETO_TIPO_LABEL[t]}
             </SelectItem>
           ))}
         </SelectContent>

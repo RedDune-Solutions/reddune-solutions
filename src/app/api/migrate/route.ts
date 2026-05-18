@@ -82,6 +82,7 @@ export async function POST(request: Request) {
       clienteNome,
       proximaAccao: typeof t.proximaAccao === "string" ? t.proximaAccao : null,
       status: t.status ?? "proximo",
+      categoria: null,
       tipo: t.tipo ?? null,
       responsavel: t.responsavel ?? null,
       prazo: typeof t.prazo === "string" ? t.prazo : null,

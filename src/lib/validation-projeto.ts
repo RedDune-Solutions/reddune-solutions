@@ -6,6 +6,7 @@ import {
   PROJETO_LOCAL,
   LINHA_CATEGORIA,
 } from "@/types/projeto";
+import { SERVICO_SLUG } from "@/types/servico";
 
 export const linhaSchema = z.object({
   id: z.string().min(1).max(128),
@@ -22,6 +23,7 @@ export const projetoSchema = z.object({
   clienteNome: z.string().max(300).nullish().transform((v) => v ?? null),
   proximaAccao: z.string().max(500).nullish().transform((v) => v ?? null),
   status: z.enum(PROJETO_STATUS),
+  categoria: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(SERVICO_SLUG).nullable()),
   tipo: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_TIPO).nullable()),
   responsavel: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_RESPONSAVEL).nullable()),
   prazo: z.string().nullish(),

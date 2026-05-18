@@ -18,12 +18,16 @@ import {
   STATUS_LABELS,
   PROJETO_STATUS,
   PROJETO_TIPO,
+  PROJETO_TIPO_LABEL,
   PROJETO_RESPONSAVEL,
+  CATEGORIA_TIPOS,
+  TIPO_TO_CATEGORIA,
   type Projeto,
   type ProjetoStatus,
   type ProjetoTipo,
   type ProjetoResponsavel,
 } from "@/types/projeto";
+import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { Cliente } from "@/types/cliente";
 import { ClienteQuickForm } from "./ClienteQuickForm";
 
@@ -46,6 +50,7 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [showQuickClient, setShowQuickClient] = useState(false);
   const [status, setStatus] = useState<ProjetoStatus>(projeto?.status ?? "proximo");
   const [tipo, setTipo] = useState<ProjetoTipo | "">(projeto?.tipo ?? "");
+  const [categoria, setCategoria] = useState<ServicoSlug | null>(projeto?.categoria ?? null);
   const [responsavel, setResponsavel] = useState<ProjetoResponsavel | "">(
     projeto?.responsavel ?? ""
   );
@@ -74,6 +79,7 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         clienteId: clienteId || null,
         clienteNome: selectedCliente?.nome ?? projeto?.clienteNome ?? null,
         status,
+        categoria: categoria,
         tipo: tipo || null,
         responsavel: responsavel || null,
         prazo: prazo || null,
@@ -135,21 +141,51 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
           </Select>
         </div>
         <div className="space-y-1">
-          <Label>Tipo</Label>
+          <Label>Categoria</Label>
           <Select
-            value={tipo || "__none"}
-            onValueChange={(v) => setTipo(v === "__none" ? "" : (v as ProjetoTipo))}
+            value={categoria || "__none"}
+            onValueChange={(v) => {
+              const next = v === "__none" ? null : (v as ServicoSlug);
+              setCategoria(next);
+              if (tipo && next && !CATEGORIA_TIPOS[next].includes(tipo)) {
+                setTipo("");
+              }
+            }}
             disabled={isBusy}
           >
             <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">— Nenhum —</SelectItem>
-              {PROJETO_TIPO.map((t) => (
-                <SelectItem key={t} value={t}>{t.replace("-", " ")}</SelectItem>
+              <SelectItem value="__none">— Nenhuma —</SelectItem>
+              {SERVICO_SLUG.map((s) => (
+                <SelectItem key={s} value={s}>{SERVICO_SLUG_LABEL[s]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label>Tipo</Label>
+        <Select
+          value={tipo || "__none"}
+          onValueChange={(v) => {
+            const next = v === "__none" ? "" : (v as ProjetoTipo);
+            setTipo(next);
+            if (next && !categoria) {
+              const auto = TIPO_TO_CATEGORIA[next];
+              if (auto) setCategoria(auto);
+            }
+          }}
+          disabled={isBusy}
+        >
+          <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none">— Nenhum —</SelectItem>
+            {(categoria ? CATEGORIA_TIPOS[categoria] : PROJETO_TIPO).map((t) => (
+              <SelectItem key={t} value={t}>{PROJETO_TIPO_LABEL[t]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Cliente — Select + Quick create */}

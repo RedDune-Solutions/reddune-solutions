@@ -8,12 +8,14 @@ import { ViewToggle, type PainelView } from "@/components/painel/ViewToggle";
 import { FilterBar } from "@/components/painel/FilterBar";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { PROJETO_STATUS, PROJETO_TIPO, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
+import { SERVICO_SLUG, type ServicoSlug } from "@/types/servico";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<{
   view?: string;
   status?: string;
+  categoria?: string;
   tipo?: string;
   cliente?: string;
   q?: string;
@@ -40,9 +42,14 @@ export default async function ProjetosPage({
     params.tipo && PROJETO_TIPO.includes(params.tipo as ProjetoTipo)
       ? (params.tipo as ProjetoTipo)
       : undefined;
+  const categoriaParam =
+    params.categoria && (SERVICO_SLUG as readonly string[]).includes(params.categoria)
+      ? (params.categoria as ServicoSlug)
+      : undefined;
 
   const projetos = applyFilters(allProjetos, {
     status: statusParam,
+    categoria: categoriaParam,
     tipo: tipoParam,
     clienteNome: params.cliente,
     q: params.q,

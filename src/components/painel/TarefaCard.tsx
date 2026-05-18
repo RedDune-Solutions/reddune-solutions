@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { CalendarDays, User, ArrowRight } from "lucide-react";
 import { InlineStatusSelect } from "./InlineStatusSelect";
 import { TarefaRowMenu } from "./TarefaRowMenu";
-import type { Projeto, ProjetoStatus } from "@/types/projeto";
+import { PROJETO_TIPO_LABEL, type Projeto, type ProjetoStatus } from "@/types/projeto";
 
 type Props = {
   projeto: Projeto;
@@ -104,7 +104,7 @@ export function TarefaCard({ projeto, className }: Props) {
           )}
           {projeto.tipo && (
             <span className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
-              {projeto.tipo.replace("-", " ")}
+              {PROJETO_TIPO_LABEL[projeto.tipo]}
             </span>
           )}
         </div>

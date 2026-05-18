@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowUpDown, Search } from "lucide-react";
 import { InlineStatusSelect } from "./InlineStatusSelect";
 import { TarefaRowMenu } from "./TarefaRowMenu";
-import type { Projeto } from "@/types/projeto";
+import { PROJETO_TIPO_LABEL, type Projeto } from "@/types/projeto";
 import { cn } from "@/lib/utils";
 
 function formatDate(iso: string | null): string {
@@ -82,7 +82,7 @@ export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
         header: "Tipo",
         cell: ({ row }) => (
           <span className="font-mono text-xs uppercase tracking-tight text-ink-mute">
-            {row.original.tipo ?? "—"}
+            {row.original.tipo ? PROJETO_TIPO_LABEL[row.original.tipo] : "—"}
           </span>
         ),
       },

@@ -34,24 +34,73 @@ export const STATUS_GROUPS = {
   ideias: ["ideia"] as ProjetoStatus[],
 };
 
+import type { ServicoSlug } from "@/types/servico";
+
 export const PROJETO_TIPO = [
+  // assistencia-tecnica
   "diagnostico",
   "montagem",
-  "formatacao",
   "reparacao",
   "acessorios",
+  // web-digital
   "web",
   "app",
   "automacao",
   "marketing",
+  "redes-sociais",
   "consultoria",
   "formacao",
-  "redes-sociais",
+  // software-recuperacao
+  "recuperacao-dados",
+  "formatacao",
+  // sem categoria
   "intermediacao",
   "outro",
 ] as const;
 
 export type ProjetoTipo = (typeof PROJETO_TIPO)[number];
+
+export const PROJETO_TIPO_LABEL: Record<ProjetoTipo, string> = {
+  diagnostico: "Diagnóstico",
+  montagem: "Montagem",
+  reparacao: "Reparação",
+  acessorios: "Acessórios",
+  web: "Web",
+  app: "App",
+  automacao: "Automação",
+  marketing: "Marketing",
+  "redes-sociais": "Redes sociais",
+  consultoria: "Consultoria",
+  formacao: "Formação",
+  "recuperacao-dados": "Recuperação de dados",
+  formatacao: "Formatação",
+  intermediacao: "Intermediação",
+  outro: "Outro",
+};
+
+export const TIPO_TO_CATEGORIA: Record<ProjetoTipo, ServicoSlug | null> = {
+  diagnostico: "assistencia-tecnica",
+  montagem: "assistencia-tecnica",
+  reparacao: "assistencia-tecnica",
+  acessorios: "assistencia-tecnica",
+  web: "web-digital",
+  app: "web-digital",
+  automacao: "web-digital",
+  marketing: "web-digital",
+  "redes-sociais": "web-digital",
+  consultoria: "web-digital",
+  formacao: "web-digital",
+  "recuperacao-dados": "software-recuperacao",
+  formatacao: "software-recuperacao",
+  intermediacao: null,
+  outro: null,
+};
+
+export const CATEGORIA_TIPOS: Record<ServicoSlug, ProjetoTipo[]> = {
+  "assistencia-tecnica": ["diagnostico", "montagem", "reparacao", "acessorios"],
+  "web-digital": ["web", "app", "automacao", "marketing", "redes-sociais", "consultoria", "formacao"],
+  "software-recuperacao": ["recuperacao-dados", "formatacao"],
+};
 
 export const PROJETO_RESPONSAVEL = ["eu", "cliente", "fornecedor"] as const;
 export type ProjetoResponsavel = (typeof PROJETO_RESPONSAVEL)[number];
@@ -83,6 +132,7 @@ export interface Projeto {
   clienteNome: string | null;
   proximaAccao: string | null;
   status: ProjetoStatus;
+  categoria: ServicoSlug | null;
   tipo: ProjetoTipo | null;
   responsavel: ProjetoResponsavel | null;
   prazo: string | null;

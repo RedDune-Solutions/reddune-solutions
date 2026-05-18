@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertProjeto, getProjetoById } from "@/lib/mongodb/projetos";
 import { projetoInputSchema } from "@/lib/validation-projeto";
-import type { Projeto } from "@/types/projeto";
+import { TIPO_TO_CATEGORIA, type Projeto } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +44,12 @@ export async function POST(request: Request) {
     return v as Projeto[K];
   };
 
+  const tipoFinal = pick("tipo", null);
+  let categoriaFinal = pick("categoria", null);
+  if (categoriaFinal == null && tipoFinal != null) {
+    categoriaFinal = TIPO_TO_CATEGORIA[tipoFinal];
+  }
+
   const projeto: Projeto = {
     id,
     titulo: input.titulo ?? existing?.titulo ?? "",
@@ -51,7 +57,8 @@ export async function POST(request: Request) {
     clienteNome: pick("clienteNome", null),
     proximaAccao: pick("proximaAccao", null),
     status: input.status ?? existing?.status ?? "proximo",
-    tipo: pick("tipo", null),
+    categoria: categoriaFinal,
+    tipo: tipoFinal,
     responsavel: pick("responsavel", null),
     prazo: pick("prazo", null),
     dataCriado: input.id ? (existing?.dataCriado ?? input.dataCriado ?? now) : now,
