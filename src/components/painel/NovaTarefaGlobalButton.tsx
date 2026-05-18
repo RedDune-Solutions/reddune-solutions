@@ -149,15 +149,28 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="prazo">Prazo (opcional)</Label>
-            <Input
-              id="prazo"
-              type="date"
-              value={prazo}
-              onChange={(e) => setPrazo(e.target.value)}
-              disabled={saving}
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="prazo">Prazo (opcional)</Label>
+              <Input
+                id="prazo"
+                type="date"
+                value={prazo}
+                onChange={(e) => setPrazo(e.target.value)}
+                disabled={saving}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prazoHora">Hora</Label>
+              <Input
+                id="prazoHora"
+                type="time"
+                value={prazoHora}
+                onChange={(e) => setPrazoHora(e.target.value)}
+                disabled={saving || !prazo}
+                placeholder="HH:MM"
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">

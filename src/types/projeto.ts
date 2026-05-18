@@ -41,6 +41,7 @@ export const PROJETO_TIPO = [
   "diagnostico",
   "montagem",
   "reparacao",
+  "troca-pecas",
   "acessorios",
   // web-digital
   "web",
@@ -64,6 +65,7 @@ export const PROJETO_TIPO_LABEL: Record<ProjetoTipo, string> = {
   diagnostico: "Diagnóstico",
   montagem: "Montagem",
   reparacao: "Reparação",
+  "troca-pecas": "Troca de peças",
   acessorios: "Acessórios",
   web: "Web",
   app: "App",
@@ -82,6 +84,7 @@ export const TIPO_TO_CATEGORIA: Record<ProjetoTipo, ServicoSlug | null> = {
   diagnostico: "assistencia-tecnica",
   montagem: "assistencia-tecnica",
   reparacao: "assistencia-tecnica",
+  "troca-pecas": "assistencia-tecnica",
   acessorios: "assistencia-tecnica",
   web: "web-digital",
   app: "web-digital",
@@ -97,7 +100,7 @@ export const TIPO_TO_CATEGORIA: Record<ProjetoTipo, ServicoSlug | null> = {
 };
 
 export const CATEGORIA_TIPOS: Record<ServicoSlug, ProjetoTipo[]> = {
-  "assistencia-tecnica": ["diagnostico", "montagem", "reparacao", "acessorios"],
+  "assistencia-tecnica": ["diagnostico", "montagem", "reparacao", "troca-pecas", "acessorios"],
   "web-digital": ["web", "app", "automacao", "marketing", "redes-sociais", "consultoria", "formacao"],
   "software-recuperacao": ["recuperacao-dados", "formatacao"],
 };
