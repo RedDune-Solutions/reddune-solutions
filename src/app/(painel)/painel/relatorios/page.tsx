@@ -170,6 +170,20 @@ export default async function RelatoriosPage() {
             hint={`${aguardaCliente.length} orçamentos pendentes`}
           />
           <KpiCard
+            label="Ganhos este mês"
+            value={`${ganhosMes.toFixed(0)}€`}
+            icon={Euro}
+            tone="green"
+            hint="Pagamentos recebidos no mês actual"
+          />
+          <KpiCard
+            label="Em dívida"
+            value={`${emDivida.toFixed(0)}€`}
+            icon={AlertCircle}
+            tone="accent"
+            hint="Terminados por cobrar"
+          />
+          <KpiCard
             label="Projectos totais"
             value={projetos.length}
             icon={ListChecks}
@@ -195,20 +209,6 @@ export default async function RelatoriosPage() {
             icon={Clock}
             tone="default"
             hint="Terminados + arquivados"
-          />
-          <KpiCard
-            label="Ganhos este mês"
-            value={`${ganhosMes.toFixed(0)}€`}
-            icon={Euro}
-            tone="green"
-            hint="Pagamentos recebidos no mês actual"
-          />
-          <KpiCard
-            label="Em dívida"
-            value={`${emDivida.toFixed(0)}€`}
-            icon={AlertCircle}
-            tone="accent"
-            hint="Terminados por cobrar"
           />
         </div>
 
