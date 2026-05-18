@@ -22,12 +22,12 @@ export function StatusBadge({
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-btn border px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight tabular-nums",
-        STATUS_CLASSES[status],
+        STATUS_CLASSES[status] ?? "bg-muted text-foreground border-border",
         className
       )}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" aria-hidden="true" />
-      {STATUS_LABELS[status]}
+      {STATUS_LABELS[status] ?? status}
     </span>
   );
 }
