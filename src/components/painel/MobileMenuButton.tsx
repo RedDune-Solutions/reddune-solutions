@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,36 +10,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  LayoutDashboard,
-  ListChecks,
-  Users,
-  CalendarDays,
-  BarChart3,
-  ExternalLink,
-  FolderKanban,
-  AlertTriangle,
-  Tag,
-  ShoppingBag,
-  Briefcase,
-  Menu,
-} from "lucide-react";
+import { ExternalLink, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-
-const NAV = [
-  { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true },
-  { href: "/painel/tarefas", label: "Tarefas", Icon: ListChecks },
-  { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban },
-  { href: "/painel/clientes", label: "Clientes", Icon: Users },
-  { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
-  { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
-  { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },
-  { href: "/painel/precos", label: "Serviços", Icon: Tag },
-  { href: "/painel/loja", label: "Loja", Icon: ShoppingBag },
-  { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase },
-];
+import {
+  PAINEL_NAV_DEFAULT,
+  applyTabOrder,
+  readTabOrder,
+  TAB_ORDER_EVENT,
+  type PainelNavItem,
+} from "@/lib/painel-nav";
 
 type Props = {
   user: { name?: string | null; email?: string | null };
@@ -48,6 +29,18 @@ type Props = {
 export function MobileMenuButton({ user }: Props) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
+  const [nav, setNav] = useState<PainelNavItem[]>(PAINEL_NAV_DEFAULT);
+
+  useEffect(() => {
+    const refresh = () => setNav(applyTabOrder(readTabOrder()));
+    refresh();
+    window.addEventListener(TAB_ORDER_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(TAB_ORDER_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -88,7 +81,7 @@ export function MobileMenuButton({ user }: Props) {
 
         <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Navegação principal">
           <ul className="space-y-1">
-            {NAV.map(({ href, label, Icon, exact }) => {
+            {nav.map(({ href, label, Icon, exact }) => {
               const active = isActive(href, exact);
               return (
                 <li key={href}>

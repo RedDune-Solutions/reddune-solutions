@@ -5,36 +5,20 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  ListChecks,
-  Users,
-  CalendarDays,
-  BarChart3,
   ExternalLink,
-  FolderKanban,
-  AlertTriangle,
-  Tag,
   Loader2,
-  ShoppingBag,
-  Briefcase,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-
-const NAV = [
-  { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true },
-  { href: "/painel/tarefas", label: "Tarefas", Icon: ListChecks },
-  { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban },
-  { href: "/painel/clientes", label: "Clientes", Icon: Users },
-  { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
-  { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
-  { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },
-  { href: "/painel/precos", label: "Serviços", Icon: Tag },
-  { href: "/painel/loja", label: "Loja", Icon: ShoppingBag },
-  { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase },
-];
+import {
+  PAINEL_NAV_DEFAULT,
+  applyTabOrder,
+  readTabOrder,
+  TAB_ORDER_EVENT,
+  type PainelNavItem,
+} from "@/lib/painel-nav";
 
 const COLLAPSE_KEY = "painel.sidebar.collapsed";
 
@@ -47,11 +31,20 @@ export function Sidebar({ user }: Props) {
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [nav, setNav] = useState<PainelNavItem[]>(PAINEL_NAV_DEFAULT);
 
   useEffect(() => {
     const saved = localStorage.getItem(COLLAPSE_KEY);
     if (saved === "1") setCollapsed(true);
     setMounted(true);
+    const refresh = () => setNav(applyTabOrder(readTabOrder()));
+    refresh();
+    window.addEventListener(TAB_ORDER_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(TAB_ORDER_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
   }, []);
 
   useEffect(() => {
@@ -121,7 +114,7 @@ export function Sidebar({ user }: Props) {
         aria-label="Navegação principal"
       >
         <ul className="space-y-1">
-          {NAV.map(({ href, label, Icon, exact }) => {
+          {nav.map(({ href, label, Icon, exact }) => {
             const active = isActive(href, exact);
             const pending = pendingHref === href && pathname !== href;
             return (
