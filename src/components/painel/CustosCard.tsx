@@ -31,7 +31,7 @@ export function CustosCard({ projeto }: Props) {
     : JSON.stringify(linhas) !== JSON.stringify(initial);
 
   function convertLegacy() {
-    const v = parseInt(valorLegacy, 10);
+    const v = parseFloat(valorLegacy);
     if (Number.isFinite(v) && v > 0) {
       setLinhas([
         {
@@ -52,7 +52,7 @@ export function CustosCard({ projeto }: Props) {
     try {
       let payload: Record<string, unknown>;
       if (useLegacy) {
-        const v = valorLegacy.trim() ? parseInt(valorLegacy, 10) : null;
+        const v = valorLegacy.trim() ? parseFloat(valorLegacy) : null;
         if (v !== null && !Number.isFinite(v)) {
           setError("Valor inválido.");
           setSaving(false);
@@ -106,8 +106,8 @@ export function CustosCard({ projeto }: Props) {
             <Input
               id="vl"
               type="number"
-              inputMode="numeric"
-              step="1"
+              inputMode="decimal"
+              step="0.01"
               min="0"
               value={valorLegacy}
               onChange={(e) => setValorLegacy(e.target.value)}

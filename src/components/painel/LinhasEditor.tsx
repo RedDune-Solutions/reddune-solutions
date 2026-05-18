@@ -125,14 +125,16 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                 />
                 <Input
                   type="number"
-                  inputMode="numeric"
-                  step="1"
+                  inputMode="decimal"
+                  step="0.01"
                   min="0"
                   placeholder="€"
                   value={l.precoUnit}
-                  onChange={(e) =>
-                    updateLinha(l.id, { precoUnit: parseInt(e.target.value, 10) || 0 })
-                  }
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const n = raw === "" ? 0 : parseFloat(raw);
+                    updateLinha(l.id, { precoUnit: Number.isFinite(n) ? n : 0 });
+                  }}
                   disabled={disabled}
                   className="col-span-2 h-8 text-xs tabular-nums"
                 />
