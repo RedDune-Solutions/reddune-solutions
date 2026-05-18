@@ -71,7 +71,7 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    const v = parseInt(valor, 10);
+    const v = parseFloat(valor);
     if (!Number.isFinite(v) || v <= 0) {
       setError("Valor inválido.");
       return;
@@ -161,8 +161,8 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
               <Input
                 id="pv"
                 type="number"
-                inputMode="numeric"
-                step="1"
+                inputMode="decimal"
+                step="0.01"
                 min="0"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
