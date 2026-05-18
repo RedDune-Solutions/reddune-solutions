@@ -37,8 +37,6 @@ export async function upsertServico(s: Servico): Promise<void> {
   const db = await getDb();
   const col = db.collection<Servico>(COLLECTION);
   await col.updateOne({ id: s.id }, { $set: s }, { upsert: true });
-  await col.createIndex({ id: 1 }, { unique: true });
-  await col.createIndex({ slug: 1, ordem: 1 });
 }
 
 export async function deleteServico(id: string): Promise<boolean> {

@@ -163,6 +163,11 @@ export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Prop
                               )}
                               aria-hidden="true"
                             />
+                            {t.prazoHora && (
+                              <span className="font-mono text-[10px] text-ink-mute tabular-nums">
+                                {t.prazoHora}
+                              </span>
+                            )}
                             <span className="truncate italic">{t.titulo}</span>
                           </span>
                         </Link>

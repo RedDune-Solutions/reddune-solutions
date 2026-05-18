@@ -26,6 +26,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
   const [pending, startTransition] = useTransition();
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoPrazo, setNovoPrazo] = useState("");
+  const [novaHora, setNovaHora] = useState("");
   const [adding, setAdding] = useState(false);
   const [showInput, setShowInput] = useState(false);
 
@@ -66,12 +67,14 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
           titulo,
           feita: false,
           prazo: novoPrazo || null,
+          prazoHora: novoPrazo && novaHora ? novaHora : null,
           notas: null,
           ordem: tarefas.length,
         }),
       });
       setNovoTitulo("");
       setNovoPrazo("");
+      setNovaHora("");
       setShowInput(false);
       startTransition(() => router.refresh());
     } finally {
@@ -139,6 +142,14 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
             className="h-8 text-sm w-[150px]"
             title="Data (opcional)"
           />
+          <Input
+            type="time"
+            value={novaHora}
+            onChange={(e) => setNovaHora(e.target.value)}
+            disabled={adding || !novoPrazo}
+            className="h-8 text-sm w-[110px]"
+            title="Hora (opcional)"
+          />
           <Button type="submit" size="sm" disabled={adding || !novoTitulo.trim()} className="h-8">
             {adding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Adicionar"}
           </Button>
@@ -147,7 +158,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
             variant="ghost"
             size="sm"
             className="h-8"
-            onClick={() => { setShowInput(false); setNovoTitulo(""); setNovoPrazo(""); }}
+            onClick={() => { setShowInput(false); setNovoTitulo(""); setNovoPrazo(""); setNovaHora(""); }}
           >
             Cancelar
           </Button>
@@ -231,6 +242,9 @@ function TarefaItem({
         >
           <Calendar className="h-3 w-3" aria-hidden="true" />
           {fmtData(tarefa.prazo)}
+          {tarefa.prazoHora && (
+            <span className="font-mono">{tarefa.prazoHora}</span>
+          )}
         </button>
       ) : (
         <button

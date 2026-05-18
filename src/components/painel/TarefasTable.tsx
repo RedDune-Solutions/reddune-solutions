@@ -80,11 +80,28 @@ export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
       {
         accessorKey: "tipo",
         header: "Tipo",
-        cell: ({ row }) => (
-          <span className="font-mono text-xs uppercase tracking-tight text-ink-mute">
-            {row.original.tipo ? PROJETO_TIPO_LABEL[row.original.tipo] : "—"}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const p = row.original;
+          const tags = p.tipos && p.tipos.length > 0 ? p.tipos : p.tipo ? [p.tipo] : [];
+          if (tags.length === 0)
+            return <span className="font-mono text-xs uppercase tracking-tight text-ink-mute">—</span>;
+          const visible = tags.slice(0, 3);
+          const overflow = tags.length - visible.length;
+          return (
+            <div className="flex flex-wrap gap-1">
+              {visible.map((t) => (
+                <span key={t} className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
+                  {PROJETO_TIPO_LABEL[t]}
+                </span>
+              ))}
+              {overflow > 0 && (
+                <span className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
+                  +{overflow}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: "actions",

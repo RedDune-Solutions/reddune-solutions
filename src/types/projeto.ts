@@ -125,6 +125,13 @@ export interface ProjetoLinha {
   precoUnit: number;
 }
 
+export interface ProjetoHardware {
+  marca?: string;
+  modelo?: string;
+  serial?: string;
+  acessoriosEntregues?: string;
+}
+
 export interface Projeto {
   id: string;
   titulo: string;
@@ -134,6 +141,7 @@ export interface Projeto {
   status: ProjetoStatus;
   categoria: ServicoSlug | null;
   tipo: ProjetoTipo | null;
+  tipos: ProjetoTipo[] | null;
   responsavel: ProjetoResponsavel | null;
   prazo: string | null;
   dataCriado: string | null;
@@ -146,4 +154,14 @@ export interface Projeto {
   bodyMd: string | null;
   linhas: ProjetoLinha[] | null;
   garantiaAte: string | null;
+  hardware: ProjetoHardware | null;
+}
+
+export function deriveCategoriasFromTipos(tipos: ProjetoTipo[] | null): ServicoSlug[] {
+  if (!tipos || tipos.length === 0) return [];
+  return [
+    ...new Set(
+      tipos.map((t) => TIPO_TO_CATEGORIA[t]).filter((c): c is ServicoSlug => c != null)
+    ),
+  ];
 }

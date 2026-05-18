@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { useRef } from "react";
+import { Plus, Trash2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +18,7 @@ import {
   type LinhaCategoria,
   type ProjetoLinha,
 } from "@/types/projeto";
+import { parseMoney, parseQty } from "@/lib/parse-number";
 
 type Props = {
   linhas: ProjetoLinha[];
@@ -47,12 +49,26 @@ export function computeByCategoria(linhas: ProjetoLinha[]): Record<LinhaCategori
 }
 
 export function LinhasEditor({ linhas, onChange, disabled }: Props) {
+  const listRef = useRef<HTMLDivElement>(null);
+
   function updateLinha(id: string, patch: Partial<ProjetoLinha>) {
     onChange(linhas.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   }
 
   function removeLinha(id: string) {
     onChange(linhas.filter((l) => l.id !== id));
+  }
+
+  function duplicateLinha(l: ProjetoLinha) {
+    const idx = linhas.findIndex((x) => x.id === l.id);
+    const copy: ProjetoLinha = { ...l, id: newLinhaId() };
+    if (idx < 0) {
+      onChange([...linhas, copy]);
+    } else {
+      const next = [...linhas];
+      next.splice(idx + 1, 0, copy);
+      onChange(next);
+    }
   }
 
   function addLinha() {
@@ -66,6 +82,10 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
         precoUnit: 0,
       },
     ]);
+    setTimeout(() => {
+      const last = listRef.current?.lastElementChild;
+      last?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
   }
 
   const total = computeTotal(linhas);
@@ -78,7 +98,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
           Sem linhas. Adiciona peças, mão-de-obra ou outros custos para calcular o valor.
         </p>
       ) : (
-        <div className="space-y-2">
+        <div ref={listRef} className="space-y-2">
           {linhas.map((l) => {
             const subtotal = l.quantidade * l.precoUnit;
             return (
@@ -92,7 +112,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   onChange={(e) => updateLinha(l.id, { descricao: e.target.value })}
                   disabled={disabled}
                   maxLength={300}
-                  className="col-span-5 h-8 text-xs"
+                  className="col-span-4 h-8 text-xs"
                 />
                 <Select
                   value={l.categoria}
@@ -118,7 +138,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   placeholder="Qtd"
                   value={l.quantidade}
                   onChange={(e) =>
-                    updateLinha(l.id, { quantidade: parseInt(e.target.value, 10) || 0 })
+                    updateLinha(l.id, { quantidade: parseQty(e.target.value) })
                   }
                   disabled={disabled}
                   className="col-span-1 h-8 text-xs tabular-nums"
@@ -131,9 +151,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   placeholder="€"
                   value={l.precoUnit}
                   onChange={(e) => {
-                    const raw = e.target.value;
-                    const n = raw === "" ? 0 : parseFloat(raw);
-                    updateLinha(l.id, { precoUnit: Number.isFinite(n) ? n : 0 });
+                    updateLinha(l.id, { precoUnit: parseMoney(e.target.value) ?? 0 });
                   }}
                   disabled={disabled}
                   className="col-span-2 h-8 text-xs tabular-nums"
@@ -141,6 +159,15 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                 <div className="col-span-1 text-right font-mono text-xs tabular-nums font-semibold">
                   {subtotal.toFixed(2)}€
                 </div>
+                <button
+                  type="button"
+                  onClick={() => duplicateLinha(l)}
+                  disabled={disabled}
+                  aria-label="Duplicar linha"
+                  className="col-span-1 justify-self-end text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
+                >
+                  <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
                 <button
                   type="button"
                   onClick={() => removeLinha(l.id)}

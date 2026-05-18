@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, UserPlus } from "lucide-react";
+import type { TarefaTemplate } from "@/types/tarefa-template";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,6 @@ import {
 import {
   STATUS_LABELS,
   PROJETO_STATUS,
-  PROJETO_TIPO,
   PROJETO_TIPO_LABEL,
   PROJETO_RESPONSAVEL,
   CATEGORIA_TIPOS,
@@ -27,7 +27,7 @@ import {
   type ProjetoTipo,
   type ProjetoResponsavel,
 } from "@/types/projeto";
-import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
+import { SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { Cliente } from "@/types/cliente";
 import { ClienteQuickForm } from "./ClienteQuickForm";
 
@@ -49,7 +49,13 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [clientesList, setClientesList] = useState<Cliente[]>(clientes);
   const [showQuickClient, setShowQuickClient] = useState(false);
   const [status, setStatus] = useState<ProjetoStatus>(projeto?.status ?? "proximo");
-  const [tipo, setTipo] = useState<ProjetoTipo | "">(projeto?.tipo ?? "");
+  const [tipos, setTipos] = useState<ProjetoTipo[]>(
+    projeto?.tipos && projeto.tipos.length > 0
+      ? projeto.tipos
+      : projeto?.tipo
+        ? [projeto.tipo]
+        : []
+  );
   const [categoria, setCategoria] = useState<ServicoSlug | null>(projeto?.categoria ?? null);
   const [responsavel, setResponsavel] = useState<ProjetoResponsavel | "">(
     projeto?.responsavel ?? ""
@@ -58,6 +64,36 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [garantiaAte, setGarantiaAte] = useState(projeto?.garantiaAte ?? "");
   const [proximaAccao, setProximaAccao] = useState(projeto?.proximaAccao ?? "");
   const [notasResumo, setNotasResumo] = useState(projeto?.notasResumo ?? "");
+  const [templates, setTemplates] = useState<TarefaTemplate[]>([]);
+  const [applyTemplateId, setApplyTemplateId] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/tarefa-templates")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: TarefaTemplate[] | unknown) => {
+        if (!cancelled && Array.isArray(data)) setTemplates(data as TarefaTemplate[]);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function onApplyTemplate(id: string) {
+    setApplyTemplateId(id);
+    if (!id) return;
+    const t = templates.find((x) => x.id === id);
+    if (!t) return;
+    if (t.categoria) setCategoria(t.categoria);
+    if (t.tipos && t.tipos.length > 0) {
+      setTipos((prev) => {
+        const set = new Set(prev);
+        for (const tp of t.tipos) set.add(tp);
+        return Array.from(set);
+      });
+    }
+  }
 
   function handleClienteCreated(c: Cliente) {
     setClientesList((prev) => [...prev, c]);
@@ -80,7 +116,8 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         clienteNome: selectedCliente?.nome ?? projeto?.clienteNome ?? null,
         status,
         categoria: categoria,
-        tipo: tipo || null,
+        tipo: tipos.length > 0 ? tipos[0] : null,
+        tipos: tipos.length > 0 ? tipos : null,
         responsavel: responsavel || null,
         prazo: prazo || null,
         proximaAccao: proximaAccao.trim() || null,
@@ -102,6 +139,20 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
       }
 
       const data = await res.json();
+
+      if (applyTemplateId && data?.id) {
+        try {
+          await fetch("/api/tarefas/from-template", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ projetoId: data.id, templateId: applyTemplateId }),
+          });
+        } catch {
+          // não bloquear o save principal
+        }
+        setApplyTemplateId("");
+      }
+
       startTransition(() => router.refresh());
       onSaved?.(data.id);
     } catch (e) {
@@ -115,8 +166,30 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
 
   return (
     <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      {/* Título + Template picker inline */}
       <div className="space-y-1">
-        <Label htmlFor="titulo">Título *</Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="titulo">Título *</Label>
+          {templates.length > 0 && (
+            <Select
+              value={applyTemplateId || "__none"}
+              onValueChange={(v) => onApplyTemplate(v === "__none" ? "" : v)}
+              disabled={isBusy}
+            >
+              <SelectTrigger className="h-7 w-auto max-w-[200px] text-[11px] text-muted-foreground border-dashed">
+                <SelectValue placeholder="Aplicar template…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">— Sem template —</SelectItem>
+                {templates.map((t) => (
+                  <SelectItem key={t.id} value={t.id} className="text-xs">
+                    {t.nome} ({t.itens?.length ?? 0})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
         <Input
           id="titulo"
           value={titulo}
@@ -126,6 +199,11 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
           placeholder="Nome do projeto"
           disabled={isBusy}
         />
+        {applyTemplateId && (
+          <p className="text-[10px] text-muted-foreground">
+            Tarefas do template serão criadas ao guardar.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -140,93 +218,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <Label>Categoria</Label>
-          <Select
-            value={categoria || "__none"}
-            onValueChange={(v) => {
-              const next = v === "__none" ? null : (v as ServicoSlug);
-              setCategoria(next);
-              if (tipo && next && !CATEGORIA_TIPOS[next].includes(tipo)) {
-                setTipo("");
-              }
-            }}
-            disabled={isBusy}
-          >
-            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">— Nenhuma —</SelectItem>
-              {SERVICO_SLUG.map((s) => (
-                <SelectItem key={s} value={s}>{SERVICO_SLUG_LABEL[s]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <Label>Tipo</Label>
-        <Select
-          value={tipo || "__none"}
-          onValueChange={(v) => {
-            const next = v === "__none" ? "" : (v as ProjetoTipo);
-            setTipo(next);
-            if (next && !categoria) {
-              const auto = TIPO_TO_CATEGORIA[next];
-              if (auto) setCategoria(auto);
-            }
-          }}
-          disabled={isBusy}
-        >
-          <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none">— Nenhum —</SelectItem>
-            {(categoria ? CATEGORIA_TIPOS[categoria] : PROJETO_TIPO).map((t) => (
-              <SelectItem key={t} value={t}>{PROJETO_TIPO_LABEL[t]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Cliente — Select + Quick create */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between">
-          <Label>Cliente</Label>
-          {!showQuickClient && (
-            <button
-              type="button"
-              onClick={() => setShowQuickClient(true)}
-              disabled={isBusy}
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              <UserPlus className="h-3 w-3" aria-hidden="true" />
-              Criar novo
-            </button>
-          )}
-        </div>
-        {showQuickClient ? (
-          <ClienteQuickForm
-            onCreated={handleClienteCreated}
-            onCancel={() => setShowQuickClient(false)}
-          />
-        ) : (
-          <Select
-            value={clienteId || "__none"}
-            onValueChange={(v) => setClienteId(v === "__none" ? "" : v)}
-            disabled={isBusy}
-          >
-            <SelectTrigger><SelectValue placeholder="— Sem cliente —" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">— Sem cliente —</SelectItem>
-              {clientesList.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label>Responsável</Label>
           <Select
@@ -245,6 +236,88 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Tipos — chips compactos em linha única por categoria */}
+      <div className="space-y-1.5">
+        <Label>Serviço / Tipo</Label>
+        <div className="rounded-md border border-border bg-muted/30 p-2.5 space-y-2">
+          {(Object.keys(CATEGORIA_TIPOS) as ServicoSlug[]).map((cat) => (
+            <div key={cat} className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground w-24 shrink-0">
+                {SERVICO_SLUG_LABEL[cat]}
+              </span>
+              {CATEGORIA_TIPOS[cat].map((t) => {
+                const active = tipos.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => {
+                      setTipos((prev) => {
+                        const next = active ? prev.filter((x) => x !== t) : [...prev, t];
+                        if (!categoria && !active) {
+                          const auto = TIPO_TO_CATEGORIA[t];
+                          if (auto) setCategoria(auto);
+                        }
+                        return next;
+                      });
+                    }}
+                    className={
+                      "text-[11px] px-2 py-0.5 rounded-full border transition-colors " +
+                      (active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
+                    }
+                  >
+                    {PROJETO_TIPO_LABEL[t]}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Cliente + Prazo */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1 col-span-2">
+          <div className="flex items-center justify-between">
+            <Label>Cliente</Label>
+            {!showQuickClient && (
+              <button
+                type="button"
+                onClick={() => setShowQuickClient(true)}
+                disabled={isBusy}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <UserPlus className="h-3 w-3" aria-hidden="true" />
+                Criar novo
+              </button>
+            )}
+          </div>
+          {showQuickClient ? (
+            <ClienteQuickForm
+              onCreated={handleClienteCreated}
+              onCancel={() => setShowQuickClient(false)}
+            />
+          ) : (
+            <Select
+              value={clienteId || "__none"}
+              onValueChange={(v) => setClienteId(v === "__none" ? "" : v)}
+              disabled={isBusy}
+            >
+              <SelectTrigger><SelectValue placeholder="— Sem cliente —" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">— Sem cliente —</SelectItem>
+                {clientesList.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
         <div className="space-y-1">
           <Label htmlFor="prazo">Prazo</Label>
           <Input
@@ -255,20 +328,19 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
             disabled={isBusy}
           />
         </div>
+        {(status === "terminado" || status === "fechado") && (
+          <div className="space-y-1">
+            <Label htmlFor="garantiaAte">Garantia até</Label>
+            <Input
+              id="garantiaAte"
+              type="date"
+              value={garantiaAte ?? ""}
+              onChange={(e) => setGarantiaAte(e.target.value)}
+              disabled={isBusy}
+            />
+          </div>
+        )}
       </div>
-
-      {(status === "terminado" || status === "fechado") && (
-        <div className="space-y-1">
-          <Label htmlFor="garantiaAte">Garantia até</Label>
-          <Input
-            id="garantiaAte"
-            type="date"
-            value={garantiaAte ?? ""}
-            onChange={(e) => setGarantiaAte(e.target.value)}
-            disabled={isBusy}
-          />
-        </div>
-      )}
 
       <div className="space-y-1">
         <Label htmlFor="proximaAccao">Próxima acção</Label>

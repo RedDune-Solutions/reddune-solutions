@@ -92,6 +92,11 @@ export async function POST() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (process.env.ALLOW_MIGRATIONS !== "1") {
+    return NextResponse.json({ error: "Migrations disabled" }, { status: 403 });
+  }
+
+  try {
   const contentDir = path.join(process.cwd(), "content", "pt", "servicos");
   let total = 0;
   const detalhes: Record<string, number> = {};
@@ -136,4 +141,8 @@ export async function POST() {
   void randomUUID;
 
   return NextResponse.json({ ok: true, total, detalhes });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

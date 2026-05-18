@@ -31,8 +31,6 @@ export async function upsertTarefa(tarefa: Tarefa): Promise<void> {
   const db = await getDb();
   const col = db.collection<Tarefa>(COLLECTION);
   await col.updateOne({ id: tarefa.id }, { $set: tarefa }, { upsert: true });
-  await col.createIndex({ id: 1 }, { unique: true });
-  await col.createIndex({ projetoId: 1 });
 }
 
 export async function patchTarefa(

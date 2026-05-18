@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     titulo: input.titulo,
     feita: input.feita ?? false,
     prazo: input.prazo ?? null,
+    prazoHora: input.prazoHora ?? null,
     notas: input.notas ?? null,
     ordem: input.ordem ?? 0,
     criadoEm: input.criadoEm ?? now,

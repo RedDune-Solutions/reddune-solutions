@@ -28,20 +28,29 @@ export async function POST() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const projetos = await getAllProjetos();
-  let migrated = 0;
-
-  for (const p of projetos) {
-    const old = p.status as string;
-    const next = MAP[old];
-    if (!next) continue;
-    const updated: Projeto = { ...p, status: next };
-    if (old === "garantia" && !p.garantiaAte) {
-      updated.garantiaAte = addDays(p.dataFechado ?? p.dataCriado ?? new Date().toISOString().slice(0, 10), 90);
-    }
-    await upsertProjeto(updated);
-    migrated += 1;
+  if (process.env.ALLOW_MIGRATIONS !== "1") {
+    return NextResponse.json({ error: "Migrations disabled" }, { status: 403 });
   }
 
-  return NextResponse.json({ ok: true, migrated, total: projetos.length });
+  try {
+    const projetos = await getAllProjetos();
+    let migrated = 0;
+
+    for (const p of projetos) {
+      const old = p.status as string;
+      const next = MAP[old];
+      if (!next) continue;
+      const updated: Projeto = { ...p, status: next };
+      if (old === "garantia" && !p.garantiaAte) {
+        updated.garantiaAte = addDays(p.dataFechado ?? p.dataCriado ?? new Date().toISOString().slice(0, 10), 90);
+      }
+      await upsertProjeto(updated);
+      migrated += 1;
+    }
+
+    return NextResponse.json({ ok: true, migrated, total: projetos.length });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

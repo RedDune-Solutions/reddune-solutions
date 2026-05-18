@@ -12,12 +12,17 @@ export const dynamic = "force-dynamic";
  * and old flexible "clientes" collection → new typed "clientes" collection.
  * Safe to run multiple times (upsert by id).
  */
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (process.env.ALLOW_MIGRATIONS !== "1") {
+    return NextResponse.json({ error: "Migrations disabled" }, { status: 403 });
+  }
+
+  try {
   const client = await clientPromise;
   const db = client.db(process.env.MONGODB_DB_NAME);
 
@@ -96,6 +101,8 @@ export async function POST(request: Request) {
       bodyMd: typeof t.bodyMd === "string" ? t.bodyMd : null,
       linhas: null,
       garantiaAte: null,
+      tipos: t.tipo ? [t.tipo] : null,
+      hardware: null,
     };
 
     await projetosCol.updateOne({ id: projeto.id }, { $set: projeto }, { upsert: true });
@@ -111,4 +118,8 @@ export async function POST(request: Request) {
     projetos: { migrated: projetosMigrated },
     clientes: { migrated: clientesMigrated, skipped: clientesSkipped },
   });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

@@ -25,6 +25,15 @@ export const projetoSchema = z.object({
   status: z.enum(PROJETO_STATUS),
   categoria: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(SERVICO_SLUG).nullable()),
   tipo: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_TIPO).nullable()),
+  tipos: z.array(z.enum(PROJETO_TIPO)).nullish(),
+  hardware: z
+    .object({
+      marca: z.string().max(100).optional(),
+      modelo: z.string().max(100).optional(),
+      serial: z.string().max(100).optional(),
+      acessoriosEntregues: z.string().max(500).optional(),
+    })
+    .nullish(),
   responsavel: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_RESPONSAVEL).nullable()),
   prazo: z.string().nullish(),
   dataCriado: z.string().nullish(),
@@ -47,6 +56,10 @@ export const tarefaSchema = z.object({
   titulo: z.string().min(1).max(300),
   feita: z.boolean(),
   prazo: z.string().nullable(),
+  prazoHora: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .nullish(),
   notas: z.string().max(1000).nullable(),
   ordem: z.number().int(),
   criadoEm: z.string(),

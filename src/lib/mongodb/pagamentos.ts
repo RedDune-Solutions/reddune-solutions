@@ -40,9 +40,6 @@ export async function upsertPagamento(p: Pagamento): Promise<void> {
   const db = await getDb();
   const col = db.collection<Pagamento>(COLLECTION);
   await col.updateOne({ id: p.id }, { $set: p }, { upsert: true });
-  await col.createIndex({ id: 1 }, { unique: true });
-  await col.createIndex({ projetoId: 1 });
-  await col.createIndex({ clienteId: 1 });
 }
 
 export async function deletePagamento(id: string): Promise<boolean> {

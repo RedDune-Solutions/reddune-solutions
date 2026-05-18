@@ -44,8 +44,28 @@ export async function POST(request: Request) {
     return v as Projeto[K];
   };
 
-  const tipoFinal = pick("tipo", null);
+  // Multi-tipo: tipos array drives single tipo + categoria derivation
+  const tiposInput = (input as Record<string, unknown>).tipos;
+  let tiposFinal: import("@/types/projeto").ProjetoTipo[] | null;
+  if (tiposInput === undefined) {
+    tiposFinal = existing?.tipos ?? null;
+  } else if (tiposInput === null) {
+    tiposFinal = null;
+  } else {
+    tiposFinal = tiposInput as import("@/types/projeto").ProjetoTipo[];
+  }
+
+  let tipoFinal = pick("tipo", null);
+  // If tipos provided, derive tipo from first element for compat
+  if (tiposInput !== undefined) {
+    tipoFinal = tiposFinal && tiposFinal.length > 0 ? tiposFinal[0] : null;
+  }
+
   let categoriaFinal = pick("categoria", null);
+  if (categoriaFinal == null && tiposFinal && tiposFinal.length > 0) {
+    const derived = tiposFinal.map((t) => TIPO_TO_CATEGORIA[t]).filter((c) => c != null);
+    if (derived.length > 0) categoriaFinal = derived[0]!;
+  }
   if (categoriaFinal == null && tipoFinal != null) {
     categoriaFinal = TIPO_TO_CATEGORIA[tipoFinal];
   }
@@ -59,6 +79,7 @@ export async function POST(request: Request) {
     status: input.status ?? existing?.status ?? "proximo",
     categoria: categoriaFinal,
     tipo: tipoFinal,
+    tipos: tiposFinal,
     responsavel: pick("responsavel", null),
     prazo: pick("prazo", null),
     dataCriado: input.id ? (existing?.dataCriado ?? input.dataCriado ?? now) : now,
@@ -71,8 +92,14 @@ export async function POST(request: Request) {
     bodyMd: pick("bodyMd", null),
     linhas: pick("linhas", null),
     garantiaAte: pick("garantiaAte", null),
+    hardware: pick("hardware", null),
   };
 
-  await upsertProjeto(projeto);
-  return NextResponse.json({ ok: true, id });
+  try {
+    await upsertProjeto(projeto);
+    return NextResponse.json({ ok: true, id });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

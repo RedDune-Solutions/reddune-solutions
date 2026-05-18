@@ -1,4 +1,4 @@
-import type { Projeto } from "@/types/projeto";
+import type { Projeto, ProjetoTipo } from "@/types/projeto";
 
 export function applyFilters(
   projetos: Projeto[],
@@ -8,7 +8,11 @@ export function applyFilters(
   return projetos.filter((p) => {
     if (params.status && p.status !== params.status) return false;
     if (params.categoria && p.categoria !== params.categoria) return false;
-    if (params.tipo && p.tipo !== params.tipo) return false;
+    if (params.tipo) {
+      const t = params.tipo as ProjetoTipo;
+      const matches = p.tipo === t || (Array.isArray(p.tipos) && p.tipos.includes(t));
+      if (!matches) return false;
+    }
     if (params.clienteNome && p.clienteNome !== params.clienteNome) return false;
     if (q) {
       const hay = [

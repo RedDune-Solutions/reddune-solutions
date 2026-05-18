@@ -22,7 +22,11 @@ type Props = {
   className?: string;
   triggerClassName?: string;
   stopPropagation?: boolean;
+  pagoTotal?: number;
+  valorEstimado?: number | null;
 };
+
+type QuickAction = { label: string; target: ProjetoStatus };
 
 export function InlineStatusSelect({
   projetoId,
@@ -30,6 +34,8 @@ export function InlineStatusSelect({
   className,
   triggerClassName,
   stopPropagation = true,
+  pagoTotal,
+  valorEstimado,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -60,9 +66,25 @@ export function InlineStatusSelect({
     }
   }
 
+  const quickActions: QuickAction[] = [];
+  if (current === "em-curso") {
+    quickActions.push({ label: "→ Terminar", target: "terminado" });
+  }
+  if (current === "aguardando-cliente") {
+    quickActions.push({ label: "→ Aceito", target: "aguardando-encomenda" });
+  }
+  if (current === "terminado") {
+    const liquidado =
+      valorEstimado == null ||
+      (pagoTotal != null && pagoTotal >= valorEstimado);
+    if (liquidado) {
+      quickActions.push({ label: "→ Fechar", target: "fechado" });
+    }
+  }
+
   return (
     <div
-      className={cn("inline-flex", className)}
+      className={cn("inline-flex items-center gap-1", className)}
       onClick={stopPropagation ? (e) => e.stopPropagation() : undefined}
       onPointerDown={stopPropagation ? (e) => e.stopPropagation() : undefined}
     >
@@ -84,6 +106,21 @@ export function InlineStatusSelect({
           ))}
         </SelectContent>
       </Select>
+      {quickActions.map((qa) => (
+        <button
+          key={qa.target}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onChange(qa.target);
+          }}
+          disabled={pending}
+          className="h-7 px-2 text-[10px] font-mono font-semibold uppercase tracking-tight rounded-btn border border-dune-deep/15 bg-white/60 hover:bg-ember/10 transition-colors"
+        >
+          {qa.label}
+        </button>
+      ))}
       {error && <span className="sr-only">{error}</span>}
     </div>
   );

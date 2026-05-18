@@ -41,6 +41,7 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
   const [projetoId, setProjetoId] = useState("");
   const [titulo, setTitulo] = useState("");
   const [prazo, setPrazo] = useState("");
+  const [prazoHora, setPrazoHora] = useState("");
   const [notas, setNotas] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
     setProjetoId("");
     setTitulo("");
     setPrazo("");
+    setPrazoHora("");
     setNotas("");
     setError(null);
   }
@@ -74,6 +76,7 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
           titulo: titulo.trim(),
           feita: false,
           prazo: prazo || null,
+          prazoHora: prazo && prazoHora ? prazoHora : null,
           notas: notas.trim() || null,
           ordem: 0,
         }),
@@ -105,8 +108,8 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
           Nova tarefa
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md">
-        <SheetHeader>
+      <SheetContent side="right" className="w-full sm:max-w-md p-6">
+        <SheetHeader className="px-0">
           <SheetTitle>Nova tarefa</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

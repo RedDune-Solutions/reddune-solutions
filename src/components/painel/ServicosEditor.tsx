@@ -12,6 +12,7 @@ import {
   type ServicoSlug,
   type VariantePreco,
 } from "@/types/servico";
+import { parseMoney } from "@/lib/parse-number";
 
 type Props = {
   slug: ServicoSlug;
@@ -168,12 +169,12 @@ export function ServicosEditor({ slug, servicos }: Props) {
           setError("Todas as variantes precisam de um label.");
           return;
         }
-        const n = parseFloat(v.preco.replace(",", "."));
-        if (!Number.isFinite(n) || n < 0) {
+        const n = parseMoney(v.preco);
+        if (n == null || n < 0) {
           setError(`Preço inválido na variante "${v.label}".`);
           return;
         }
-        const nMax = v.precoMax.trim() ? parseFloat(v.precoMax.replace(",", ".")) : null;
+        const nMax = v.precoMax.trim() ? parseMoney(v.precoMax) : null;
         parsed.push({ label: v.label.trim(), preco: n, precoMax: nMax ?? null });
       }
       variantesPayload = parsed;
@@ -182,8 +183,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
     setSavingId(d.id ?? `new_${idx}`);
     setError(null);
     try {
-      const precoBase = d.precoBase.trim() ? parseFloat(d.precoBase.replace(",", ".")) : null;
-      const precoMax = d.precoMax.trim() ? parseFloat(d.precoMax.replace(",", ".")) : null;
+      const precoBase = d.precoBase.trim() ? parseMoney(d.precoBase) : null;
+      const precoMax = d.precoMax.trim() ? parseMoney(d.precoMax) : null;
       const payload = {
         id: d.id ?? undefined,
         slug,

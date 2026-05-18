@@ -21,6 +21,8 @@ import { CustosCard } from "@/components/painel/CustosCard";
 import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
 import { TarefaChecklist } from "@/components/painel/TarefaChecklist";
 import { TarefaForm } from "@/components/painel/TarefaForm";
+import { NotasContextoCard } from "@/components/painel/NotasContextoCard";
+import { HardwareSection } from "@/components/painel/HardwareSection";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +79,9 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
 
           {/* ── Main content ── */}
           <div className="flex-1 min-w-0 space-y-6">
+            {/* Notas / Contexto — topo */}
+            <NotasContextoCard projeto={projeto} />
+
             {/* Editor inline */}
             <section className="rounded-xl border border-border bg-card">
               <TarefaForm projeto={projeto} clientes={clientes} />
@@ -106,6 +111,11 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
               projetoStatus={projeto.status}
               projetoTitulo={projeto.titulo}
             />
+
+            {/* Hardware (só assistência técnica) */}
+            {projeto.categoria === "assistencia-tecnica" && (
+              <HardwareSection projeto={projeto} />
+            )}
 
             {/* Custos editável */}
             <CustosCard projeto={projeto} />

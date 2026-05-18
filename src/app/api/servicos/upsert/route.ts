@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertServico, getServicoById, getServicosBySlug } from "@/lib/mongodb/servicos";
@@ -66,5 +67,7 @@ export async function POST(request: Request) {
   };
 
   await upsertServico(servico);
+  revalidatePath("/servicos");
+  revalidatePath(`/servicos/${input.slug}`);
   return NextResponse.json({ ok: true, id });
 }

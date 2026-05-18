@@ -29,7 +29,6 @@ export async function upsertCliente(cliente: Cliente): Promise<void> {
   const db = await getDb();
   const col = db.collection<Cliente>(COLLECTION);
   await col.updateOne({ id: cliente.id }, { $set: cliente }, { upsert: true });
-  await col.createIndex({ id: 1 }, { unique: true });
 }
 
 export async function deleteCliente(id: string): Promise<boolean> {

@@ -13,15 +13,20 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await context.params;
-  if (!id) {
-    return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  }
+  try {
+    const { id } = await context.params;
+    if (!id) {
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    }
 
-  const ok = await deleteCliente(id);
-  if (!ok) {
-    return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
-  }
+    const ok = await deleteCliente(id);
+    if (!ok) {
+      return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
+    }
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

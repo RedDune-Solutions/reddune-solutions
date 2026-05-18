@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LinhasEditor, computeTotal } from "./LinhasEditor";
 import type { Projeto, ProjetoLinha } from "@/types/projeto";
+import { parseMoney } from "@/lib/parse-number";
 
 type Props = {
   projeto: Projeto;
@@ -31,7 +32,7 @@ export function CustosCard({ projeto }: Props) {
     : JSON.stringify(linhas) !== JSON.stringify(initial);
 
   function convertLegacy() {
-    const v = parseFloat(valorLegacy);
+    const v = parseMoney(valorLegacy) ?? NaN;
     if (Number.isFinite(v) && v > 0) {
       setLinhas([
         {
@@ -52,8 +53,8 @@ export function CustosCard({ projeto }: Props) {
     try {
       let payload: Record<string, unknown>;
       if (useLegacy) {
-        const v = valorLegacy.trim() ? parseFloat(valorLegacy) : null;
-        if (v !== null && !Number.isFinite(v)) {
+        const v = valorLegacy.trim() ? parseMoney(valorLegacy) : null;
+        if (valorLegacy.trim() && v === null) {
           setError("Valor inválido.");
           setSaving(false);
           return;

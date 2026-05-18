@@ -4,6 +4,8 @@ import { validateContact, SUBJECT_LABELS } from "@/lib/validation";
 import { businessEmail } from "@/config/contact";
 import { getResend } from "@/lib/resend";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   let body: unknown;
   try {

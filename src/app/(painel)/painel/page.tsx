@@ -3,6 +3,7 @@ import { ListChecks, Hourglass, CheckCircle2, AlertCircle, ArrowRight, Users, Al
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
+import { ensureIndexes } from "@/lib/mongodb/init-indexes";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { TarefaCard } from "@/components/painel/TarefaCard";
@@ -13,6 +14,7 @@ import { STATUS_GROUPS } from "@/types/projeto";
 export const dynamic = "force-dynamic";
 
 export default async function PainelOverviewPage() {
+  await ensureIndexes();
   const [projetos, clientes, pagamentos] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
@@ -34,6 +36,14 @@ export default async function PainelOverviewPage() {
     (sum, p) => sum + ((p.valorEstimado ?? 0) - (pagoPorProjeto.get(p.id) ?? 0)),
     0
   );
+
+  const emAtrasoLongo = projetos.filter((p) => {
+    if (p.status !== "terminado") return false;
+    if (!p.dataFechado) return false;
+    const days = (Date.now() - new Date(p.dataFechado).getTime()) / 86400000;
+    const pago = pagoPorProjeto.get(p.id) ?? 0;
+    return days > 30 && (p.valorEstimado ?? 0) > pago;
+  });
 
   const counts = {
     total: projetos.length,
@@ -116,6 +126,15 @@ export default async function PainelOverviewPage() {
                     : "Sem valor estimado"
                 }
               />
+              <Link href="/painel/dividas" className="block">
+                <KpiCard
+                  label="Em atraso 30+ dias"
+                  value={emAtrasoLongo.length}
+                  icon={AlertTriangle}
+                  tone="accent"
+                  hint="Terminados há mais de 30 dias sem liquidar"
+                />
+              </Link>
             </div>
 
             <section>

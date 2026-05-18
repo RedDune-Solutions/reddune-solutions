@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Euro } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { METODO_PAGAMENTO, METODO_LABEL, type Pagamento, type MetodoPagamento } from "@/types/pagamento";
+import { parseMoney } from "@/lib/parse-number";
 
 type Props = {
   projetoId: string;
@@ -40,6 +41,7 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const [valor, setValor] = useState("");
   const [data, setData] = useState(todayIso());
   const [metodo, setMetodo] = useState<MetodoPagamento | "">("");
@@ -50,6 +52,48 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
   const totalPago = pagamentos.reduce((s, p) => s + p.valor, 0);
   const emDivida = valorEstimado != null ? valorEstimado - totalPago : null;
   const canClose = projetoStatus === "terminado" && emDivida != null && emDivida <= 0;
+
+  // Quick payment helpers
+  const ultimoMetodo: MetodoPagamento | null = (() => {
+    const sorted = [...pagamentos].sort((a, b) => (a.data < b.data ? 1 : -1));
+    for (const p of sorted) {
+      if (p.metodo) return p.metodo;
+    }
+    return null;
+  })();
+
+  async function quickPay(v: number) {
+    if (!Number.isFinite(v) || v <= 0) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/pagamentos/upsert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projetoId,
+          valor: Math.round(v * 100) / 100,
+          data: todayIso(),
+          metodo: ultimoMetodo,
+          notas: null,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      startTransition(() => router.refresh());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const entradaValor =
+    valorEstimado != null && valorEstimado > 0 && totalPago === 0
+      ? Math.round(valorEstimado * 0.5 * 100) / 100
+      : null;
+  const restante = emDivida != null && emDivida > 0 ? Math.round(emDivida * 100) / 100 : null;
 
   async function fecharProjeto() {
     if (!projetoTitulo) return;
@@ -71,8 +115,8 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    const v = parseFloat(valor);
-    if (!Number.isFinite(v) || v <= 0) {
+    const v = parseMoney(valor);
+    if (v == null || v <= 0) {
       setError("Valor inválido.");
       return;
     }
@@ -117,7 +161,10 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
           Pagamentos
         </p>
         {!adding && (
-          <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
+          <Button size="sm" variant="outline" onClick={() => {
+            setAdding(true);
+            setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+          }}>
             <Plus className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
             Adicionar
           </Button>
@@ -153,8 +200,33 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
         )}
       </div>
 
+      {(entradaValor != null || restante != null) && !adding && (
+        <div className="flex flex-wrap gap-2">
+          {entradaValor != null && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => quickPay(entradaValor)}
+              disabled={saving}
+            >
+              Entrada (50%): {entradaValor}€
+            </Button>
+          )}
+          {restante != null && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => quickPay(restante)}
+              disabled={saving}
+            >
+              Liquidar restante: {restante}€
+            </Button>
+          )}
+        </div>
+      )}
+
       {adding && (
-        <form onSubmit={add} className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+        <form ref={formRef} onSubmit={add} className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
           <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1">
               <Label htmlFor="pv">Valor €</Label>

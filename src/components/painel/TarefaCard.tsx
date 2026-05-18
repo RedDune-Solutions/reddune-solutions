@@ -72,10 +72,10 @@ export function TarefaCard({ projeto, className }: Props) {
         </h3>
 
         {projeto.proximaAccao && (
-          <div className="mt-2.5 rounded-md bg-black/5 px-3 py-2">
-            <p className="text-xs text-ink-soft leading-relaxed flex items-start gap-1.5">
+          <div className="mt-2.5 rounded-md bg-amber-100/60 border border-amber-300/50 px-3 py-2">
+            <p className="text-xs text-amber-900 leading-relaxed flex items-start gap-1.5">
               <ArrowRight
-                className="size-3 shrink-0 mt-0.5 text-ink-mute"
+                className="size-3 shrink-0 mt-0.5 text-amber-700"
                 strokeWidth={2.5}
                 aria-hidden
               />
@@ -102,9 +102,33 @@ export function TarefaCard({ projeto, className }: Props) {
               {prazo}
             </span>
           )}
-          {projeto.tipo && (
-            <span className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
-              {PROJETO_TIPO_LABEL[projeto.tipo]}
+          {(() => {
+            const tagSet = projeto.tipos && projeto.tipos.length > 0
+              ? projeto.tipos
+              : projeto.tipo
+                ? [projeto.tipo]
+                : [];
+            if (tagSet.length === 0) return null;
+            const visible = tagSet.slice(0, 3);
+            const overflow = tagSet.length - visible.length;
+            return (
+              <>
+                {visible.map((t) => (
+                  <span key={t} className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
+                    {PROJETO_TIPO_LABEL[t]}
+                  </span>
+                ))}
+                {overflow > 0 && (
+                  <span className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
+                    +{overflow}
+                  </span>
+                )}
+              </>
+            );
+          })()}
+          {projeto.hardware && (projeto.hardware.marca || projeto.hardware.modelo) && (
+            <span className="text-[10px] font-medium bg-sky-100 text-sky-800 rounded px-1.5 py-0.5">
+              {[projeto.hardware.marca, projeto.hardware.modelo].filter(Boolean).join(" ")}
             </span>
           )}
         </div>
