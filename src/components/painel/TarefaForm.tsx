@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Plus, X } from "lucide-react";
 import type { TarefaTemplate } from "@/types/tarefa-template";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,10 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [notasResumo, setNotasResumo] = useState(projeto?.notasResumo ?? "");
   const [templates, setTemplates] = useState<TarefaTemplate[]>([]);
   const [applyTemplateId, setApplyTemplateId] = useState<string>("");
+  const [addingCat, setAddingCat] = useState<ServicoSlug | null>(null);
+  const [newTipoLabel, setNewTipoLabel] = useState("");
+  const [savingTipo, setSavingTipo] = useState(false);
+  const newTipoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +84,52 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
+
+  function toggleTipo(slug: string, cat: ServicoSlug) {
+    const active = tipos.includes(slug);
+    if (active) {
+      setTipos((prev) => prev.filter((x) => x !== slug));
+    } else {
+      setTipos((prev) => [...prev, slug]);
+      if (!categoria) {
+        const auto = TIPO_TO_CATEGORIA[slug as import("@/types/projeto").ProjetoTipo] ?? cat;
+        setCategoria(auto);
+      }
+    }
+  }
+
+  async function saveCustomTipo(cat: ServicoSlug) {
+    const label = newTipoLabel.trim();
+    if (!label) return;
+    setSavingTipo(true);
+    try {
+      const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const res = await fetch("/api/projeto-tipos-custom/upsert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, label, categoria: cat }),
+      });
+      if (res.ok) {
+        const novo = await res.json() as ProjetoTipoCustom;
+        setCustomTipos((prev) => [...prev, novo]);
+        setTipos((prev) => [...prev, novo.slug]);
+        setNewTipoLabel("");
+        setAddingCat(null);
+      }
+    } finally {
+      setSavingTipo(false);
+    }
+  }
+
+  async function deleteCustomTipo(tipo: ProjetoTipoCustom) {
+    try {
+      await fetch(`/api/projeto-tipos-custom/${tipo.id}`, { method: "DELETE" });
+      setCustomTipos((prev) => prev.filter((c) => c.id !== tipo.id));
+      setTipos((prev) => prev.filter((s) => s !== tipo.slug));
+    } catch {
+      // silent
+    }
+  }
 
   function onApplyTemplate(id: string) {
     setApplyTemplateId(id);
@@ -246,32 +296,21 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
           {(Object.keys(CATEGORIA_TIPOS) as ServicoSlug[]).map((cat) => {
             const baseTipos = CATEGORIA_TIPOS[cat];
             const extraTipos = customTipos.filter((c) => c.categoria === cat);
-            const allTipos: { slug: string; label: string }[] = [
-              ...baseTipos.map((t) => ({ slug: t, label: PROJETO_TIPO_LABEL[t] ?? t })),
-              ...extraTipos.map((c) => ({ slug: c.slug, label: c.label })),
-            ];
+            const isAddingHere = addingCat === cat;
             return (
               <div key={cat} className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground w-24 shrink-0">
                   {SERVICO_SLUG_LABEL[cat]}
                 </span>
-                {allTipos.map(({ slug: t, label }) => {
+                {/* Base tipos */}
+                {baseTipos.map((t) => {
                   const active = tipos.includes(t);
                   return (
                     <button
                       key={t}
                       type="button"
                       disabled={isBusy}
-                      onClick={() => {
-                        setTipos((prev) => {
-                          const next = active ? prev.filter((x) => x !== t) : [...prev, t];
-                          if (!categoria && !active) {
-                            const auto = TIPO_TO_CATEGORIA[t as import("@/types/projeto").ProjetoTipo] ?? cat;
-                            if (auto) setCategoria(auto);
-                          }
-                          return next;
-                        });
-                      }}
+                      onClick={() => toggleTipo(t, cat)}
                       className={
                         "text-[11px] px-2 py-0.5 rounded-full border transition-colors " +
                         (active
@@ -279,10 +318,88 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
                           : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
                       }
                     >
-                      {label}
+                      {PROJETO_TIPO_LABEL[t] ?? t}
                     </button>
                   );
                 })}
+                {/* Custom tipos — com botão × para eliminar */}
+                {extraTipos.map((c) => {
+                  const active = tipos.includes(c.slug);
+                  return (
+                    <span key={c.id} className="inline-flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => toggleTipo(c.slug, cat)}
+                        className={
+                          "text-[11px] px-2 py-0.5 rounded-l-full border-y border-l transition-colors " +
+                          (active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
+                        }
+                      >
+                        {c.label}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => deleteCustomTipo(c)}
+                        title="Eliminar tipo"
+                        className={
+                          "text-[10px] px-1 py-0.5 rounded-r-full border-y border-r transition-colors " +
+                          (active
+                            ? "bg-primary text-primary-foreground border-primary hover:bg-red-500 hover:border-red-500"
+                            : "bg-background text-muted-foreground border-border hover:bg-red-50 hover:text-red-600 hover:border-red-300")
+                        }
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </span>
+                  );
+                })}
+                {/* Botão + ou input inline */}
+                {isAddingHere ? (
+                  <span className="inline-flex items-center gap-1">
+                    <input
+                      ref={newTipoInputRef}
+                      autoFocus
+                      type="text"
+                      value={newTipoLabel}
+                      onChange={(e) => setNewTipoLabel(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); saveCustomTipo(cat); }
+                        if (e.key === "Escape") { setAddingCat(null); setNewTipoLabel(""); }
+                      }}
+                      placeholder="Novo tipo…"
+                      className="text-[11px] h-6 px-2 rounded-full border border-primary/50 bg-background outline-none w-28"
+                    />
+                    <button
+                      type="button"
+                      disabled={savingTipo || !newTipoLabel.trim()}
+                      onClick={() => saveCustomTipo(cat)}
+                      className="text-[10px] h-6 px-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50"
+                    >
+                      {savingTipo ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : "OK"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAddingCat(null); setNewTipoLabel(""); }}
+                      className="text-[10px] h-6 w-6 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => { setAddingCat(cat); setNewTipoLabel(""); }}
+                    title="Adicionar tipo personalizado"
+                    className="text-[10px] h-5 w-5 flex items-center justify-center rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary/60 hover:text-primary transition-colors"
+                  >
+                    <Plus className="h-2.5 w-2.5" />
+                  </button>
+                )}
               </div>
             );
           })}
