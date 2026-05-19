@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCheck, ThumbsUp, Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -26,7 +27,7 @@ type Props = {
   valorEstimado?: number | null;
 };
 
-type QuickAction = { label: string; target: ProjetoStatus };
+type QuickAction = { icon: React.ReactNode; label: string; target: ProjetoStatus };
 
 export function InlineStatusSelect({
   projetoId,
@@ -68,17 +69,17 @@ export function InlineStatusSelect({
 
   const quickActions: QuickAction[] = [];
   if (current === "em-curso") {
-    quickActions.push({ label: "→ Terminar", target: "terminado" });
+    quickActions.push({ icon: <CheckCheck className="h-3.5 w-3.5" />, label: "Terminar", target: "terminado" });
   }
   if (current === "aguardando-cliente") {
-    quickActions.push({ label: "→ Aceito", target: "aguardando-encomenda" });
+    quickActions.push({ icon: <ThumbsUp className="h-3.5 w-3.5" />, label: "Aceito", target: "aguardando-encomenda" });
   }
   if (current === "terminado") {
     const liquidado =
       valorEstimado == null ||
       (pagoTotal != null && pagoTotal >= valorEstimado);
     if (liquidado) {
-      quickActions.push({ label: "→ Fechar", target: "fechado" });
+      quickActions.push({ icon: <Lock className="h-3.5 w-3.5" />, label: "Fechar", target: "fechado" });
     }
   }
 
@@ -110,15 +111,16 @@ export function InlineStatusSelect({
         <button
           key={qa.target}
           type="button"
+          title={qa.label}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onChange(qa.target);
           }}
           disabled={pending}
-          className="h-7 px-2 text-[10px] font-mono font-semibold uppercase tracking-tight rounded-btn border border-dune-deep/15 bg-white/60 hover:bg-ember/10 transition-colors"
+          className="h-7 w-7 flex items-center justify-center rounded-btn border border-dune-deep/15 bg-white/60 hover:bg-ember/10 transition-colors text-ink-soft hover:text-ink"
         >
-          {qa.label}
+          {qa.icon}
         </button>
       ))}
       {error && <span className="sr-only">{error}</span>}

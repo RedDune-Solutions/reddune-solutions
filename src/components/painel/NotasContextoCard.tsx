@@ -2,10 +2,78 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, FileText, Plus } from "lucide-react";
+import { Loader2, FileText, Plus, LayoutTemplate } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Projeto } from "@/types/projeto";
+
+const TEMPLATE_AT = `## 🗣️ Pedido / testemunho do cliente
+
+(palavras do cliente se possível)
+
+## 🔍 Diagnóstico / análise técnica
+
+
+
+## ⚙️ Resolução
+
+
+
+## 🧩 Componentes
+
+| Tipo | Nome | Observações |
+| --- | --- | --- |
+| Caixa |  |  |
+| Motherboard |  |  |
+| CPU |  |  |
+| Cooler |  |  |
+| GPU |  |  |
+| RAM |  |  |
+| Armazenamento |  |  |
+| Fonte |  |  |
+
+## 📝 Notas / histórico
+
+-`;
+
+const TEMPLATE_WEB = `## 🗣️ Pedido do cliente
+
+(descrição do que o cliente quer)
+
+## 🔍 Análise / briefing
+
+
+
+## ⚙️ Solução / implementação
+
+
+
+## 📝 Notas / histórico
+
+-`;
+
+const TEMPLATE_SOFTWARE = `## 🗣️ Pedido do cliente
+
+(descrição do problema)
+
+## 🔍 Diagnóstico
+
+
+
+## ⚙️ Resolução
+
+
+
+## 📝 Notas / histórico
+
+-`;
+
+function getTemplate(projeto: Projeto): string {
+  if (projeto.categoria === "assistencia-tecnica") return TEMPLATE_AT;
+  if (projeto.categoria === "web-digital") return TEMPLATE_WEB;
+  if (projeto.categoria === "software-recuperacao") return TEMPLATE_SOFTWARE;
+  return TEMPLATE_AT;
+}
 
 type Props = {
   projeto: Projeto;
@@ -127,10 +195,26 @@ export function NotasContextoCard({ projeto }: Props) {
         </div>
       )}
 
+      {!bodyMd && !adding && (
+        <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2">
+          <LayoutTemplate className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
+          <span className="flex-1 text-xs text-muted-foreground">Sem conteúdo ainda.</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => setBodyMd(getTemplate(projeto))}
+            disabled={saving}
+          >
+            Usar template
+          </Button>
+        </div>
+      )}
+
       <Textarea
         value={bodyMd}
         onChange={(e) => setBodyMd(e.target.value)}
-        rows={8}
+        rows={bodyMd ? 12 : 4}
         placeholder="Markdown livre — contexto, decisões, histórico…"
         className="font-mono text-xs"
         disabled={saving}

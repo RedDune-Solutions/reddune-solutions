@@ -5,14 +5,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_LABELS, type ProjetoStatus, type Projeto } from "@/types/projeto";
 import { TarefaCard } from "./TarefaCard";
-
-const MAIN_COLUMNS: ProjetoStatus[] = [
-  "em-curso",
-  "proximo",
-  "aguardando-cliente",
-  "aguardando-encomenda",
-  "terminado",
-];
+import { readKanbanOrder, KANBAN_DEFAULT_COLUMNS } from "./KanbanOrderSettings";
 
 const ARCHIVE_STATUSES: ProjetoStatus[] = ["fechado", "cancelado"];
 
@@ -25,6 +18,7 @@ type Props = {
 
 export function KanbanBoard({ projetos, className }: Props) {
   const [collapsed, setCollapsed] = useState<Set<ProjetoStatus>>(new Set());
+  const [mainColumns, setMainColumns] = useState<ProjetoStatus[]>(KANBAN_DEFAULT_COLUMNS);
 
   useEffect(() => {
     try {
@@ -33,6 +27,7 @@ export function KanbanBoard({ projetos, className }: Props) {
     } catch {
       // ignore
     }
+    setMainColumns(readKanbanOrder());
   }, []);
 
   function toggle(status: ProjetoStatus) {
@@ -55,7 +50,7 @@ export function KanbanBoard({ projetos, className }: Props) {
     grouped[projeto.status]!.push(projeto);
   }
 
-  const columns = MAIN_COLUMNS.filter(
+  const columns = mainColumns.filter(
     (status) =>
       (grouped[status]?.length ?? 0) > 0 ||
       (["em-curso", "proximo"] as ProjetoStatus[]).includes(status)
