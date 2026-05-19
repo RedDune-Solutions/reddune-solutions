@@ -9,13 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   type Servico,
-  type ServicoSlug,
   type VariantePreco,
 } from "@/types/servico";
 import { parseMoney } from "@/lib/parse-number";
 
 type Props = {
-  slug: ServicoSlug;
+  slug: string;
   servicos: Servico[];
 };
 
