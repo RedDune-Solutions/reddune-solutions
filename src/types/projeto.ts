@@ -1,5 +1,6 @@
 export const PROJETO_STATUS = [
-  "ideia",
+  "ideia-interna",
+  "ideia-cliente",
   "proximo",
   "em-curso",
   "aguardando-cliente",
@@ -12,7 +13,8 @@ export const PROJETO_STATUS = [
 export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
 
 export const STATUS_LABELS: Record<ProjetoStatus, string> = {
-  ideia: "Ideia",
+  "ideia-interna": "Ideia (interna)",
+  "ideia-cliente": "Ideia (cliente)",
   proximo: "Próximo",
   "em-curso": "Em curso",
   "aguardando-cliente": "Aguarda cliente",
@@ -31,7 +33,9 @@ export const STATUS_GROUPS = {
   pronto: ["terminado"] as ProjetoStatus[],
   arquivo: ["fechado", "cancelado"] as ProjetoStatus[],
   comprometido: ["em-curso", "aguardando-encomenda", "terminado"] as ProjetoStatus[],
-  ideias: ["ideia"] as ProjetoStatus[],
+  ideias: ["ideia-interna", "ideia-cliente"] as ProjetoStatus[],
+  ideiasInternas: ["ideia-interna"] as ProjetoStatus[],
+  ideiasCliente: ["ideia-cliente"] as ProjetoStatus[],
 };
 
 import type { ServicoSlug } from "@/types/servico";
@@ -107,6 +111,12 @@ export const CATEGORIA_TIPOS: Record<ServicoSlug, ProjetoTipo[]> = {
 
 export const PROJETO_RESPONSAVEL = ["eu", "cliente", "fornecedor"] as const;
 export type ProjetoResponsavel = (typeof PROJETO_RESPONSAVEL)[number];
+
+export const RESPONSAVEL_LABEL: Record<ProjetoResponsavel, string> = {
+  eu: "Meu lado",
+  cliente: "Cliente",
+  fornecedor: "Parceiro",
+};
 
 export const PROJETO_LOCAL = ["oficina", "casa-cliente", "remoto"] as const;
 export type ProjetoLocal = (typeof PROJETO_LOCAL)[number];

@@ -68,6 +68,9 @@ export function InlineStatusSelect({
   }
 
   const quickActions: QuickAction[] = [];
+  if (current === "ideia-cliente") {
+    quickActions.push({ icon: <ThumbsUp className="h-3.5 w-3.5" />, label: "Confirmar", target: "proximo" });
+  }
   if (current === "em-curso") {
     quickActions.push({ icon: <CheckCheck className="h-3.5 w-3.5" />, label: "Terminar", target: "terminado" });
   }

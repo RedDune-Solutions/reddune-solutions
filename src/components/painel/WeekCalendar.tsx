@@ -19,7 +19,8 @@ const HOUR_START = 8;
 const HOUR_END = 20;
 
 const STATUS_DOT: Record<ProjetoStatus, string> = {
-  ideia: "bg-violet-400",
+  "ideia-interna": "bg-violet-400",
+  "ideia-cliente": "bg-amber-400",
   proximo: "bg-apricot",
   "em-curso": "bg-ember",
   "aguardando-cliente": "bg-amber-300",

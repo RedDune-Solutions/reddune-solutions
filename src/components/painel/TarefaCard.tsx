@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { CalendarDays, User, ArrowRight } from "lucide-react";
 import { InlineStatusSelect } from "./InlineStatusSelect";
 import { TarefaRowMenu } from "./TarefaRowMenu";
-import { PROJETO_TIPO_LABEL, type Projeto, type ProjetoStatus } from "@/types/projeto";
+import { PROJETO_TIPO_LABEL, RESPONSAVEL_LABEL, type Projeto, type ProjetoStatus } from "@/types/projeto";
 
 type Props = {
   projeto: Projeto;
@@ -11,7 +11,8 @@ type Props = {
 };
 
 const STATUS_RIBBON: Record<ProjetoStatus, string> = {
-  ideia: "border-l-violet-500",
+  "ideia-interna": "border-l-violet-500",
+  "ideia-cliente": "border-l-amber-400",
   proximo: "border-l-ember",
   "em-curso": "border-l-sky-500",
   "aguardando-cliente": "border-l-amber-400",
@@ -22,7 +23,8 @@ const STATUS_RIBBON: Record<ProjetoStatus, string> = {
 };
 
 const STATUS_BG: Record<ProjetoStatus, string> = {
-  ideia: "bg-violet-500/5",
+  "ideia-interna": "bg-violet-500/5",
+  "ideia-cliente": "bg-amber-400/5",
   proximo: "bg-ember/5",
   "em-curso": "bg-sky-500/5",
   "aguardando-cliente": "bg-amber-400/5",
@@ -129,6 +131,16 @@ export function TarefaCard({ projeto, className }: Props) {
           {projeto.hardware && (projeto.hardware.marca || projeto.hardware.modelo) && (
             <span className="text-[10px] font-medium bg-sky-100 text-sky-800 rounded px-1.5 py-0.5">
               {[projeto.hardware.marca, projeto.hardware.modelo].filter(Boolean).join(" ")}
+            </span>
+          )}
+          {projeto.responsavel && (
+            <span className={cn(
+              "text-[10px] font-semibold rounded px-1.5 py-0.5",
+              projeto.responsavel === "eu"         && "bg-blue-100 text-blue-800",
+              projeto.responsavel === "cliente"    && "bg-amber-100 text-amber-800",
+              projeto.responsavel === "fornecedor" && "bg-purple-100 text-purple-800",
+            )}>
+              {RESPONSAVEL_LABEL[projeto.responsavel]}
             </span>
           )}
         </div>

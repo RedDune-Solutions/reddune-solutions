@@ -23,7 +23,8 @@ type Props = {
 const DAYS_HEADER = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const STATUS_DOT: Record<ProjetoStatus, string> = {
-  ideia: "bg-violet-400",
+  "ideia-interna": "bg-violet-400",
+  "ideia-cliente": "bg-amber-400",
   proximo: "bg-apricot",
   "em-curso": "bg-ember",
   "aguardando-cliente": "bg-amber-300",

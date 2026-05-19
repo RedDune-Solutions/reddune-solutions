@@ -57,7 +57,8 @@ export function KanbanBoard({ projetos, className }: Props) {
   );
 
   const archiveItems = ARCHIVE_STATUSES.flatMap((s) => grouped[s] ?? []);
-  const ideias = grouped["ideia"] ?? [];
+  const ideiasInternas = grouped["ideia-interna"] ?? [];
+  const ideiasCliente = grouped["ideia-cliente"] ?? [];
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -112,14 +113,28 @@ export function KanbanBoard({ projetos, className }: Props) {
         })}
       </div>
 
-      {ideias.length > 0 && (
+      {ideiasCliente.length > 0 && (
+        <details className="group" open>
+          <summary className="cursor-pointer select-none list-none flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-amber-700 hover:text-amber-900 transition-colors">
+            <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+            Ideias de clientes ({ideiasCliente.length})
+          </summary>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {ideiasCliente.map((projeto) => (
+              <TarefaCard key={projeto.id} projeto={projeto} />
+            ))}
+          </div>
+        </details>
+      )}
+
+      {ideiasInternas.length > 0 && (
         <details className="group" open>
           <summary className="cursor-pointer select-none list-none flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-violet-700 hover:text-violet-900 transition-colors">
             <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
-            Ideias internas ({ideias.length})
+            Ideias internas ({ideiasInternas.length})
           </summary>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {ideias.map((projeto) => (
+            {ideiasInternas.map((projeto) => (
               <TarefaCard key={projeto.id} projeto={projeto} />
             ))}
           </div>

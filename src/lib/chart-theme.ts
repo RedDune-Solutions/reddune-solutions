@@ -43,7 +43,8 @@ export const oasisChartTheme = {
  * worldwide and survives the Oasis re-skin).
  */
 export const oasisStatusColors = {
-  ideia: "#8b5cf6",         // violet-500 — neutro, fora da paleta operacional
+  "ideia-interna": "#8b5cf6",  // violet-500
+  "ideia-cliente": "#f59e0b",  // amber-500
   "em-curso": "#d6422a",   // ember
   proximo: "#e89968",       // apricot
   "aguardando-cliente": "#f3c79b",   // peach (claro, tentativo)
