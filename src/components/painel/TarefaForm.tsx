@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, UserPlus } from "lucide-react";
 import type { TarefaTemplate } from "@/types/tarefa-template";
+import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +25,6 @@ import {
   TIPO_TO_CATEGORIA,
   type Projeto,
   type ProjetoStatus,
-  type ProjetoTipo,
   type ProjetoResponsavel,
 } from "@/types/projeto";
 import { SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
@@ -49,13 +49,14 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [clientesList, setClientesList] = useState<Cliente[]>(clientes);
   const [showQuickClient, setShowQuickClient] = useState(false);
   const [status, setStatus] = useState<ProjetoStatus>(projeto?.status ?? "proximo");
-  const [tipos, setTipos] = useState<ProjetoTipo[]>(
+  const [tipos, setTipos] = useState<string[]>(
     projeto?.tipos && projeto.tipos.length > 0
       ? projeto.tipos
       : projeto?.tipo
         ? [projeto.tipo]
         : []
   );
+  const [customTipos, setCustomTipos] = useState<ProjetoTipoCustom[]>([]);
   const [categoria, setCategoria] = useState<ServicoSlug | null>(projeto?.categoria ?? null);
   const [responsavel, setResponsavel] = useState<ProjetoResponsavel | "">(
     projeto?.responsavel ?? ""
@@ -69,15 +70,15 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/tarefa-templates")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: TarefaTemplate[] | unknown) => {
-        if (!cancelled && Array.isArray(data)) setTemplates(data as TarefaTemplate[]);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+    Promise.all([
+      fetch("/api/tarefa-templates").then((r) => r.ok ? r.json() : []),
+      fetch("/api/projeto-tipos-custom").then((r) => r.ok ? r.json() : []),
+    ]).then(([tmpl, custom]) => {
+      if (cancelled) return;
+      if (Array.isArray(tmpl)) setTemplates(tmpl as TarefaTemplate[]);
+      if (Array.isArray(custom)) setCustomTipos(custom as ProjetoTipoCustom[]);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   function onApplyTemplate(id: string) {
@@ -242,41 +243,49 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
       <div className="space-y-1.5">
         <Label>Serviço / Tipo</Label>
         <div className="rounded-md border border-border bg-muted/30 p-2.5 space-y-2">
-          {(Object.keys(CATEGORIA_TIPOS) as ServicoSlug[]).map((cat) => (
-            <div key={cat} className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground w-24 shrink-0">
-                {SERVICO_SLUG_LABEL[cat]}
-              </span>
-              {CATEGORIA_TIPOS[cat].map((t) => {
-                const active = tipos.includes(t);
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    disabled={isBusy}
-                    onClick={() => {
-                      setTipos((prev) => {
-                        const next = active ? prev.filter((x) => x !== t) : [...prev, t];
-                        if (!categoria && !active) {
-                          const auto = TIPO_TO_CATEGORIA[t];
-                          if (auto) setCategoria(auto);
-                        }
-                        return next;
-                      });
-                    }}
-                    className={
-                      "text-[11px] px-2 py-0.5 rounded-full border transition-colors " +
-                      (active
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
-                    }
-                  >
-                    {PROJETO_TIPO_LABEL[t]}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+          {(Object.keys(CATEGORIA_TIPOS) as ServicoSlug[]).map((cat) => {
+            const baseTipos = CATEGORIA_TIPOS[cat];
+            const extraTipos = customTipos.filter((c) => c.categoria === cat);
+            const allTipos: { slug: string; label: string }[] = [
+              ...baseTipos.map((t) => ({ slug: t, label: PROJETO_TIPO_LABEL[t] ?? t })),
+              ...extraTipos.map((c) => ({ slug: c.slug, label: c.label })),
+            ];
+            return (
+              <div key={cat} className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground w-24 shrink-0">
+                  {SERVICO_SLUG_LABEL[cat]}
+                </span>
+                {allTipos.map(({ slug: t, label }) => {
+                  const active = tipos.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => {
+                        setTipos((prev) => {
+                          const next = active ? prev.filter((x) => x !== t) : [...prev, t];
+                          if (!categoria && !active) {
+                            const auto = TIPO_TO_CATEGORIA[t as import("@/types/projeto").ProjetoTipo] ?? cat;
+                            if (auto) setCategoria(auto);
+                          }
+                          return next;
+                        });
+                      }}
+                      className={
+                        "text-[11px] px-2 py-0.5 rounded-full border transition-colors " +
+                        (active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
+                      }
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
 

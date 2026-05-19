@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertProjeto, getProjetoById } from "@/lib/mongodb/projetos";
 import { projetoInputSchema } from "@/lib/validation-projeto";
-import { TIPO_TO_CATEGORIA, type Projeto } from "@/types/projeto";
+import { TIPO_TO_CATEGORIA, type Projeto, type ProjetoTipo } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
@@ -46,24 +46,27 @@ export async function POST(request: Request) {
 
   // Multi-tipo: tipos array drives single tipo + categoria derivation
   const tiposInput = (input as Record<string, unknown>).tipos;
-  let tiposFinal: import("@/types/projeto").ProjetoTipo[] | null;
+  let tiposFinal: string[] | null;
   if (tiposInput === undefined) {
     tiposFinal = existing?.tipos ?? null;
   } else if (tiposInput === null) {
     tiposFinal = null;
   } else {
-    tiposFinal = tiposInput as import("@/types/projeto").ProjetoTipo[];
+    tiposFinal = tiposInput as string[];
   }
 
-  let tipoFinal = pick("tipo", null);
-  // If tipos provided, derive tipo from first element for compat
-  if (tiposInput !== undefined) {
-    tipoFinal = tiposFinal && tiposFinal.length > 0 ? tiposFinal[0] : null;
+  let tipoFinal: ProjetoTipo | null = pick("tipo", null) as ProjetoTipo | null;
+  // If tipos provided, derive tipo from first base element for compat
+  if (tiposInput !== undefined && tiposFinal && tiposFinal.length > 0) {
+    const firstBase = tiposFinal.find((t) => t in TIPO_TO_CATEGORIA) as ProjetoTipo | undefined;
+    tipoFinal = firstBase ?? null;
   }
 
   let categoriaFinal = pick("categoria", null);
   if (categoriaFinal == null && tiposFinal && tiposFinal.length > 0) {
-    const derived = tiposFinal.map((t) => TIPO_TO_CATEGORIA[t]).filter((c) => c != null);
+    const derived = tiposFinal
+      .map((t) => TIPO_TO_CATEGORIA[t as ProjetoTipo])
+      .filter((c): c is NonNullable<typeof c> => c != null);
     if (derived.length > 0) categoriaFinal = derived[0]!;
   }
   if (categoriaFinal == null && tipoFinal != null) {

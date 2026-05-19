@@ -25,7 +25,7 @@ export const projetoSchema = z.object({
   status: z.enum(PROJETO_STATUS),
   categoria: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(SERVICO_SLUG).nullable()),
   tipo: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_TIPO).nullable()),
-  tipos: z.array(z.enum(PROJETO_TIPO)).nullish(),
+  tipos: z.array(z.string()).nullish(),
   hardware: z
     .object({
       marca: z.string().max(100).optional(),

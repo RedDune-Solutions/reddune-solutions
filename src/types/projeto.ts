@@ -144,7 +144,7 @@ export interface Projeto {
   status: ProjetoStatus;
   categoria: ServicoSlug | null;
   tipo: ProjetoTipo | null;
-  tipos: ProjetoTipo[] | null;
+  tipos: string[] | null; // base ProjetoTipo + custom slugs
   responsavel: ProjetoResponsavel | null;
   prazo: string | null;
   dataCriado: string | null;

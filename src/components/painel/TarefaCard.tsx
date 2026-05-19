@@ -115,7 +115,7 @@ export function TarefaCard({ projeto, className }: Props) {
               <>
                 {visible.map((t) => (
                   <span key={t} className="font-mono text-[10px] uppercase tracking-tight bg-black/5 rounded px-1.5 py-0.5">
-                    {PROJETO_TIPO_LABEL[t]}
+                    {PROJETO_TIPO_LABEL[t as import("@/types/projeto").ProjetoTipo] ?? t}
                   </span>
                 ))}
                 {overflow > 0 && (
