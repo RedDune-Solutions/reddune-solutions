@@ -11,8 +11,8 @@
  * indirection adds no value (WhatsApp link, telephone display, Maps coords).
  */
 
-export const PHONE = "+351 961 531 235";
-export const PHONE_RAW = "351961531235";
+export const PHONE = "+351 926 632 851";
+export const PHONE_RAW = "351926632851";
 
 export const EMAIL = "reddunesolutions@gmail.com";
 
