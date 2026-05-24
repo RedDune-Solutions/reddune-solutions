@@ -21,6 +21,9 @@ export const WHATSAPP_BASE = `https://wa.me/${PHONE_RAW}`;
 export const INSTAGRAM = "https://www.instagram.com/reddune_solutions/";
 export const INSTAGRAM_HANDLE = "@reddune_solutions";
 
+export const LINKEDIN = "https://www.linkedin.com/company/reddune-solutions/";
+export const FACEBOOK = "https://www.facebook.com/reddune_solutions/";
+
 export const LOCATION = {
   city: "Fuseta",
   region: "Algarve",
