@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { contactInfo } from "@/config/contact";
 import { cn } from "@/lib/utils";
+import { SocialIcons } from "@/components/chrome/SocialIcons";
 
 /**
  * Footer — light Oasis footer (matches `site/index.html` + `.foot-top` /
@@ -34,16 +35,6 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   const telHref = contactInfo.phone.replace(/[\s()]/g, "");
-
-  const instagramHandle = (() => {
-    try {
-      const url = new URL(contactInfo.instagramUrl);
-      const handle = url.pathname.replace(/^\/|\/$/g, "");
-      return handle ? `@${handle}` : contactInfo.instagramUrl;
-    } catch {
-      return contactInfo.instagramUrl;
-    }
-  })();
 
   return (
     <footer
@@ -149,7 +140,12 @@ export function Footer() {
             </h5>
             <ul className="list-none space-y-0">
               <FooterLi>
-                <span className="font-body text-[14px] font-normal leading-[1.55] text-ink-soft">
+                <span
+                  className={cn(
+                    "font-body text-[14px] font-normal leading-[1.55] text-ink-soft",
+                    "inline-flex min-h-[44px] items-center py-2",
+                  )}
+                >
                   {t("contactLocation")}
                 </span>
               </FooterLi>
@@ -168,9 +164,7 @@ export function Footer() {
                 </FooterLi>
               ) : null}
               <FooterLi>
-                <FooterLink href={contactInfo.instagramUrl} external newTab>
-                  {instagramHandle}
-                </FooterLink>
+                <SocialIcons variant="ghost" className="mt-2 gap-2" />
               </FooterLi>
             </ul>
           </nav>

@@ -172,7 +172,8 @@
                 "title": "Contact Information",
                 "email": "Send us an Email",
                 "address": "Location",
-                "phone": "Call Us"
+                "phone": "Phone Number",
+                "socials": "Social Media"
             },
             "useToast": {
                 "successTitle": "Message Sent",

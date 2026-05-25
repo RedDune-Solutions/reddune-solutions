@@ -172,7 +172,8 @@
                 "title": "Informações de Contacto",
                 "email": "Envie-nos um E-mail",
                 "address": "Localização",
-                "phone": "Ligue-nos"
+                "phone": "Contacto Telefónico",
+                "socials": "Redes Sociais"
             },
             "useToast": {
                 "successTitle": "Mensagem Enviada",

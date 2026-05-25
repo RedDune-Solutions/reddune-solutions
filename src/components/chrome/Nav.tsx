@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/templates/language-switcher";
+import { SocialIcons } from "@/components/chrome/SocialIcons";
 
 const DRAWER_MAX_PX = 900;
 
@@ -122,6 +123,7 @@ export function Nav({ pillHidden = false }: NavProps) {
             );
           })}
           
+         
           {/* Contacto link — aparece apenas no drawer mobile */}
           <li className="hidden max-[900px]:block">
             <Link
@@ -133,7 +135,7 @@ export function Nav({ pillHidden = false }: NavProps) {
                 "bg-ink px-5 py-2.5 font-mono text-[13px] font-medium uppercase tracking-[0.04em] text-cream",
                 "transition-all duration-300",
                 "hover:scale-[1.04] hover:bg-ember focus-visible:bg-ember",
-                "mt-4 w-full justify-center",
+                "mt-3 w-full justify-center",
               )}
             >
               {contactLabel}
