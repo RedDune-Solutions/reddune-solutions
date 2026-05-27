@@ -19,7 +19,8 @@ import {
   type ServiceContent,
 } from "@/lib/servicos-content";
 import { getServicosBySlug } from "@/lib/mongodb/servicos";
-import { formatPreco } from "@/types/servico";
+import { formatPreco, servicoTitulo, servicoDescricao, type PriceLabels, type Locale as ServicoLocale } from "@/types/servico";
+import { getTranslations } from "next-intl/server";
 import {
   serviceLd,
   faqPageLd,
@@ -322,10 +323,17 @@ export default async function ServicoSlugPage({ params }: PageProps) {
   try {
     const dbServicos = await getServicosBySlug(typedSlug, true);
     if (dbServicos.length > 0) {
+      const tPrice = await getTranslations("ServicosPage.price");
+      const priceLabels: PriceLabels = {
+        from: tPrice("from"),
+        to: tPrice("to"),
+        onRequest: tPrice("onRequest"),
+      };
+      const loc: ServicoLocale = locale === "en" ? "en" : "pt";
       content.items.list = dbServicos.map((s) => ({
-        title: s.titulo,
-        description: s.descricao ?? "",
-        price: formatPreco(s),
+        title: servicoTitulo(s, loc),
+        description: servicoDescricao(s, loc),
+        price: formatPreco(s, priceLabels, loc),
         imageUrl: s.imageUrl ?? null,
       }));
     }

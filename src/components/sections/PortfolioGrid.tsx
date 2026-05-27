@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import type { PortfolioItem, PortfolioCategoria } from "@/types/portfolio";
-import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import { SERVICO_SLUG } from "@/types/servico";
 import {
   PortfolioCardShared,
@@ -31,15 +30,6 @@ function spanClass(span: number): string {
   return "md:col-span-4";
 }
 
-function filterLabel(key: FilterKey): string {
-  if (key === "all") return "Todos";
-  return PORTFOLIO_CATEGORIA_LABEL[key];
-}
-
-function tagFor(item: PortfolioItem): string {
-  return item.categoria ? PORTFOLIO_CATEGORIA_LABEL[item.categoria] : "Sem categoria";
-}
-
 function bgFor(item: PortfolioItem): string {
   return item.categoria
     ? CATEGORIA_FALLBACK_BG[item.categoria] ?? DEFAULT_FALLBACK_BG
@@ -50,6 +40,12 @@ export function PortfolioGrid({ items, initialFilter }: Props) {
   const t = useTranslations("PortfolioPage");
   const rawLocale = useLocale();
   const locale = rawLocale === "en" ? "en" : "pt";
+
+  const filterLabel = (key: FilterKey): string =>
+    key === "all" ? t("filterAll") : t(`categoria.${key}`);
+
+  const tagFor = (item: PortfolioItem): string =>
+    item.categoria ? t(`categoria.${item.categoria}`) : t("uncategorized");
   const validInitial: FilterKey =
     initialFilter && (FILTER_KEYS as readonly string[]).includes(initialFilter)
       ? (initialFilter as FilterKey)
@@ -91,7 +87,7 @@ export function PortfolioGrid({ items, initialFilter }: Props) {
       <Reveal>
         <div
           role="tablist"
-          aria-label="Filtros de categoria"
+          aria-label={t("filterAriaLabel")}
           className={cn(
             "flex flex-wrap items-center gap-2 mb-12 md:mb-16",
             "rounded-btn bg-sand-warm/60 backdrop-blur",

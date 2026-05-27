@@ -207,9 +207,29 @@
         "emptyState": "Em breve — estamos a actualizar o portfólio.",
         "instagramNote": "Vê mais no nosso <em>Instagram</em> — projetos novos quase todas as semanas.",
         "instagramCta": "@reddune_solutions",
-        "fallbackTags": ["Hardware", "Web", "Diagnóstico"]
+        "fallbackTags": ["Hardware", "Web", "Diagnóstico"],
+        "categoria": {
+            "assistencia-tecnica": "Assistência Técnica",
+            "web-digital": "Web / Digital",
+            "software-recuperacao": "Software / Recuperação"
+        },
+        "filterAll": "Todos",
+        "uncategorized": "Sem categoria",
+        "projectDefault": "Projecto",
+        "viewProject": "Ver projeto",
+        "filterAriaLabel": "Filtros de categoria"
     },
     "ServicosPage": {
+        "slugLabel": {
+            "assistencia-tecnica": "Assistência Técnica",
+            "web-digital": "Web & Digital",
+            "software-recuperacao": "Software & Recuperação"
+        },
+        "price": {
+            "onRequest": "Sob consulta",
+            "from": "desde",
+            "to": "a"
+        },
         "hub": {
             "hero": {
                 "eyebrow": "Três áreas · uma só equipa",
@@ -507,21 +527,21 @@
         "metaDescription": "Saiba como a Reddune Solutions recolhe, trata e protege os seus dados pessoais em conformidade com o RGPD.",
         "title": "Política de Privacidade",
         "subtitle": "A sua privacidade é a nossa prioridade. Conheça como tratamos os seus dados pessoais.",
-        "section1Title": "1. Identificação do Responsável pelo Tratamento",
+        "section1Title": "Identificação do Responsável pelo Tratamento",
         "section1Company": "Empresa",
         "section1CompanyValue": "Reddune Solutions",
         "section1Office": "Sede",
         "section1OfficeValue": "Fuseta",
         "section1Contact": "Contacto Responsável pela Proteção de Dados",
         "section1ContactValue": "reddunesolutions@gmail.com / (+351) 926 632 851",
-        "section2Title": "2. Informação e Consentimento",
+        "section2Title": "Informação e Consentimento",
         "section2P1": "A Lei da Proteção de Dados Pessoais e o Regulamento Geral de Proteção de Dados (Regulamento (UE) 2016/679 do Parlamento Europeu e do Conselho de 27 de abril de 2016, em diante \"RGPD\") garantem proteção no que diz respeito ao tratamento de dados pessoais e à livre circulação desses dados.",
         "section2P2": "Nos termos legais são considerados \"dados pessoais\" toda e qualquer informação, (incluindo som e imagem) relativa a uma pessoa singular identificada ou identificável, pelo que a proteção não abrange os dados de pessoas coletivas.",
         "section2P3": "Ao disponibilizar os seus dados pessoais através do site https://www.reddunesolutions.pt/, nomeadamente ao preencher formulários ou ao entrar em contacto connosco, o utilizador declara que fornece essas informações de forma livre, informada e explícita, autorizando a sua recolha e tratamento nos termos aqui descritos.",
         "section2P4": "A Reddune Solutions compromete-se a tratar os dados pessoais dos utilizadores com total transparência, responsabilidade e em conformidade com o Regulamento Geral sobre a Proteção de Dados e demais legislação aplicável.",
         "section2P5": "O utilizador poderá, a qualquer momento, retirar o seu consentimento, sem comprometer a licitude do tratamento efetuado com base no consentimento previamente dado. Para o efeito, deverá contactar-nos através dos meios disponibilizados neste website.",
         "section2P6": "Caso não concorde com os termos desta Política de Privacidade, recomendamos que não utilize este site nem forneça quaisquer dados pessoais.",
-        "section3Title": "3. Finalidades do Tratamento de Dados Pessoais",
+        "section3Title": "Finalidades do Tratamento de Dados Pessoais",
         "section3Intro": "Os dados pessoais recolhidos pela Reddune Solutions são tratados única e exclusivamente para as seguintes finalidades:",
         "section3Item1": "Execução e gestão de contrato de compra e venda ou de prestação de serviços;",
         "section3Item2": "Processamento de encomendas;",
@@ -532,7 +552,7 @@
         "section3Item7": "Cumprimento de obrigações legais;",
         "section3Item8": "Melhoria do website e da experiência do utilizador através da análise de dados de navegação, estatísticas e utilização do site.",
         "section3Outro": "A Reddune Solutions garante a confidencialidade de todos os dados fornecidos pelos seus clientes e compromete-se a não utilizar esses dados para finalidades diferentes das acima descritas, salvo quando exista um novo consentimento do utilizador ou obrigação legal que o permita.",
-        "section4Title": "4. Duração da Conservação dos Dados Pessoais",
+        "section4Title": "Duração da Conservação dos Dados Pessoais",
         "section4P1": "A Reddune Solutions retém os seus dados pessoais apenas pelo período de tempo estritamente necessário para executar a finalidade para a qual os recolheu. Decorrido esse período de conservação, a Reddune Solutions assegura que procede à eliminação dos seus dados pessoais.",
         "closingTitle": "Tem questões sobre os seus dados?",
         "closingBody": "Estamos disponíveis para esclarecer qualquer dúvida sobre o tratamento dos seus dados pessoais ou exercer os seus direitos ao abrigo do RGPD.",

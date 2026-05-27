@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { PortfolioItem } from "@/types/portfolio";
 
@@ -39,6 +40,7 @@ export function PortfolioCardShared({
   hrefFallback,
   imageSizes,
 }: Props) {
+  const t = useTranslations("PortfolioPage");
   const image = item.imageUrl;
   const href = hrefOverride ?? (item.url || hrefFallback || "/contacto?from=portfolio");
   const title = displayTitle ?? item.title[locale];
@@ -123,7 +125,7 @@ export function PortfolioCardShared({
             "group-hover:opacity-100 group-hover:translate-y-0"
           )}
         >
-          Ver projeto
+          {t("viewProject")}
           <ArrowRight className="size-3 shrink-0" strokeWidth={2.25} />
         </span>
       </div>

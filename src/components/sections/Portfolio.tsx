@@ -6,7 +6,6 @@ import { useTranslations, useLocale } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import type { PortfolioItem } from "@/types/portfolio";
-import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import {
   PortfolioCardShared,
   CATEGORIA_FALLBACK_BG,
@@ -20,10 +19,6 @@ type Props = { items: PortfolioItem[] };
  * como destaque na dashboard. Card visual partilhado com /portfolio.
  */
 
-function tagFor(item: PortfolioItem): string {
-  return item.categoria ? PORTFOLIO_CATEGORIA_LABEL[item.categoria] : "Projecto";
-}
-
 function bgFor(item: PortfolioItem): string {
   return item.categoria
     ? CATEGORIA_FALLBACK_BG[item.categoria] ?? DEFAULT_FALLBACK_BG
@@ -32,8 +27,12 @@ function bgFor(item: PortfolioItem): string {
 
 export function Portfolio({ items }: Props) {
   const t = useTranslations("HomePage.PortfolioSection");
+  const tCat = useTranslations("PortfolioPage");
   const rawLocale = useLocale();
   const locale = rawLocale === "en" ? "en" : "pt";
+
+  const tagFor = (item: PortfolioItem): string =>
+    item.categoria ? tCat(`categoria.${item.categoria}`) : tCat("projectDefault");
 
   return (
     <section

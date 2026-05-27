@@ -23,17 +23,20 @@ type Props = {
   servicos: Servico[];
 };
 
-type VarianteDraft = { label: string; preco: string; precoMax: string };
+type VarianteDraft = { label: string; labelEn: string; preco: string; precoMax: string };
 
 type Draft = {
   id: string | null;
   titulo: string;
+  tituloEn: string;
   descricao: string;
+  descricaoEn: string;
   precoBase: string;
   precoMax: string;
   precoDesde: boolean;
   precoTexto: string; // preservado mas não editável (legacy)
   nota: string;
+  notaEn: string;
   imageUrl: string;
   ordem: number;
   ativo: boolean;
@@ -49,12 +52,15 @@ function toDraft(s: Servico): Draft {
   return {
     id: s.id,
     titulo: s.titulo,
+    tituloEn: s.tituloI18n?.en ?? "",
     descricao: s.descricao ?? "",
+    descricaoEn: s.descricaoI18n?.en ?? "",
     precoBase: s.precoBase != null ? String(s.precoBase) : "",
     precoMax: s.precoMax != null ? String(s.precoMax) : "",
     precoDesde: s.precoDesde ?? false,
     precoTexto: s.precoTexto ?? "",
     nota: s.nota ?? "",
+    notaEn: s.notaI18n?.en ?? "",
     imageUrl: s.imageUrl ?? "",
     ordem: s.ordem,
     ativo: s.ativo,
@@ -62,6 +68,7 @@ function toDraft(s: Servico): Draft {
     variantes: temVariantes
       ? s.variantes!.map((v) => ({
           label: v.label,
+          labelEn: v.labelI18n?.en ?? "",
           preco: String(v.preco),
           precoMax: v.precoMax != null ? String(v.precoMax) : "",
         }))
@@ -74,12 +81,15 @@ function emptyDraft(ordem: number): Draft {
   return {
     id: null,
     titulo: "",
+    tituloEn: "",
     descricao: "",
+    descricaoEn: "",
     precoBase: "",
     precoMax: "",
     precoDesde: false,
     precoTexto: "",
     nota: "",
+    notaEn: "",
     imageUrl: "",
     ordem,
     ativo: true,
@@ -122,7 +132,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
         const label = DEFAULT_LABELS[d.variantes.length] ?? "";
         return {
           ...d,
-          variantes: [...d.variantes, { label, preco: "", precoMax: "" }],
+          variantes: [...d.variantes, { label, labelEn: "", preco: "", precoMax: "" }],
           dirty: true,
         };
       })
@@ -148,8 +158,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
             ...d,
             temVariantes: true,
             variantes: [
-              { label: "Desktop", preco: "", precoMax: "" },
-              { label: "Portátil", preco: "", precoMax: "" },
+              { label: "Desktop", labelEn: "Desktop", preco: "", precoMax: "" },
+              { label: "Portátil", labelEn: "Laptop", preco: "", precoMax: "" },
             ],
             dirty: true,
           };
@@ -184,7 +194,12 @@ export function ServicosEditor({ slug, servicos }: Props) {
           return;
         }
         const nMax = v.precoMax.trim() ? parseMoney(v.precoMax) : null;
-        parsed.push({ label: v.label.trim(), preco: n, precoMax: nMax ?? null });
+        parsed.push({
+          label: v.label.trim(),
+          labelI18n: v.labelEn.trim() ? { pt: v.label.trim(), en: v.labelEn.trim() } : null,
+          preco: n,
+          precoMax: nMax ?? null,
+        });
       }
       variantesPayload = parsed;
     }
@@ -194,11 +209,17 @@ export function ServicosEditor({ slug, servicos }: Props) {
     try {
       const precoBase = d.precoBase.trim() ? parseMoney(d.precoBase) : null;
       const precoMax = d.precoMax.trim() ? parseMoney(d.precoMax) : null;
+      const tituloEn = d.tituloEn.trim();
+      const descricaoEn = d.descricaoEn.trim();
+      const notaEn = d.notaEn.trim();
       const payload = {
         id: d.id ?? undefined,
         slug,
         titulo: d.titulo.trim(),
+        tituloI18n: tituloEn ? { pt: d.titulo.trim(), en: tituloEn } : null,
         descricao: d.descricao.trim() || null,
+        descricaoI18n: descricaoEn ? { pt: d.descricao.trim() || null, en: descricaoEn } : null,
+        notaI18n: notaEn ? { pt: d.nota.trim() || null, en: notaEn } : null,
         precoBase:
           variantesPayload
             ? null
@@ -273,11 +294,18 @@ export function ServicosEditor({ slug, servicos }: Props) {
               {/* Linha 1: Título / Ordem / Activo */}
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-12 sm:col-span-8 space-y-1">
-                  <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Título *</Label>
+                  <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Título (PT) *</Label>
                   <Input
                     value={d.titulo}
                     onChange={(e) => update(idx, { titulo: e.target.value })}
                     className="h-8 text-base font-medium border-border-strong bg-background"
+                  />
+                  <Label className="text-[10px] uppercase font-semibold text-foreground/60 tracking-wide pt-1">Título (EN)</Label>
+                  <Input
+                    value={d.tituloEn}
+                    onChange={(e) => update(idx, { tituloEn: e.target.value })}
+                    placeholder="English title (deixa vazio p/ usar PT)"
+                    className="h-8 text-sm border-border-strong bg-background"
                   />
                 </div>
                 <div className="col-span-6 sm:col-span-2 space-y-1">
@@ -346,11 +374,18 @@ export function ServicosEditor({ slug, servicos }: Props) {
                       />
                     </div>
                     <div className="col-span-12 sm:col-span-6 space-y-1">
-                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Nota (sufixo)</Label>
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Nota PT (sufixo)</Label>
                       <Input
                         value={d.nota}
                         onChange={(e) => update(idx, { nota: e.target.value })}
                         placeholder="ex: abatido se reparares"
+                        className="h-8 text-sm border-border-strong bg-background"
+                      />
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/60 tracking-wide pt-1">Nota EN</Label>
+                      <Input
+                        value={d.notaEn}
+                        onChange={(e) => update(idx, { notaEn: e.target.value })}
+                        placeholder="e.g. waived if you repair"
                         className="h-8 text-sm border-border-strong bg-background"
                       />
                     </div>
@@ -372,11 +407,18 @@ export function ServicosEditor({ slug, servicos }: Props) {
                       {d.variantes.map((v, vIdx) => (
                         <div key={vIdx} className="grid grid-cols-12 gap-2 items-end">
                           <div className="col-span-12 sm:col-span-4 space-y-1">
-                            <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Label</Label>
+                            <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Label PT</Label>
                             <Input
                               value={v.label}
                               onChange={(e) => updateVariante(idx, vIdx, { label: e.target.value })}
-                              placeholder="Desktop"
+                              placeholder="Portátil"
+                              className="h-8 text-sm border-border-strong bg-background"
+                            />
+                            <Label className="text-[10px] uppercase font-semibold text-foreground/60 tracking-wide pt-1">Label EN</Label>
+                            <Input
+                              value={v.labelEn}
+                              onChange={(e) => updateVariante(idx, vIdx, { labelEn: e.target.value })}
+                              placeholder="Laptop"
                               className="h-8 text-sm border-border-strong bg-background"
                             />
                           </div>
@@ -429,11 +471,18 @@ export function ServicosEditor({ slug, servicos }: Props) {
                       Adicionar variante
                     </Button>
                     <div className="space-y-1 pt-1">
-                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Nota (sufixo)</Label>
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Nota PT (sufixo)</Label>
                       <Input
                         value={d.nota}
                         onChange={(e) => update(idx, { nota: e.target.value })}
                         placeholder="opcional"
+                        className="h-8 text-sm border-border-strong bg-background"
+                      />
+                      <Label className="text-[10px] uppercase font-semibold text-foreground/60 tracking-wide pt-1">Nota EN</Label>
+                      <Input
+                        value={d.notaEn}
+                        onChange={(e) => update(idx, { notaEn: e.target.value })}
+                        placeholder="optional"
                         className="h-8 text-sm border-border-strong bg-background"
                       />
                     </div>
@@ -443,11 +492,19 @@ export function ServicosEditor({ slug, servicos }: Props) {
 
               {/* Descrição */}
               <div className="space-y-1">
-                <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Descrição</Label>
+                <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Descrição (PT)</Label>
                 <Textarea
                   value={d.descricao}
                   onChange={(e) => update(idx, { descricao: e.target.value })}
                   rows={2}
+                  className="text-sm border-border-strong bg-background"
+                />
+                <Label className="text-[10px] uppercase font-semibold text-foreground/60 tracking-wide pt-1">Descrição (EN)</Label>
+                <Textarea
+                  value={d.descricaoEn}
+                  onChange={(e) => update(idx, { descricaoEn: e.target.value })}
+                  rows={2}
+                  placeholder="English description (vazio = usa PT)"
                   className="text-sm border-border-strong bg-background"
                 />
               </div>
