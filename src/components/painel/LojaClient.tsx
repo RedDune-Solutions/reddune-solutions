@@ -16,6 +16,9 @@ import {
 import { ProductForm } from "./ProductForm";
 import type { Product } from "@/types/product";
 import { cn } from "@/lib/utils";
+import { safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   products: Product[];
@@ -23,13 +26,25 @@ type Props = {
 
 export function LojaClient({ products }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("Apagar produto?")) return;
-    await fetch(`/api/products/${encodeURIComponent(id)}`, { method: "DELETE" });
+    const ok = await confirm({
+      title: "Apagar produto?",
+      description: "Esta acção remove o produto da loja e apaga as imagens associadas. Não pode ser desfeita.",
+      confirmLabel: "Apagar",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    const res = await safeDelete(`/api/products/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar produto", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 

@@ -3,6 +3,9 @@ import clientPromise from "./client";
 import type { Product, ProductCategory, ProductCondition } from "@/types/product";
 import { WithId, Document, ObjectId } from "mongodb";
 
+// NOTA: produtos historicamente vivem em DB "website" coll "loja" (legacy).
+// Migração para DB principal coll "products" está em scripts/migrate-products-db.mjs.
+// Após correres o script com sucesso, troca para process.env.MONGODB_DB_NAME e "products".
 const DB_NAME = "website";
 const COLLECTION = "loja";
 

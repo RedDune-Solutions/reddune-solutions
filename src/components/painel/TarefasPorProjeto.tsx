@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "./StatusBadge";
 import type { Tarefa } from "@/types/tarefa";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
+import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type TarefaFilter = "todas" | "hoje" | "semana" | "vencidas";
 
@@ -74,6 +76,7 @@ function prazoStatus(iso: string | null): "vencida" | "hoje" | "futura" | null {
 
 export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -108,26 +111,27 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
 
   async function toggleFeita(t: Tarefa) {
     setBusy(t.id);
-    try {
-      await fetch("/api/tarefas/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tarefaId: t.id, patch: { feita: !t.feita } }),
-      });
-      startTransition(() => router.refresh());
-    } finally {
-      setBusy(null);
+    const res = await safeJsonPost("/api/tarefas/edit", {
+      tarefaId: t.id,
+      patch: { feita: !t.feita },
+    });
+    setBusy(null);
+    if (!res.ok) {
+      toast({ title: "Erro a actualizar tarefa", description: res.error, variant: "destructive" });
+      return;
     }
+    startTransition(() => router.refresh());
   }
 
   async function deleteTarefa(id: string) {
     setBusy(id);
-    try {
-      await fetch(`/api/tarefas/${encodeURIComponent(id)}`, { method: "DELETE" });
-      startTransition(() => router.refresh());
-    } finally {
-      setBusy(null);
+    const res = await safeDelete(`/api/tarefas/${encodeURIComponent(id)}`);
+    setBusy(null);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar tarefa", description: res.error, variant: "destructive" });
+      return;
     }
+    startTransition(() => router.refresh());
   }
 
   if (groups.length === 0) {

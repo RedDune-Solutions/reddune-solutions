@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { getAllProjetoTiposCustom } from "@/lib/mongodb/projeto-tipos-custom";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const tipos = await getAllProjetoTiposCustom();
     return NextResponse.json(tipos);

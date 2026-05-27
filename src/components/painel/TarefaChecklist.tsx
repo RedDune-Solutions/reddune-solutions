@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Tarefa } from "@/types/tarefa";
+import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   tarefas: Tarefa[];
@@ -23,6 +25,7 @@ function fmtData(iso: string): string {
 
 export function TarefaChecklist({ tarefas, projetoId }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoPrazo, setNovoPrazo] = useState("");
@@ -31,25 +34,35 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
   const [showInput, setShowInput] = useState(false);
 
   async function toggleFeita(tarefa: Tarefa) {
-    await fetch("/api/tarefas/edit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tarefaId: tarefa.id, patch: { feita: !tarefa.feita } }),
+    const res = await safeJsonPost("/api/tarefas/edit", {
+      tarefaId: tarefa.id,
+      patch: { feita: !tarefa.feita },
     });
+    if (!res.ok) {
+      toast({ title: "Erro a actualizar tarefa", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 
   async function updatePrazo(tarefa: Tarefa, prazo: string | null) {
-    await fetch("/api/tarefas/edit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tarefaId: tarefa.id, patch: { prazo } }),
+    const res = await safeJsonPost("/api/tarefas/edit", {
+      tarefaId: tarefa.id,
+      patch: { prazo },
     });
+    if (!res.ok) {
+      toast({ title: "Erro a actualizar prazo", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 
   async function deletarTarefa(id: string) {
-    await fetch(`/api/tarefas/${encodeURIComponent(id)}`, { method: "DELETE" });
+    const res = await safeDelete(`/api/tarefas/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar tarefa", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 
@@ -58,28 +71,25 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     const titulo = novoTitulo.trim();
     if (!titulo) return;
     setAdding(true);
-    try {
-      await fetch("/api/tarefas/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId,
-          titulo,
-          feita: false,
-          prazo: novoPrazo || null,
-          prazoHora: novoPrazo && novaHora ? novaHora : null,
-          notas: null,
-          ordem: tarefas.length,
-        }),
-      });
-      setNovoTitulo("");
-      setNovoPrazo("");
-      setNovaHora("");
-      setShowInput(false);
-      startTransition(() => router.refresh());
-    } finally {
-      setAdding(false);
+    const res = await safeJsonPost("/api/tarefas/upsert", {
+      projetoId,
+      titulo,
+      feita: false,
+      prazo: novoPrazo || null,
+      prazoHora: novoPrazo && novaHora ? novaHora : null,
+      notas: null,
+      ordem: tarefas.length,
+    });
+    setAdding(false);
+    if (!res.ok) {
+      toast({ title: "Erro a adicionar tarefa", description: res.error, variant: "destructive" });
+      return;
     }
+    setNovoTitulo("");
+    setNovoPrazo("");
+    setNovaHora("");
+    setShowInput(false);
+    startTransition(() => router.refresh());
   }
 
   const pendentes = tarefas.filter((t) => !t.feita);

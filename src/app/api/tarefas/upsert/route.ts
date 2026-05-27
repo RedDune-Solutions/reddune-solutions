@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertTarefa } from "@/lib/mongodb/tarefas";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { tarefaInputSchema } from "@/lib/validation-projeto";
 import type { Tarefa } from "@/types/tarefa";
 
@@ -45,5 +47,16 @@ export async function POST(request: Request) {
   };
 
   await upsertTarefa(tarefa);
+  await logMutation({
+    collection: "tarefas",
+    entityId: id,
+    op: input.id ? "update" : "create",
+    userEmail: session.user.email ?? null,
+    after: tarefa,
+  });
+  revalidatePath("/painel/tarefas");
+  revalidatePath("/painel/calendario");
+  revalidatePath(`/painel/projetos/${input.projetoId}`);
+  revalidatePath("/painel");
   return NextResponse.json({ ok: true, id });
 }

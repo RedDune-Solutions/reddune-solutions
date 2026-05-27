@@ -19,6 +19,8 @@ import {
   type Projeto,
   type ProjetoStatus,
 } from "@/types/projeto";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projeto: Projeto;
@@ -26,6 +28,7 @@ type Props = {
 
 export function EditTarefaActions({ projeto }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [proxOpen, setProxOpen] = useState(false);
@@ -38,28 +41,20 @@ export function EditTarefaActions({ projeto }: Props) {
   ) {
     setError(null);
     setSuccess(null);
-    try {
-      const res = await fetch("/api/projetos/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId: projeto.id,
-          field,
-          newValue,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      setSuccess(
-        field === "status" ? "Estado actualizado." : "Próxima acção actualizada."
-      );
-      startTransition(() => router.refresh());
-    } catch (e) {
-      setError((e as Error).message);
+    const res = await safeJsonPost("/api/projetos/edit", {
+      projetoId: projeto.id,
+      field,
+      newValue,
+    });
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a actualizar", description: res.error, variant: "destructive" });
+      return;
     }
+    setSuccess(
+      field === "status" ? "Estado actualizado." : "Próxima acção actualizada."
+    );
+    startTransition(() => router.refresh());
   }
 
   return (

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { deleteCliente } from "@/lib/mongodb/clientes";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
     }
 
+    await logMutation({
+      collection: "clientes",
+      entityId: id,
+      op: "delete",
+      userEmail: session.user.email ?? null,
+    });
+
+    revalidatePath("/painel/clientes");
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);

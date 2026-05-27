@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { getTarefaTemplateById } from "@/lib/mongodb/tarefa-templates";
@@ -55,6 +56,9 @@ export async function POST(request: Request) {
       created += 1;
     }
 
+    revalidatePath("/painel/tarefas");
+    revalidatePath("/painel/calendario");
+    revalidatePath(`/painel/projetos/${projetoId}`);
     return NextResponse.json({ ok: true, created });
   } catch (e) {
     console.error(e);

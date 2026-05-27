@@ -20,6 +20,9 @@ import {
 } from "@/types/projeto";
 import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { TarefaTemplate, TarefaTemplateItem } from "@/types/tarefa-template";
+import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   templates: TarefaTemplate[];
@@ -61,6 +64,8 @@ function emptyDraft(): Draft {
 
 export function TemplatesEditor({ templates }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [items, setItems] = useState<Draft[]>(templates.map(toDraft));
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -137,44 +142,46 @@ export function TemplatesEditor({ templates }: Props) {
     }
     setSavingId(d.id ?? `new_${idx}`);
     setError(null);
-    try {
-      const payload = {
-        id: d.id ?? undefined,
-        nome: d.nome.trim(),
-        categoria: d.categoria,
-        tipos: d.tipos,
-        itens: d.itens
-          .filter((it) => it.titulo.trim())
-          .map((it, i) => ({ titulo: it.titulo.trim(), ordem: i })),
-        criadoEm: d.criadoEm ?? new Date().toISOString(),
-      };
-      const res = await fetch("/api/tarefa-templates/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setError(j.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      const j = await res.json();
-      setItems((prev) =>
-        prev.map((it, i) =>
-          i === idx ? { ...it, id: j.id, dirty: false, criadoEm: payload.criadoEm } : it
-        )
-      );
-      startTransition(() => router.refresh());
-    } finally {
-      setSavingId(null);
+    const payload = {
+      id: d.id ?? undefined,
+      nome: d.nome.trim(),
+      categoria: d.categoria,
+      tipos: d.tipos,
+      itens: d.itens
+        .filter((it) => it.titulo.trim())
+        .map((it, i) => ({ titulo: it.titulo.trim(), ordem: i })),
+      criadoEm: d.criadoEm ?? new Date().toISOString(),
+    };
+    const res = await safeJsonPost<{ id: string }>("/api/tarefa-templates/upsert", payload);
+    setSavingId(null);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar template", description: res.error, variant: "destructive" });
+      return;
     }
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === idx ? { ...it, id: res.data.id, dirty: false, criadoEm: payload.criadoEm } : it
+      )
+    );
+    startTransition(() => router.refresh());
   }
 
   async function remove(idx: number) {
     const d = items[idx]!;
     if (d.id) {
-      if (!confirm(`Apagar template "${d.nome}"?`)) return;
-      await fetch(`/api/tarefa-templates/${encodeURIComponent(d.id)}`, { method: "DELETE" });
+      const ok = await confirm({
+        title: `Apagar template "${d.nome}"?`,
+        description: "Remove o template. Tarefas já criadas a partir dele mantêm-se.",
+        confirmLabel: "Apagar",
+        tone: "destructive",
+      });
+      if (!ok) return;
+      const res = await safeDelete(`/api/tarefa-templates/${encodeURIComponent(d.id)}`);
+      if (!res.ok) {
+        toast({ title: "Erro a apagar template", description: res.error, variant: "destructive" });
+        return;
+      }
     }
     setItems((prev) => prev.filter((_, i) => i !== idx));
     startTransition(() => router.refresh());

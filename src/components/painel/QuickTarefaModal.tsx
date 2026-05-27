@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Projeto } from "@/types/projeto";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   open: boolean;
@@ -37,6 +39,7 @@ export function QuickTarefaModal({
   projetos,
 }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const [titulo, setTitulo] = useState("");
   const [projetoId, setProjetoId] = useState("");
@@ -62,30 +65,23 @@ export function QuickTarefaModal({
     }
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/tarefas/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId,
-          titulo: titulo.trim(),
-          feita: false,
-          prazo: prazo || null,
-          prazoHora: prazoHora || null,
-          notas: null,
-          ordem: 0,
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      onOpenChange(false);
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/tarefas/upsert", {
+      projetoId,
+      titulo: titulo.trim(),
+      feita: false,
+      prazo: prazo || null,
+      prazoHora: prazoHora || null,
+      notas: null,
+      ordem: 0,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a criar tarefa", description: res.error, variant: "destructive" });
+      return;
     }
+    onOpenChange(false);
+    startTransition(() => router.refresh());
   }
 
   return (

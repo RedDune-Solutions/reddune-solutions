@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { LinhasEditor, computeTotal } from "./LinhasEditor";
 import type { Projeto, ProjetoLinha } from "@/types/projeto";
 import { parseMoney } from "@/lib/parse-number";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projeto: Projeto;
@@ -16,6 +18,7 @@ type Props = {
 
 export function CustosCard({ projeto }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const initial: ProjetoLinha[] = projeto.linhas ?? [];
   const [linhas, setLinhas] = useState<ProjetoLinha[]>(initial);
@@ -50,39 +53,32 @@ export function CustosCard({ projeto }: Props) {
   async function save() {
     setSaving(true);
     setError(null);
-    try {
-      let payload: Record<string, unknown>;
-      if (useLegacy) {
-        const v = valorLegacy.trim() ? parseMoney(valorLegacy) : null;
-        if (valorLegacy.trim() && v === null) {
-          setError("Valor inválido.");
-          setSaving(false);
-          return;
-        }
-        payload = { id: projeto.id, titulo: projeto.titulo, status: projeto.status, valorEstimado: v, linhas: null };
-      } else {
-        payload = {
-          id: projeto.id,
-          titulo: projeto.titulo,
-          status: projeto.status,
-          linhas,
-          valorEstimado: computeTotal(linhas),
-        };
-      }
-      const res = await fetch("/api/projetos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
+    let payload: Record<string, unknown>;
+    if (useLegacy) {
+      const v = valorLegacy.trim() ? parseMoney(valorLegacy) : null;
+      if (valorLegacy.trim() && v === null) {
+        setError("Valor inválido.");
+        setSaving(false);
         return;
       }
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+      payload = { id: projeto.id, titulo: projeto.titulo, status: projeto.status, valorEstimado: v, linhas: null };
+    } else {
+      payload = {
+        id: projeto.id,
+        titulo: projeto.titulo,
+        status: projeto.status,
+        linhas,
+        valorEstimado: computeTotal(linhas),
+      };
     }
+    const res = await safeJsonPost("/api/projetos/upsert", payload);
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar custos", description: res.error, variant: "destructive" });
+      return;
+    }
+    startTransition(() => router.refresh());
   }
 
   return (

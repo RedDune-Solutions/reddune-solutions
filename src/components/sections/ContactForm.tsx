@@ -56,6 +56,8 @@ export function ContactForm() {
       message: String(formData.get("message") ?? ""),
     };
 
+    const honeypot = String(formData.get("website") ?? "");
+
     const validation = validateContact(payload);
     if (!validation.ok) {
       toast({
@@ -72,7 +74,7 @@ export function ContactForm() {
       const response = await fetch("/api/sendEmail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validation.data),
+        body: JSON.stringify({ ...validation.data, website: honeypot }),
       });
 
       if (!response.ok) throw new Error("Request failed");
@@ -123,6 +125,29 @@ export function ContactForm() {
         "p-7 md:p-9 shadow-warm",
       )}
     >
+      {/* Honeypot — invisible to humans, bots fill it. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+        }}
+      >
+        <label>
+          Website (deixe em branco)
+          <input
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            defaultValue=""
+          />
+        </label>
+      </div>
+
       <div className="grid gap-5 md:grid-cols-2">
         <label className="flex flex-col gap-2">
           <span className={labelClass}>{t("form.nameTitle")}</span>

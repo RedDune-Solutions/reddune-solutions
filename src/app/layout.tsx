@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
@@ -87,7 +88,7 @@ export default async function RootLayout({
       <body className={cn("font-body antialiased")}>
         <StructuredData />
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <ConfirmProvider>{children}</ConfirmProvider>
         </NextIntlClientProvider>
         <Toaster />
         <Analytics />

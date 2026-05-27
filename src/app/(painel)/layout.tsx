@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/painel/Sidebar";
+import { ensureIndexes } from "@/lib/mongodb/init-indexes";
 
 export const metadata = {
   title: "Painel — Reddune Solutions",
@@ -16,6 +17,9 @@ export default async function PainelLayout({
   if (!session?.user) {
     redirect("/entrar?from=/painel");
   }
+
+  // Idempotente — cria indexes na primeira request, no-op nas seguintes.
+  await ensureIndexes();
 
   return (
     <div className="painel-shell min-h-screen flex">

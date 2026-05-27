@@ -33,8 +33,7 @@ export async function logAuthEvent(event: {
       details: event.details ?? {},
       at: new Date(),
     });
-    await db.collection(AUDIT).createIndex({ at: -1 });
-    await db.collection(AUDIT).createIndex({ email: 1, type: 1, at: -1 });
+    // Indexes criados em ensureIndexes() — não aqui.
   } catch (err) {
     // Audit log failure must never break auth flow
     console.error("logAuthEvent failed:", err);

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
 import { upsertProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { SERVICO_SLUG } from "@/types/servico";
 
@@ -13,6 +15,9 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);
@@ -22,6 +27,7 @@ export async function POST(req: Request) {
     const { id, ...rest } = parsed.data;
     const tipo = { id: id ?? `tipo_${Date.now()}`, criadoEm: new Date().toISOString(), ...rest };
     await upsertProjetoTipoCustom(tipo);
+    revalidatePath("/painel/definicoes");
     return NextResponse.json(tipo);
   } catch (e) {
     console.error(e);

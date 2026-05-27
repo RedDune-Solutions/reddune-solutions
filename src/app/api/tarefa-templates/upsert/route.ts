@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import {
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     };
 
     await upsertTarefaTemplate(template);
+    revalidatePath("/painel/definicoes");
     return NextResponse.json({ ok: true, id });
   } catch (e) {
     console.error(e);

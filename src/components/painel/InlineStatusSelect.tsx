@@ -16,6 +16,8 @@ import {
   PROJETO_STATUS,
   type ProjetoStatus,
 } from "@/types/projeto";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projetoId: string;
@@ -39,6 +41,7 @@ export function InlineStatusSelect({
   valorEstimado,
 }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [current, setCurrent] = useState<ProjetoStatus>(status);
   const [error, setError] = useState<string | null>(null);
@@ -48,23 +51,18 @@ export function InlineStatusSelect({
     const previous = current;
     setCurrent(newStatus);
     setError(null);
-    try {
-      const res = await fetch("/api/projetos/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projetoId, field: "status", newValue: newStatus }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        setCurrent(previous);
-        return;
-      }
-      startTransition(() => router.refresh());
-    } catch (e) {
-      setError((e as Error).message);
+    const res = await safeJsonPost("/api/projetos/edit", {
+      projetoId,
+      field: "status",
+      newValue: newStatus,
+    });
+    if (!res.ok) {
+      setError(res.error);
       setCurrent(previous);
+      toast({ title: "Erro a mudar estado", description: res.error, variant: "destructive" });
+      return;
     }
+    startTransition(() => router.refresh());
   }
 
   const quickActions: QuickAction[] = [];

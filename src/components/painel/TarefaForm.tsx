@@ -30,6 +30,8 @@ import {
 import { SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { Cliente } from "@/types/cliente";
 import { ClienteQuickForm } from "./ClienteQuickForm";
+import { safeFetch, safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projeto?: Projeto;
@@ -40,6 +42,7 @@ type Props = {
 
 export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,13 +78,13 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      fetch("/api/tarefa-templates").then((r) => r.ok ? r.json() : []),
-      fetch("/api/projeto-tipos-custom").then((r) => r.ok ? r.json() : []),
+      safeFetch<TarefaTemplate[]>("/api/tarefa-templates"),
+      safeFetch<ProjetoTipoCustom[]>("/api/projeto-tipos-custom"),
     ]).then(([tmpl, custom]) => {
       if (cancelled) return;
-      if (Array.isArray(tmpl)) setTemplates(tmpl as TarefaTemplate[]);
-      if (Array.isArray(custom)) setCustomTipos(custom as ProjetoTipoCustom[]);
-    }).catch(() => {});
+      if (tmpl.ok && Array.isArray(tmpl.data)) setTemplates(tmpl.data);
+      if (custom.ok && Array.isArray(custom.data)) setCustomTipos(custom.data);
+    });
     return () => { cancelled = true; };
   }, []);
 
@@ -102,33 +105,31 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     const label = newTipoLabel.trim();
     if (!label) return;
     setSavingTipo(true);
-    try {
-      const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      const res = await fetch("/api/projeto-tipos-custom/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, label, categoria: cat }),
-      });
-      if (res.ok) {
-        const novo = await res.json() as ProjetoTipoCustom;
-        setCustomTipos((prev) => [...prev, novo]);
-        setTipos((prev) => [...prev, novo.slug]);
-        setNewTipoLabel("");
-        setAddingCat(null);
-      }
-    } finally {
-      setSavingTipo(false);
+    const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const res = await safeJsonPost<ProjetoTipoCustom>("/api/projeto-tipos-custom/upsert", {
+      slug,
+      label,
+      categoria: cat,
+    });
+    setSavingTipo(false);
+    if (!res.ok) {
+      toast({ title: "Erro a criar tipo", description: res.error, variant: "destructive" });
+      return;
     }
+    setCustomTipos((prev) => [...prev, res.data]);
+    setTipos((prev) => [...prev, res.data.slug]);
+    setNewTipoLabel("");
+    setAddingCat(null);
   }
 
   async function deleteCustomTipo(tipo: ProjetoTipoCustom) {
-    try {
-      await fetch(`/api/projeto-tipos-custom/${tipo.id}`, { method: "DELETE" });
-      setCustomTipos((prev) => prev.filter((c) => c.id !== tipo.id));
-      setTipos((prev) => prev.filter((s) => s !== tipo.slug));
-    } catch {
-      // silent
+    const res = await safeDelete(`/api/projeto-tipos-custom/${tipo.id}`);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar tipo", description: res.error, variant: "destructive" });
+      return;
     }
+    setCustomTipos((prev) => prev.filter((c) => c.id !== tipo.id));
+    setTipos((prev) => prev.filter((s) => s !== tipo.slug));
   }
 
   function onApplyTemplate(id: string) {
@@ -156,61 +157,47 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    try {
-      const selectedCliente = clientesList.find((c) => c.id === clienteId);
-      const showGarantia = status === "terminado" || status === "fechado";
+    const selectedCliente = clientesList.find((c) => c.id === clienteId);
+    const showGarantia = status === "terminado" || status === "fechado";
 
-      const payload = {
-        id: projeto?.id,
-        titulo: titulo.trim(),
-        clienteId: clienteId || null,
-        clienteNome: selectedCliente?.nome ?? projeto?.clienteNome ?? null,
-        status,
-        categoria: categoria,
-        tipo: tipos.length > 0 ? tipos[0] : null,
-        tipos: tipos.length > 0 ? tipos : null,
-        responsavel: responsavel || null,
-        prazo: prazo || null,
-        proximaAccao: proximaAccao.trim() || null,
-        notasResumo: notasResumo.trim() || null,
-        garantiaAte: showGarantia ? (garantiaAte || null) : null,
-      };
+    const payload = {
+      id: projeto?.id,
+      titulo: titulo.trim(),
+      clienteId: clienteId || null,
+      clienteNome: selectedCliente?.nome ?? projeto?.clienteNome ?? null,
+      status,
+      categoria: categoria,
+      tipo: tipos.length > 0 ? tipos[0] : null,
+      tipos: tipos.length > 0 ? tipos : null,
+      responsavel: responsavel || null,
+      prazo: prazo || null,
+      proximaAccao: proximaAccao.trim() || null,
+      notasResumo: notasResumo.trim() || null,
+      garantiaAte: showGarantia ? (garantiaAte || null) : null,
+    };
 
-      const res = await fetch("/api/projetos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        setSubmitting(false);
-        return;
-      }
-
-      const data = await res.json();
-
-      if (applyTemplateId && data?.id) {
-        try {
-          await fetch("/api/tarefas/from-template", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ projetoId: data.id, templateId: applyTemplateId }),
-          });
-        } catch {
-          // não bloquear o save principal
-        }
-        setApplyTemplateId("");
-      }
-
-      startTransition(() => router.refresh());
-      onSaved?.(data.id);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setSubmitting(false);
+    const res = await safeJsonPost<{ id: string }>("/api/projetos/upsert", payload);
+    setSubmitting(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar projecto", description: res.error, variant: "destructive" });
+      return;
     }
+
+    if (applyTemplateId && res.data?.id) {
+      const tmplRes = await safeJsonPost("/api/tarefas/from-template", {
+        projetoId: res.data.id,
+        templateId: applyTemplateId,
+      });
+      if (!tmplRes.ok) {
+        toast({ title: "Projecto guardado, mas template falhou", description: tmplRes.error, variant: "destructive" });
+      }
+      setApplyTemplateId("");
+    }
+
+    toast({ title: "Projecto guardado", variant: "success" });
+    startTransition(() => router.refresh());
+    onSaved?.(res.data.id);
   }
 
   const isBusy = submitting || pending;

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Product } from "@/types/product";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { ImageUploadZone } from "./ImageUploadZone";
 
 type Props = {
   product: Product | null;
@@ -30,6 +33,7 @@ const CONDITION_OPTIONS = [
 
 export function ProductForm({ product, onSaved, onCancel }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const [namePt, setNamePt] = useState(product?.name.pt ?? "");
   const [nameEn, setNameEn] = useState(product?.name.en ?? "");
@@ -39,7 +43,7 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
   const [catEn, setCatEn] = useState(product?.category.en ?? "");
   const [condPt, setCondPt] = useState(product?.condition.pt ?? "novo");
   const [price, setPrice] = useState(product?.price != null ? String(product.price) : "");
-  const [imageUrls, setImageUrls] = useState((product?.imageUrls ?? []).join("\n"));
+  const [images, setImages] = useState<string[]>(product?.imageUrls ?? []);
   const [available, setAvailable] = useState(product?.available ?? true);
   const [featured, setFeatured] = useState(product?.featured ?? false);
   const [saving, setSaving] = useState(false);
@@ -55,37 +59,27 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
     setError(null);
 
     const condEn = CONDITION_OPTIONS.find((c) => c.pt === condPt)?.en ?? "new";
-    const urls = imageUrls
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
 
-    try {
-      const res = await fetch("/api/products/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: product?.id,
-          name: { pt: namePt.trim(), en: nameEn.trim() || namePt.trim() },
-          description: { pt: descPt.trim(), en: descEn.trim() },
-          category: { pt: catPt.trim() || "outro", en: catEn.trim() || "other" },
-          condition: { pt: condPt, en: condEn },
-          price: Number(price.replace(",", ".")) || 0,
-          imageUrls: urls,
-          available,
-          featured,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      startTransition(() => router.refresh());
-      onSaved?.();
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/products/upsert", {
+      id: product?.id,
+      name: { pt: namePt.trim(), en: nameEn.trim() || namePt.trim() },
+      description: { pt: descPt.trim(), en: descEn.trim() },
+      category: { pt: catPt.trim() || "outro", en: catEn.trim() || "other" },
+      condition: { pt: condPt, en: condEn },
+      price: Number(price.replace(",", ".")) || 0,
+      imageUrls: images,
+      available,
+      featured,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar produto", description: res.error, variant: "destructive" });
+      return;
     }
+    toast({ title: "Produto guardado", variant: "success" });
+    startTransition(() => router.refresh());
+    onSaved?.();
   }
 
   return (
@@ -96,7 +90,19 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
           <Input id="np" value={namePt} onChange={(e) => setNamePt(e.target.value)} required maxLength={200} disabled={saving} />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="ne">Nome EN</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="ne">Nome EN</Label>
+            <button
+              type="button"
+              onClick={() => setNameEn(namePt)}
+              disabled={saving || !namePt.trim()}
+              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Copiar nome PT para EN"
+            >
+              <Copy className="h-3 w-3" aria-hidden="true" />
+              PT → EN
+            </button>
+          </div>
           <Input id="ne" value={nameEn} onChange={(e) => setNameEn(e.target.value)} maxLength={200} disabled={saving} />
         </div>
       </div>
@@ -107,7 +113,19 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
           <Textarea id="dp" value={descPt} onChange={(e) => setDescPt(e.target.value)} rows={3} disabled={saving} />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="de">Descrição EN</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="de">Descrição EN</Label>
+            <button
+              type="button"
+              onClick={() => setDescEn(descPt)}
+              disabled={saving || !descPt.trim()}
+              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Copiar descrição PT para EN"
+            >
+              <Copy className="h-3 w-3" aria-hidden="true" />
+              PT → EN
+            </button>
+          </div>
           <Textarea id="de" value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={3} disabled={saving} />
         </div>
       </div>
@@ -118,7 +136,19 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
           <Input id="cp" value={catPt} onChange={(e) => setCatPt(e.target.value)} placeholder="ex: portátil" disabled={saving} />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="ce">Categoria EN</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="ce">Categoria EN</Label>
+            <button
+              type="button"
+              onClick={() => setCatEn(catPt)}
+              disabled={saving || !catPt.trim()}
+              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Copiar categoria PT para EN"
+            >
+              <Copy className="h-3 w-3" aria-hidden="true" />
+              PT → EN
+            </button>
+          </div>
           <Input id="ce" value={catEn} onChange={(e) => setCatEn(e.target.value)} placeholder="ex: laptop" disabled={saving} />
         </div>
       </div>
@@ -150,17 +180,9 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="imgs">URLs de imagens (uma por linha)</Label>
-        <Textarea
-          id="imgs"
-          value={imageUrls}
-          onChange={(e) => setImageUrls(e.target.value)}
-          rows={3}
-          placeholder="https://..."
-          disabled={saving}
-          className="font-mono text-xs"
-        />
+      <div className="space-y-2">
+        <Label>Imagens</Label>
+        <ImageUploadZone value={images} onChange={setImages} disabled={saving} />
       </div>
 
       <div className="flex items-center gap-4 pt-2">

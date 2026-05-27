@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   Briefcase,
   Settings,
+  History,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ export const PAINEL_NAV_DEFAULT: PainelNavItem[] = [
   { href: "/painel/precos", label: "Serviços", Icon: Tag },
   { href: "/painel/loja", label: "Loja", Icon: ShoppingBag },
   { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase },
+  { href: "/painel/auditoria", label: "Auditoria", Icon: History },
   { href: "/painel/definicoes", label: "Definições", Icon: Settings },
 ];
 

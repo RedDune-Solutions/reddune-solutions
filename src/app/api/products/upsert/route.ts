@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { upsertProduct } from "@/lib/mongodb/products";
+import { upsertProduct, getProductById } from "@/lib/mongodb/products";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
+import { deleteManagedBlobs } from "@/lib/blob";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,19 @@ export async function POST(request: Request) {
     const namePt = String((body.name as Record<string, unknown>)?.pt ?? "").trim();
     if (!namePt) {
       return NextResponse.json({ error: "Nome PT obrigatório" }, { status: 400 });
+    }
+
+    const wasUpdate = typeof body.id === "string";
+    const newImageUrls = Array.isArray(body.imageUrls) ? body.imageUrls.map(String) : [];
+
+    // Cleanup blobs órfãos: URLs que estavam em existing mas saíram do novo.
+    let orphanedUrls: string[] = [];
+    if (wasUpdate) {
+      const existing = await getProductById(body.id as string);
+      if (existing) {
+        const newSet = new Set(newImageUrls);
+        orphanedUrls = existing.imageUrls.filter((u) => !newSet.has(u));
+      }
     }
 
     const id = await upsertProduct({
@@ -41,11 +56,22 @@ export async function POST(request: Request) {
         en: String((body.condition as Record<string, unknown>)?.en ?? "new"),
       },
       price: Number(body.price) || 0,
-      imageUrls: Array.isArray(body.imageUrls) ? body.imageUrls.map(String) : [],
+      imageUrls: newImageUrls,
       available: body.available !== false,
       featured: body.featured === true,
     });
 
+    // Best-effort cleanup após save bem-sucedido.
+    if (orphanedUrls.length > 0) {
+      await deleteManagedBlobs(orphanedUrls);
+    }
+
+    await logMutation({
+      collection: "products",
+      entityId: id,
+      op: wasUpdate ? "update" : "create",
+      userEmail: session.user.email ?? null,
+    });
     revalidatePath("/loja");
     return NextResponse.json({ ok: true, id });
   } catch (e) {

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertCliente } from "@/lib/mongodb/clientes";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { clienteInputSchema } from "@/lib/validation-projeto";
 import type { Cliente } from "@/types/cliente";
 
@@ -44,5 +46,14 @@ export async function POST(request: Request) {
   };
 
   await upsertCliente(cliente);
+  await logMutation({
+    collection: "clientes",
+    entityId: id,
+    op: input.id ? "update" : "create",
+    userEmail: session.user.email ?? null,
+    after: cliente,
+  });
+  revalidatePath("/painel/clientes");
+  revalidatePath(`/painel/clientes/${id}`);
   return NextResponse.json({ ok: true, id });
 }

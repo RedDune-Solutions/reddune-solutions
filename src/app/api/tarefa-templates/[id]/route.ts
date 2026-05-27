@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { deleteTarefaTemplate } from "@/lib/mongodb/tarefa-templates";
 
@@ -22,6 +23,7 @@ export async function DELETE(
     if (!ok) {
       return NextResponse.json({ error: "Template não encontrado" }, { status: 404 });
     }
+    revalidatePath("/painel/definicoes");
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);

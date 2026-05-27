@@ -1,7 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { Topbar } from "@/components/painel/Topbar";
 import { ServicosEditor } from "@/components/painel/ServicosEditor";
-import { SeedServicosButton } from "@/components/painel/SeedServicosButton";
 import { getAllServicos } from "@/lib/mongodb/servicos";
 import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 
@@ -18,8 +17,6 @@ export default async function PrecosPage() {
     porSlug[s.slug].push(s);
   }
 
-  const totalServicos = all.length;
-
   return (
     <>
       <Topbar
@@ -28,7 +25,13 @@ export default async function PrecosPage() {
       />
 
       <div className="px-6 lg:px-8 py-8 space-y-6">
-        {totalServicos === 0 && <SeedServicosButton />}
+        {all.length === 0 && (
+          <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Ainda não há serviços. Adiciona o primeiro em qualquer categoria abaixo.
+            </p>
+          </div>
+        )}
         {SERVICO_SLUG.map((slug) => (
           <details
             key={slug}

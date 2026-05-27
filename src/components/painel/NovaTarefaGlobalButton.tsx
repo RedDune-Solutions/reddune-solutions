@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { STATUS_GROUPS, type Projeto, type ProjetoStatus } from "@/types/projeto";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projetos: Projeto[];
@@ -36,6 +38,7 @@ const ACTIVE_STATUSES: ProjetoStatus[] = [
 
 export function NovaTarefaGlobalButton({ projetos }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [projetoId, setProjetoId] = useState("");
@@ -67,31 +70,24 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
     }
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/tarefas/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId,
-          titulo: titulo.trim(),
-          feita: false,
-          prazo: prazo || null,
-          prazoHora: prazo && prazoHora ? prazoHora : null,
-          notas: notas.trim() || null,
-          ordem: 0,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      reset();
-      setOpen(false);
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/tarefas/upsert", {
+      projetoId,
+      titulo: titulo.trim(),
+      feita: false,
+      prazo: prazo || null,
+      prazoHora: prazo && prazoHora ? prazoHora : null,
+      notas: notas.trim() || null,
+      ordem: 0,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a criar tarefa", description: res.error, variant: "destructive" });
+      return;
     }
+    reset();
+    setOpen(false);
+    startTransition(() => router.refresh());
   }
 
   return (

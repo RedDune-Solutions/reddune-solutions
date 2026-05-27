@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertProjeto, getProjetoById } from "@/lib/mongodb/projetos";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { projetoInputSchema } from "@/lib/validation-projeto";
 import { TIPO_TO_CATEGORIA, type Projeto, type ProjetoTipo } from "@/types/projeto";
 
@@ -73,20 +75,29 @@ export async function POST(request: Request) {
     categoriaFinal = TIPO_TO_CATEGORIA[tipoFinal];
   }
 
+  const statusFinal = input.status ?? existing?.status ?? "proximo";
+  const wasOpen = existing && existing.status !== "terminado" && existing.status !== "fechado";
+  const nowClosed = statusFinal === "terminado" || statusFinal === "fechado";
+  let dataFechadoFinal = pick("dataFechado", null);
+  // Auto-set dataFechado quando muda para terminado/fechado e ainda não estava preenchido.
+  if (nowClosed && !dataFechadoFinal && (wasOpen || !existing)) {
+    dataFechadoFinal = now;
+  }
+
   const projeto: Projeto = {
     id,
     titulo: input.titulo ?? existing?.titulo ?? "",
     clienteId: pick("clienteId", null),
     clienteNome: pick("clienteNome", null),
     proximaAccao: pick("proximaAccao", null),
-    status: input.status ?? existing?.status ?? "proximo",
+    status: statusFinal,
     categoria: categoriaFinal,
     tipo: tipoFinal,
     tipos: tiposFinal,
     responsavel: pick("responsavel", null),
     prazo: pick("prazo", null),
     dataCriado: input.id ? (existing?.dataCriado ?? input.dataCriado ?? now) : now,
-    dataFechado: pick("dataFechado", null),
+    dataFechado: dataFechadoFinal,
     valorEstimado: pick("valorEstimado", null),
     valorPago: pick("valorPago", null),
     metodoPagamento: pick("metodoPagamento", null),
@@ -100,6 +111,18 @@ export async function POST(request: Request) {
 
   try {
     await upsertProjeto(projeto);
+    await logMutation({
+      collection: "projetos",
+      entityId: id,
+      op: existing ? "update" : "create",
+      userEmail: session.user.email ?? null,
+      before: existing,
+      after: projeto,
+    });
+    revalidatePath("/painel/projetos");
+    revalidatePath(`/painel/projetos/${id}`);
+    revalidatePath("/painel/dividas");
+    revalidatePath("/painel");
     return NextResponse.json({ ok: true, id });
   } catch (e) {
     console.error(e);

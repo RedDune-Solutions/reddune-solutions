@@ -17,6 +17,14 @@ async function doInit(): Promise<void> {
     db.collection("tarefas").createIndex({ projetoId: 1 }),
 
     db.collection("clientes").createIndex({ id: 1 }, { unique: true }),
+    db.collection("clientes").createIndex(
+      { email: 1 },
+      { unique: true, partialFilterExpression: { email: { $type: "string" } } }
+    ),
+    db.collection("clientes").createIndex(
+      { nif: 1 },
+      { unique: true, partialFilterExpression: { nif: { $type: "string" } } }
+    ),
 
     db.collection("pagamentos").createIndex({ id: 1 }, { unique: true }),
     db.collection("pagamentos").createIndex({ projetoId: 1 }),
@@ -26,6 +34,16 @@ async function doInit(): Promise<void> {
     db.collection("servicos").createIndex({ slug: 1, ordem: 1 }),
 
     db.collection("tarefa_templates").createIndex({ id: 1 }, { unique: true }),
+
+    db.collection("projeto_tipos_custom").createIndex({ id: 1 }, { unique: true }),
+    db.collection("projeto_tipos_custom").createIndex({ slug: 1 }, { unique: true }),
+
+    db.collection("auth_audit").createIndex({ at: -1 }),
+    db.collection("auth_audit").createIndex({ email: 1, type: 1, at: -1 }),
+
+    db.collection("audit_log").createIndex({ at: -1 }),
+    db.collection("audit_log").createIndex({ collection: 1, entityId: 1, at: -1 }),
+    db.collection("audit_log").createIndex({ userEmail: 1, at: -1 }),
   ]);
 }
 

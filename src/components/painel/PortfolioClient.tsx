@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/sheet";
 import { PortfolioForm } from "./PortfolioForm";
 import type { PortfolioItem } from "@/types/portfolio";
+import { safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   items: PortfolioItem[];
@@ -23,13 +26,25 @@ type Props = {
 
 export function PortfolioClient({ items }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("Apagar trabalho?")) return;
-    await fetch(`/api/portfolio/${encodeURIComponent(id)}`, { method: "DELETE" });
+    const ok = await confirm({
+      title: "Apagar trabalho?",
+      description: "Esta acção remove o trabalho do portfólio público.",
+      confirmLabel: "Apagar",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    const res = await safeDelete(`/api/portfolio/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar trabalho", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 

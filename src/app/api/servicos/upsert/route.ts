@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { upsertServico, getServicoById, getServicosBySlug } from "@/lib/mongodb/servicos";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { servicoInputSchema } from "@/lib/validation-servico";
 import type { Servico } from "@/types/servico";
 
@@ -67,6 +68,13 @@ export async function POST(request: Request) {
   };
 
   await upsertServico(servico);
+  await logMutation({
+    collection: "servicos",
+    entityId: id,
+    op: existing ? "update" : "create",
+    userEmail: session.user.email ?? null,
+    after: servico,
+  });
   revalidatePath("/servicos");
   revalidatePath(`/servicos/${input.slug}`);
   return NextResponse.json({ ok: true, id });

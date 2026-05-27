@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { deleteTarefa } from "@/lib/mongodb/tarefas";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -23,5 +25,15 @@ export async function DELETE(
     return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
   }
 
+  await logMutation({
+    collection: "tarefas",
+    entityId: id,
+    op: "delete",
+    userEmail: session.user.email ?? null,
+  });
+
+  revalidatePath("/painel/tarefas");
+  revalidatePath("/painel/calendario");
+  revalidatePath("/painel");
   return NextResponse.json({ ok: true });
 }

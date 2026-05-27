@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/select";
 import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
+import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   tipos: ProjetoTipoCustom[];
@@ -31,6 +34,8 @@ function toSlug(label: string): string {
 
 export function ProjetoTiposCustomEditor({ tipos }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState("");
@@ -52,27 +57,34 @@ export function ProjetoTiposCustomEditor({ tipos }: Props) {
     if (!categoria) { setError("Escolhe uma categoria."); return; }
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/projeto-tipos-custom/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, label: label.trim(), categoria }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      reset();
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/projeto-tipos-custom/upsert", {
+      slug,
+      label: label.trim(),
+      categoria,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a criar tipo", description: res.error, variant: "destructive" });
+      return;
     }
+    reset();
+    startTransition(() => router.refresh());
   }
 
   async function remove(id: string, tipoLabel: string) {
-    if (!confirm(`Apagar tipo "${tipoLabel}"?`)) return;
-    await fetch(`/api/projeto-tipos-custom/${encodeURIComponent(id)}`, { method: "DELETE" });
+    const ok = await confirm({
+      title: `Apagar tipo "${tipoLabel}"?`,
+      description: "Projectos existentes com este tipo mantêm o nome, mas não vai aparecer na lista de tipos disponíveis.",
+      confirmLabel: "Apagar",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    const res = await safeDelete(`/api/projeto-tipos-custom/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar tipo", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 

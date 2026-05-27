@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/select";
 import { METODO_PAGAMENTO, METODO_LABEL, type Pagamento, type MetodoPagamento } from "@/types/pagamento";
 import { parseMoney } from "@/lib/parse-number";
+import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   projetoId: string;
@@ -39,6 +42,8 @@ function fmtDate(iso: string): string {
 
 export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projetoStatus, projetoTitulo }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -66,27 +71,20 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
     if (!Number.isFinite(v) || v <= 0) return;
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/pagamentos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId,
-          valor: Math.round(v * 100) / 100,
-          data: todayIso(),
-          metodo: ultimoMetodo,
-          notas: null,
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/pagamentos/upsert", {
+      projetoId,
+      valor: Math.round(v * 100) / 100,
+      data: todayIso(),
+      metodo: ultimoMetodo,
+      notas: null,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a registar pagamento", description: res.error, variant: "destructive" });
+      return;
     }
+    startTransition(() => router.refresh());
   }
 
   const entradaValor =
@@ -97,11 +95,15 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
 
   async function fecharProjeto() {
     if (!projetoTitulo) return;
-    await fetch("/api/projetos/upsert", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: projetoId, titulo: projetoTitulo, status: "fechado" }),
+    const res = await safeJsonPost("/api/projetos/upsert", {
+      id: projetoId,
+      titulo: projetoTitulo,
+      status: "fechado",
     });
+    if (!res.ok) {
+      toast({ title: "Erro a fechar projecto", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 
@@ -122,34 +124,37 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
     }
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/pagamentos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId,
-          valor: v,
-          data,
-          metodo: metodo || null,
-          notas: notas.trim() || null,
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      reset();
-      setAdding(false);
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/pagamentos/upsert", {
+      projetoId,
+      valor: v,
+      data,
+      metodo: metodo || null,
+      notas: notas.trim() || null,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a registar pagamento", description: res.error, variant: "destructive" });
+      return;
     }
+    reset();
+    setAdding(false);
+    startTransition(() => router.refresh());
   }
 
   async function remove(id: string) {
-    if (!confirm("Apagar pagamento?")) return;
-    await fetch(`/api/pagamentos/${encodeURIComponent(id)}`, { method: "DELETE" });
+    const ok = await confirm({
+      title: "Apagar pagamento?",
+      description: "Esta acção remove o pagamento permanentemente e recalcula o valor em dívida.",
+      confirmLabel: "Apagar",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    const res = await safeDelete(`/api/pagamentos/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar pagamento", description: res.error, variant: "destructive" });
+      return;
+    }
     startTransition(() => router.refresh());
   }
 

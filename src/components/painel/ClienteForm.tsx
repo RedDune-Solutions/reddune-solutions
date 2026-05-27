@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Cliente } from "@/types/cliente";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   cliente?: Cliente;
@@ -17,6 +19,7 @@ type Props = {
 
 export function ClienteForm({ cliente, onSaved, onCancel }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,38 +35,24 @@ export function ClienteForm({ cliente, onSaved, onCancel }: Props) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    try {
-      const payload = {
-        id: cliente?.id,
-        nome: nome.trim(),
-        email: email.trim() || null,
-        telefone: telefone.trim() || null,
-        nif: nif.trim() || null,
-        morada: morada.trim() || null,
-        notas: notas.trim() || null,
-      };
-
-      const res = await fetch("/api/clientes/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        setSubmitting(false);
-        return;
-      }
-
-      const data = await res.json();
-      startTransition(() => router.refresh());
-      onSaved?.(data.id);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setSubmitting(false);
+    const res = await safeJsonPost<{ id: string }>("/api/clientes/upsert", {
+      id: cliente?.id,
+      nome: nome.trim(),
+      email: email.trim() || null,
+      telefone: telefone.trim() || null,
+      nif: nif.trim() || null,
+      morada: morada.trim() || null,
+      notas: notas.trim() || null,
+    });
+    setSubmitting(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar cliente", description: res.error, variant: "destructive" });
+      return;
     }
+    toast({ title: "Cliente guardado", variant: "success" });
+    startTransition(() => router.refresh());
+    onSaved?.(res.data.id);
   }
 
   const isBusy = submitting || pending;

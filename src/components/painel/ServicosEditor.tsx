@@ -13,6 +13,9 @@ import {
   type VariantePreco,
 } from "@/types/servico";
 import { parseMoney } from "@/lib/parse-number";
+import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   slug: ServicoSlug;
@@ -84,6 +87,8 @@ function emptyDraft(ordem: number): Draft {
 
 export function ServicosEditor({ slug, servicos }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [items, setItems] = useState<Draft[]>(servicos.map(toDraft));
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -204,19 +209,14 @@ export function ServicosEditor({ slug, servicos }: Props) {
         ordem: d.ordem,
         ativo: d.ativo,
       };
-      const res = await fetch("/api/servicos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await safeJsonPost<{ id: string }>("/api/servicos/upsert", payload);
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setError(j.error ?? `HTTP ${res.status}`);
+        setError(res.error);
+        toast({ title: "Erro a guardar serviço", description: res.error, variant: "destructive" });
         return;
       }
-      const j = await res.json();
       setItems((prev) =>
-        prev.map((it, i) => (i === idx ? { ...it, id: j.id, dirty: false } : it))
+        prev.map((it, i) => (i === idx ? { ...it, id: res.data.id, dirty: false } : it))
       );
       startTransition(() => router.refresh());
     } finally {
@@ -227,8 +227,18 @@ export function ServicosEditor({ slug, servicos }: Props) {
   async function remove(idx: number) {
     const d = items[idx]!;
     if (d.id) {
-      if (!confirm(`Apagar "${d.titulo}"?`)) return;
-      await fetch(`/api/servicos/${encodeURIComponent(d.id)}`, { method: "DELETE" });
+      const ok = await confirm({
+        title: `Apagar "${d.titulo}"?`,
+        description: "Remove este serviço da página pública /servicos.",
+        confirmLabel: "Apagar",
+        tone: "destructive",
+      });
+      if (!ok) return;
+      const res = await safeDelete(`/api/servicos/${encodeURIComponent(d.id)}`);
+      if (!res.ok) {
+        toast({ title: "Erro a apagar serviço", description: res.error, variant: "destructive" });
+        return;
+      }
     }
     setItems((prev) => prev.filter((_, i) => i !== idx));
     startTransition(() => router.refresh());

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Cliente } from "@/types/cliente";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   onCreated: (cliente: Cliente) => void;
@@ -13,6 +15,7 @@ type Props = {
 };
 
 export function ClienteQuickForm({ onCreated, onCancel }: Props) {
+  const { toast } = useToast();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -24,40 +27,30 @@ export function ClienteQuickForm({ onCreated, onCancel }: Props) {
     if (!nome.trim()) return;
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/clientes/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: nome.trim(),
-          email: email.trim() || null,
-          telefone: telefone.trim() || null,
-          nif: null,
-          morada: null,
-          notas: null,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      const data = await res.json();
-      onCreated({
-        id: data.id,
-        nome: nome.trim(),
-        email: email.trim() || null,
-        telefone: telefone.trim() || null,
-        nif: null,
-        morada: null,
-        notas: null,
-        criadoEm: new Date().toISOString(),
-      });
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost<{ id: string }>("/api/clientes/upsert", {
+      nome: nome.trim(),
+      email: email.trim() || null,
+      telefone: telefone.trim() || null,
+      nif: null,
+      morada: null,
+      notas: null,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a criar cliente", description: res.error, variant: "destructive" });
+      return;
     }
+    onCreated({
+      id: res.data.id,
+      nome: nome.trim(),
+      email: email.trim() || null,
+      telefone: telefone.trim() || null,
+      nif: null,
+      morada: null,
+      notas: null,
+      criadoEm: new Date().toISOString(),
+    });
   }
 
   return (

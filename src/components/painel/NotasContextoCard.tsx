@@ -6,6 +6,8 @@ import { Loader2, FileText, Plus, LayoutTemplate } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Projeto } from "@/types/projeto";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 const TEMPLATE_AT = `## 🗣️ Pedido / testemunho do cliente
 
@@ -87,6 +89,7 @@ function timestamp(): string {
 
 export function NotasContextoCard({ projeto }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const [bodyMd, setBodyMd] = useState(projeto.bodyMd ?? "");
   const [adding, setAdding] = useState(false);
@@ -99,27 +102,20 @@ export function NotasContextoCard({ projeto }: Props) {
   async function persist(nextBody: string) {
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/projetos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: projeto.id,
-          titulo: projeto.titulo,
-          status: projeto.status,
-          bodyMd: nextBody || null,
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
-        return false;
-      }
-      startTransition(() => router.refresh());
-      return true;
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/projetos/upsert", {
+      id: projeto.id,
+      titulo: projeto.titulo,
+      status: projeto.status,
+      bodyMd: nextBody || null,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar notas", description: res.error, variant: "destructive" });
+      return false;
     }
+    startTransition(() => router.refresh());
+    return true;
   }
 
   async function save() {

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Projeto } from "@/types/projeto";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projeto: Projeto;
@@ -15,6 +17,7 @@ type Props = {
 
 export function HardwareSection({ projeto }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const hw = projeto.hardware ?? {};
   const hasData = !!(hw.marca || hw.modelo || hw.serial || hw.acessoriosEntregues);
@@ -35,35 +38,28 @@ export function HardwareSection({ projeto }: Props) {
   async function save() {
     setSaving(true);
     setError(null);
-    try {
-      const hardware =
-        marca.trim() || modelo.trim() || serial.trim() || acessorios.trim()
-          ? {
-              marca: marca.trim() || undefined,
-              modelo: modelo.trim() || undefined,
-              serial: serial.trim() || undefined,
-              acessoriosEntregues: acessorios.trim() || undefined,
-            }
-          : null;
-      const res = await fetch("/api/projetos/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: projeto.id,
-          titulo: projeto.titulo,
-          status: projeto.status,
-          hardware,
-        }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      startTransition(() => router.refresh());
-    } finally {
-      setSaving(false);
+    const hardware =
+      marca.trim() || modelo.trim() || serial.trim() || acessorios.trim()
+        ? {
+            marca: marca.trim() || undefined,
+            modelo: modelo.trim() || undefined,
+            serial: serial.trim() || undefined,
+            acessoriosEntregues: acessorios.trim() || undefined,
+          }
+        : null;
+    const res = await safeJsonPost("/api/projetos/upsert", {
+      id: projeto.id,
+      titulo: projeto.titulo,
+      status: projeto.status,
+      hardware,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar hardware", description: res.error, variant: "destructive" });
+      return;
     }
+    startTransition(() => router.refresh());
   }
 
   return (

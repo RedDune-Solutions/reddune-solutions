@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { upsertPagamento } from "@/lib/mongodb/pagamentos";
 import { getProjetoById } from "@/lib/mongodb/projetos";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { METODO_PAGAMENTO, type Pagamento } from "@/types/pagamento";
 
 export const dynamic = "force-dynamic";
@@ -50,5 +52,16 @@ export async function POST(request: Request) {
   };
 
   await upsertPagamento(pagamento);
+  await logMutation({
+    collection: "pagamentos",
+    entityId: id,
+    op: input.id ? "update" : "create",
+    userEmail: session.user.email ?? null,
+    after: pagamento,
+  });
+  revalidatePath(`/painel/projetos/${input.projetoId}`);
+  revalidatePath("/painel/dividas");
+  revalidatePath("/painel/relatorios");
+  revalidatePath("/painel");
   return NextResponse.json({ ok: true, id });
 }

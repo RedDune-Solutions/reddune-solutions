@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,9 @@ import {
 import type { PortfolioItem, PortfolioCategoria } from "@/types/portfolio";
 import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import { SERVICO_SLUG } from "@/types/servico";
+import { safeJsonPost } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { ImageUploadZone } from "./ImageUploadZone";
 
 type Props = {
   item: PortfolioItem | null;
@@ -27,6 +30,7 @@ const NONE = "__none__";
 
 export function PortfolioForm({ item, onSaved, onCancel }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [, startTransition] = useTransition();
   const [titlePt, setTitlePt] = useState(item?.title.pt ?? "");
   const [titleEn, setTitleEn] = useState(item?.title.en ?? "");
@@ -53,29 +57,23 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
     }
     setSaving(true);
     setError(null);
-    try {
-      const res = await fetch("/api/portfolio/upsert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: item?.id,
-          title: { pt: titlePt.trim(), en: titleEn.trim() || titlePt.trim() },
-          imageUrl: imageUrl.trim(),
-          url: url.trim(),
-          categoria,
-          destaqueLanding,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      startTransition(() => router.refresh());
-      onSaved?.();
-    } finally {
-      setSaving(false);
+    const res = await safeJsonPost("/api/portfolio/upsert", {
+      id: item?.id,
+      title: { pt: titlePt.trim(), en: titleEn.trim() || titlePt.trim() },
+      imageUrl: imageUrl.trim(),
+      url: url.trim(),
+      categoria,
+      destaqueLanding,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      toast({ title: "Erro a guardar trabalho", description: res.error, variant: "destructive" });
+      return;
     }
+    toast({ title: "Trabalho guardado", variant: "success" });
+    startTransition(() => router.refresh());
+    onSaved?.();
   }
 
   return (
@@ -86,13 +84,30 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="te">Título EN</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="te">Título EN</Label>
+          <button
+            type="button"
+            onClick={() => setTitleEn(titlePt)}
+            disabled={saving || !titlePt.trim()}
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Copiar título PT para EN"
+          >
+            <Copy className="h-3 w-3" aria-hidden="true" />
+            PT → EN
+          </button>
+        </div>
         <Input id="te" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} maxLength={200} disabled={saving} />
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="img">URL da imagem</Label>
-        <Input id="img" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." disabled={saving} className="font-mono text-xs" />
+      <div className="space-y-2">
+        <Label>Imagem</Label>
+        <ImageUploadZone
+          value={imageUrl ? [imageUrl] : []}
+          onChange={(urls) => setImageUrl(urls[0] ?? "")}
+          disabled={saving}
+          max={1}
+        />
       </div>
 
       <div className="space-y-1">

@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import type { Projeto } from "@/types/projeto";
+import { safeDelete } from "@/lib/safe-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   projeto: Projeto;
@@ -18,30 +21,32 @@ type Props = {
 
 export function TarefaRowMenu({ projeto }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirm = useConfirm();
   const pathname = usePathname() ?? "";
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState(false);
 
   async function onDelete(e: Event) {
     e.preventDefault();
-    if (!confirm(`Apagar "${projeto.titulo}"?`)) return;
+    const ok = await confirm({
+      title: `Apagar "${projeto.titulo}"?`,
+      description: "Apaga o projecto e todas as tarefas associadas. Não pode ser desfeito.",
+      confirmLabel: "Apagar projecto",
+      tone: "destructive",
+    });
+    if (!ok) return;
     setBusy(true);
-    try {
-      const res = await fetch(`/api/projetos/${encodeURIComponent(projeto.id)}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(`Erro: ${data.error ?? res.status}`);
-        return;
-      }
-      if (pathname.includes(`/projetos/${projeto.id}`)) {
-        startTransition(() => router.push("/painel/projetos"));
-      } else {
-        startTransition(() => router.refresh());
-      }
-    } finally {
-      setBusy(false);
+    const res = await safeDelete(`/api/projetos/${encodeURIComponent(projeto.id)}`);
+    setBusy(false);
+    if (!res.ok) {
+      toast({ title: "Erro a apagar projecto", description: res.error, variant: "destructive" });
+      return;
+    }
+    if (pathname.includes(`/projetos/${projeto.id}`)) {
+      startTransition(() => router.push("/painel/projetos"));
+    } else {
+      startTransition(() => router.refresh());
     }
   }
 

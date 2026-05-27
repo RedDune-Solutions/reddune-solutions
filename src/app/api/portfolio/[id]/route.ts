@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { deletePortfolioItem } from "@/lib/mongodb/portfolio";
+import { deletePortfolioItem, getPortfolioItemById } from "@/lib/mongodb/portfolio";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
+import { deleteManagedBlob } from "@/lib/blob";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,19 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    const existing = await getPortfolioItemById(id);
     const ok = await deletePortfolioItem(id);
+    if (ok) {
+      if (existing?.imageUrl) {
+        await deleteManagedBlob(existing.imageUrl);
+      }
+      await logMutation({
+        collection: "portfolio",
+        entityId: id,
+        op: "delete",
+        userEmail: session.user.email ?? null,
+      });
+    }
     revalidatePath("/portfolio");
     revalidatePath("/");
     return NextResponse.json({ ok });
