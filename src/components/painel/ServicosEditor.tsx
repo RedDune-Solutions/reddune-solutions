@@ -16,6 +16,7 @@ import { parseMoney } from "@/lib/parse-number";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { ImageUploadZone } from "./ImageUploadZone";
 
 type Props = {
   slug: ServicoSlug;
@@ -33,6 +34,7 @@ type Draft = {
   precoDesde: boolean;
   precoTexto: string; // preservado mas não editável (legacy)
   nota: string;
+  imageUrl: string;
   ordem: number;
   ativo: boolean;
   temVariantes: boolean;
@@ -53,6 +55,7 @@ function toDraft(s: Servico): Draft {
     precoDesde: s.precoDesde ?? false,
     precoTexto: s.precoTexto ?? "",
     nota: s.nota ?? "",
+    imageUrl: s.imageUrl ?? "",
     ordem: s.ordem,
     ativo: s.ativo,
     temVariantes,
@@ -77,6 +80,7 @@ function emptyDraft(ordem: number): Draft {
     precoDesde: false,
     precoTexto: "",
     nota: "",
+    imageUrl: "",
     ordem,
     ativo: true,
     temVariantes: false,
@@ -206,6 +210,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
         precoDesde: !variantesPayload && d.precoDesde,
         variantes: variantesPayload,
         nota: d.nota.trim() || null,
+        imageUrl: d.imageUrl.trim() || null,
         ordem: d.ordem,
         ativo: d.ativo,
       };
@@ -444,6 +449,17 @@ export function ServicosEditor({ slug, servicos }: Props) {
                   onChange={(e) => update(idx, { descricao: e.target.value })}
                   rows={2}
                   className="text-sm border-border-strong bg-background"
+                />
+              </div>
+
+              {/* Imagem */}
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase font-semibold text-foreground/80 tracking-wide">Imagem</Label>
+                <ImageUploadZone
+                  value={d.imageUrl ? [d.imageUrl] : []}
+                  onChange={(urls) => update(idx, { imageUrl: urls[0] ?? "" })}
+                  disabled={savingId === (d.id ?? `new_${idx}`)}
+                  max={1}
                 />
               </div>
 

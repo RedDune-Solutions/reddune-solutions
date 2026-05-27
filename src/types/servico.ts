@@ -29,6 +29,7 @@ export interface Servico {
   variantes: VariantePreco[] | null; // multi-preço; tem prioridade sobre precoBase
   precoTexto: string | null;         // LEGACY — só lido como último fallback p/ retrocompat
   nota: string | null;               // sufixo (ex "abatido se reparares")
+  imageUrl: string | null;           // imagem opcional do item
   ordem: number;
   ativo: boolean;
   criadoEm: string;

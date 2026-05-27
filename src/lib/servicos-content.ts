@@ -12,6 +12,7 @@ export type ServiceListItem = {
   title: string;
   description: string;
   price: string;
+  imageUrl?: string | null;
 };
 
 export type ServiceStat = {

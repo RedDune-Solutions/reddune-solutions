@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { upsertServico, getServicoById, getServicosBySlug } from "@/lib/mongodb/servicos";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { servicoInputSchema } from "@/lib/validation-servico";
+import { deleteManagedBlob } from "@/lib/blob";
 import type { Servico } from "@/types/servico";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,15 @@ export async function POST(request: Request) {
   const precoDesde =
     input.precoDesde !== undefined ? (input.precoDesde ?? false) : (existing?.precoDesde ?? false);
 
+  const imageUrl =
+    input.imageUrl !== undefined ? (input.imageUrl ?? null) : (existing?.imageUrl ?? null);
+
+  // Cleanup blob antigo se imagem foi trocada/removida.
+  let orphanUrl: string | null = null;
+  if (existing?.imageUrl && existing.imageUrl !== imageUrl) {
+    orphanUrl = existing.imageUrl;
+  }
+
   const servico: Servico = {
     id,
     slug: input.slug,
@@ -61,6 +71,7 @@ export async function POST(request: Request) {
     variantes: variantes && variantes.length > 0 ? variantes : null,
     precoTexto: input.precoTexto ?? existing?.precoTexto ?? null,
     nota: input.nota ?? existing?.nota ?? null,
+    imageUrl,
     ordem,
     ativo: input.ativo ?? existing?.ativo ?? true,
     criadoEm: existing?.criadoEm ?? now,
@@ -68,6 +79,9 @@ export async function POST(request: Request) {
   };
 
   await upsertServico(servico);
+  if (orphanUrl) {
+    await deleteManagedBlob(orphanUrl);
+  }
   await logMutation({
     collection: "servicos",
     entityId: id,

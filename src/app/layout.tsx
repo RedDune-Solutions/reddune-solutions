@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
+import { RdLoaderFirstPaint } from "@/components/ui/rd-loader-first-paint";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
@@ -86,6 +87,7 @@ export default async function RootLayout({
       )}
     >
       <body className={cn("font-body antialiased")}>
+        <RdLoaderFirstPaint />
         <StructuredData />
         <NextIntlClientProvider messages={messages}>
           <ConfirmProvider>{children}</ConfirmProvider>

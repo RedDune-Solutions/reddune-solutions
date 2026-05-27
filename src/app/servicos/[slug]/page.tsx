@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
@@ -325,6 +326,7 @@ export default async function ServicoSlugPage({ params }: PageProps) {
         title: s.titulo,
         description: s.descricao ?? "",
         price: formatPreco(s),
+        imageUrl: s.imageUrl ?? null,
       }));
     }
   } catch (e) {
@@ -452,7 +454,17 @@ export default async function ServicoSlugPage({ params }: PageProps) {
                         "linear-gradient(135deg, var(--cream-deep), var(--peach))",
                     }}
                   >
-                    <ItemVisual index={index} />
+                    {item.imageUrl ? (
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <ItemVisual index={index} />
+                    )}
                   </div>
 
                   <h3
