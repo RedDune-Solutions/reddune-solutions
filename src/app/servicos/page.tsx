@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -53,92 +54,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
 type ServiceVisualConfig = {
   slug: ServicoSlug;
-  gradientId: string;
-  visual: React.ReactNode;
+  imageSrc: string;
 };
 
-// 1:1 port of the SVG icons in design-handoff/project/site/servicos/index.html.
+// Imagens reais — alinhadas com a home page (Services.tsx).
 const SERVICE_VISUALS: ReadonlyArray<ServiceVisualConfig> = [
   {
     slug: "assistencia-tecnica",
-    gradientId: "hub-svc-g1",
-    visual: (
-      <svg
-        viewBox="0 0 300 225"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full"
-      >
-        <defs>
-          <radialGradient id="hub-svc-g1">
-            <stop offset="0" stopColor="#ff8a5c" />
-            <stop offset="1" stopColor="#d6422a" />
-          </radialGradient>
-        </defs>
-        <circle
-          className="icon-blob"
-          cx="150"
-          cy="120"
-          r="60"
-          fill="url(#hub-svc-g1)"
-          opacity="0.85"
-        />
-        <rect x="80" y="140" width="140" height="6" rx="3" fill="#5a0e0e" opacity="0.5" />
-      </svg>
-    ),
+    imageSrc: "/assistencia tecnica.jpg",
   },
   {
     slug: "web-digital",
-    gradientId: "hub-svc-g2",
-    visual: (
-      <svg
-        viewBox="0 0 300 225"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full"
-      >
-        <defs>
-          <linearGradient id="hub-svc-g2" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stopColor="#f3c79b" />
-            <stop offset="1" stopColor="#a8201a" />
-          </linearGradient>
-        </defs>
-        <path
-          className="icon-blob"
-          d="M 60 150 Q 100 50, 150 100 T 240 90 L 240 180 L 60 180 Z"
-          fill="url(#hub-svc-g2)"
-        />
-        <circle cx="200" cy="80" r="14" fill="#fff7e8" opacity="0.8" />
-      </svg>
-    ),
+    imageSrc: "/web e digital.jpg",
   },
   {
     slug: "software-recuperacao",
-    gradientId: "hub-svc-g3",
-    visual: (
-      <svg
-        viewBox="0 0 300 225"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full"
-      >
-        <defs>
-          <radialGradient id="hub-svc-g3" cx="0.3" cy="0.3">
-            <stop offset="0" stopColor="#ff6b3f" />
-            <stop offset="1" stopColor="#5a0e0e" />
-          </radialGradient>
-        </defs>
-        <ellipse
-          className="icon-blob"
-          cx="150"
-          cy="120"
-          rx="90"
-          ry="55"
-          fill="url(#hub-svc-g3)"
-        />
-        <circle cx="150" cy="120" r="20" fill="#fff7e8" opacity="0.85" />
-      </svg>
-    ),
+    imageSrc: "/software e recuperacao.jpg",
   },
 ] as const;
 
@@ -199,12 +130,14 @@ function ServicesHubBody({ precosDb }: { precosDb: Record<string, number | null>
                   className={cn(
                     "relative mb-7 overflow-hidden rounded-[20px] aspect-[4/3]",
                   )}
-                  style={{
-                    background:
-                      "linear-gradient(135deg, var(--cream-deep), var(--peach))",
-                  }}
                 >
-                  {svc.visual}
+                  <Image
+                    src={svc.imageSrc}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
                 </div>
 
                 <h3
