@@ -59,11 +59,12 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
   return (
     <>
       <Topbar
+        crumbs={["Painel", "Clientes", cliente.nome]}
         title={cliente.nome}
         description={`${projetos.length} projecto${projetos.length === 1 ? "" : "s"} no histórico.`}
       />
 
-      <div className="px-6 lg:px-8 py-8 space-y-8 max-w-6xl">
+      <div className="content max-w-6xl">
         <div className="flex items-center justify-between">
           <Button asChild variant="ghost" size="sm" className="-ml-3">
             <Link href="/painel/clientes">
@@ -74,7 +75,7 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
         </div>
 
         {/* Ficha editável inline */}
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="card" style={{ padding: 24 }}>
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-5">
             Ficha do cliente
           </h2>
@@ -163,7 +164,7 @@ function PagamentosHistorico({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+    <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
       <p className="font-mono tabular-nums text-sm">
         Total pago: <strong>{total}€</strong> <span className="text-muted-foreground">· {pagamentos.length} pagamento{pagamentos.length === 1 ? "" : "s"}</span>
       </p>

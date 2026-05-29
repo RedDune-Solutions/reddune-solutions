@@ -20,11 +20,12 @@ export default async function PrecosPage() {
   return (
     <>
       <Topbar
+        crumbs={["Painel", "Serviços"]}
         title="Preços dos serviços"
         description="Edita os preços que aparecem nas páginas públicas /servicos."
       />
 
-      <div className="px-6 lg:px-8 py-8 space-y-6">
+      <div className="content">
         {all.length === 0 && (
           <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
             <p className="text-sm text-muted-foreground">

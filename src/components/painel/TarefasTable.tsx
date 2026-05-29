@@ -11,7 +11,6 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { Input } from "@/components/ui/input";
 import { ArrowUpDown, Search } from "lucide-react";
 import { InlineStatusSelect } from "./InlineStatusSelect";
 import { TarefaRowMenu } from "./TarefaRowMenu";
@@ -52,7 +51,16 @@ export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
       {
         accessorKey: "clienteNome",
         header: "Cliente",
-        cell: ({ row }) => row.original.clienteNome ?? "—",
+        cell: ({ row }) =>
+          row.original.clienteNome
+            ? row.original.clienteId
+              ? (
+                <Link href={`/painel/clientes/${row.original.clienteId}`} className="hover:text-ember">
+                  {row.original.clienteNome}
+                </Link>
+              )
+              : row.original.clienteNome
+            : "—",
       },
       {
         accessorKey: "status",
@@ -136,32 +144,27 @@ export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-mute"
-          aria-hidden="true"
-        />
-        <Input
-          type="search"
-          placeholder="Pesquisar projetos..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="pl-10 bg-white/70 border-dune-deep/15 rounded-btn focus-visible:ring-ember"
-        />
+    <div className="col" style={{ gap: 16 }}>
+      <div className="filterbar" style={{ maxWidth: 380 }}>
+        <div className="search-mini" style={{ flex: 1 }}>
+          <Search className="ic" aria-hidden="true" />
+          <input
+            type="search"
+            placeholder="Procurar projecto, cliente, ID…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
       </div>
 
-      <div className="overflow-hidden rounded-card border border-dune-deep/10 bg-sand-warm/70 shadow-warm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-cream-deep">
+      <div className="card flat" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table className="tbl">
+            <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-4 py-3 text-left font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft"
-                    >
+                    <th key={header.id}>
                       <button
                         type="button"
                         onClick={header.column.getToggleSortingHandler()}
@@ -180,24 +183,18 @@ export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
                 </tr>
               ))}
             </thead>
-            <tbody className="divide-y divide-dune-deep/8">
+            <tbody>
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-4 py-12 text-center text-ink-mute">
+                  <td colSpan={columns.length} className="muted" style={{ textAlign: "center", padding: "48px 0" }}>
                     Sem projetos para mostrar.
                   </td>
                 </tr>
               ) : (
-                table.getRowModel().rows.map((row, idx) => (
-                  <tr
-                    key={row.id}
-                    className={cn(
-                      "transition-colors hover:bg-ember/5",
-                      idx % 2 === 1 && "bg-white/30"
-                    )}
-                  >
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 align-middle">
+                      <td key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -207,11 +204,21 @@ export function TarefasTable({ projetos }: { projetos: Projeto[] }) {
             </tbody>
           </table>
         </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "12px 20px",
+            borderTop: "1px solid rgba(90, 14, 14, 0.08)",
+            background: "rgba(236, 223, 194, 0.3)",
+          }}
+        >
+          <span className="mono muted" style={{ fontSize: 11, letterSpacing: "0.1em" }}>
+            {filteredData.length} de {projetos.length} projectos
+          </span>
+        </div>
       </div>
-
-      <p className="font-mono text-[11px] uppercase tracking-tight text-ink-mute tabular-nums">
-        {filteredData.length} de {projetos.length} projetos
-      </p>
     </div>
   );
 }

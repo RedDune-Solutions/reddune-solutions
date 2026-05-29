@@ -19,7 +19,7 @@ export default async function PortfolioDetailPage({ params }: { params: Params }
     <>
       <Topbar title={item.title.pt} description="Trabalho do portfólio" />
 
-      <div className="px-6 lg:px-8 py-8 space-y-6 max-w-3xl">
+      <div className="content max-w-3xl">
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href="/painel/portfolio">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />

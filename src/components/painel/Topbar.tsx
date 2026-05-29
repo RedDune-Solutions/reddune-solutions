@@ -1,18 +1,33 @@
+import type { ReactNode } from "react";
+import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { auth } from "@/lib/auth";
 import { GlobalSearch } from "./GlobalSearch";
 import { MobileMenuButton } from "./MobileMenuButton";
 
 type Props = {
-  title: string;
+  title?: string;
+  /** Optional HTML title (allows <em> ember-italic accent). Overrides `title` text. */
+  titleHtml?: string;
   description?: string;
+  /** Breadcrumb trail. Last crumb renders in ember. */
+  crumbs?: string[];
+  /** Right-aligned action(s), e.g. a primary button. */
+  actions?: ReactNode;
   className?: string;
   hideSearch?: boolean;
 };
 
+/**
+ * Topbar — Oasis v5 `.topbar`. Grid: left (crumbs + title + desc),
+ * center (global search), right (bell + actions). Bell is decorative for now.
+ */
 export async function Topbar({
   title,
+  titleHtml,
   description,
+  crumbs,
+  actions,
   className,
   hideSearch = false,
 }: Props) {
@@ -22,40 +37,47 @@ export async function Topbar({
     : { name: null, email: null };
 
   return (
-    <header
-      className={cn(
-        "border-b border-dune-deep/10 bg-cream/70 backdrop-blur-xl px-4 lg:px-8 py-4 sticky top-0 z-30 shadow-warm",
-        className
-      )}
-    >
-      <div className="flex items-center justify-between gap-3">
-        {/* Left: hamburger + title */}
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <MobileMenuButton user={user} />
+    <header className={cn("topbar", className)}>
+      <div className="min-w-0">
+        <div className="row" style={{ gap: 8 }}>
+          <span className="lg:hidden">
+            <MobileMenuButton user={user} />
+          </span>
           <div className="min-w-0">
-            <h1 className="font-display text-lg md:text-3xl font-semibold leading-tight tracking-tight text-ink truncate">
-              {title}
-            </h1>
-            {description && (
-              <p className="mt-0.5 text-xs md:text-sm text-ink-soft truncate">{description}</p>
+            {crumbs && crumbs.length > 0 && (
+              <div className="crumbs">
+                {crumbs.map((c, i) => (
+                  <span key={i}>
+                    {i > 0 && <span className="dotsep">·</span>}
+                    {i === crumbs.length - 1 ? <em>{c}</em> : c}
+                  </span>
+                ))}
+              </div>
             )}
+            {titleHtml ? (
+              <h1 className="title" dangerouslySetInnerHTML={{ __html: titleHtml }} />
+            ) : (
+              <h1 className="title">{title}</h1>
+            )}
+            {description && <div className="desc">{description}</div>}
           </div>
         </div>
-
-        {/* Right: search on desktop */}
-        {!hideSearch && (
-          <div className="hidden sm:flex items-center shrink-0">
-            <GlobalSearch />
-          </div>
-        )}
       </div>
 
-      {/* Search below on mobile */}
-      {!hideSearch && (
-        <div className="sm:hidden mt-3">
+      {!hideSearch ? (
+        <div className="hidden md:block">
           <GlobalSearch />
         </div>
+      ) : (
+        <div />
       )}
+
+      <div className="row" style={{ gap: 8 }}>
+        <button className="btn ghost icon" aria-label="Notificações" type="button">
+          <Bell className="ic" aria-hidden="true" />
+        </button>
+        {actions}
+      </div>
     </header>
   );
 }

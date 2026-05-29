@@ -23,6 +23,7 @@ import { TarefaChecklist } from "@/components/painel/TarefaChecklist";
 import { TarefaForm } from "@/components/painel/TarefaForm";
 import { NotasContextoCard } from "@/components/painel/NotasContextoCard";
 import { HardwareSection } from "@/components/painel/HardwareSection";
+import { StatusBadge } from "@/components/painel/StatusBadge";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -58,9 +59,13 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
 
   return (
     <>
-      <Topbar title={projeto.titulo} description={projeto.clienteNome ?? undefined} />
+      <Topbar
+        crumbs={["Painel", "Projectos", projeto.titulo]}
+        title={projeto.titulo}
+        description={projeto.clienteNome ?? undefined}
+      />
 
-      <div className="px-6 lg:px-8 py-8">
+      <div className="content">
         {/* Back + actions row */}
         <div className="flex items-center justify-between mb-8">
           <Button asChild variant="ghost" size="sm" className="-ml-3">
@@ -79,16 +84,19 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
 
           {/* ── Main content ── */}
           <div className="flex-1 min-w-0 space-y-6">
+            {/* Status strip — orçado / recebido / em dívida */}
+            <StatusStrip projeto={projeto} totalPago={pagamentos.reduce((s, p) => s + p.valor, 0)} />
+
             {/* Notas / Contexto — topo */}
             <NotasContextoCard projeto={projeto} />
 
             {/* Editor inline */}
-            <section className="rounded-xl border border-border bg-card">
+            <section className="card">
               <TarefaForm projeto={projeto} clientes={clientes} />
             </section>
 
             {/* Checklist de tarefas */}
-            <section className="rounded-xl border border-border bg-card p-6">
+            <section className="card" style={{ padding: 24 }}>
               <div className="flex items-center justify-between mb-4">
                 <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   <ListChecks className="h-3.5 w-3.5" aria-hidden="true" />
@@ -127,12 +135,24 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
             <ProjetoBadges projeto={projeto} totalPago={pagamentos.reduce((s, p) => s + p.valor, 0)} />
 
             {/* Informações */}
-            <div className="rounded-xl border border-border bg-surface-elevated p-5 space-y-3">
+            <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
               <h2 className="font-headline text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-1">
                 Informações
               </h2>
               {projeto.clienteNome && (
-                <InfoRow icon={User} label="Cliente" value={projeto.clienteNome} />
+                projeto.clienteId ? (
+                  <div className="flex items-start gap-2.5">
+                    <User className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">Cliente</p>
+                      <Link href={`/painel/clientes/${projeto.clienteId}`} className="text-sm font-medium truncate text-ink hover:text-ember block">
+                        {projeto.clienteNome}
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <InfoRow icon={User} label="Cliente" value={projeto.clienteNome} />
+                )
               )}
               <InfoRow icon={Calendar} label="Prazo" value={formatDate(projeto.prazo)} />
               <InfoRow icon={Calendar} label="Criado" value={formatDate(projeto.dataCriado)} />
@@ -215,6 +235,47 @@ function InfoRow({
           {label}
         </p>
         <p className="text-sm font-medium truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatusStrip({ projeto, totalPago }: { projeto: import("@/types/projeto").Projeto; totalPago: number }) {
+  const orcado = projeto.valorEstimado;
+  const divida = orcado != null ? Math.max(0, orcado - totalPago) : 0;
+  const dias = projeto.dataCriado
+    ? Math.max(0, Math.floor((Date.now() - new Date(projeto.dataCriado).getTime()) / 86400000))
+    : null;
+  const money = (n: number) => n.toLocaleString("pt-PT");
+
+  return (
+    <div className="card flat">
+      <div
+        className="cb"
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", padding: "16px 20px" }}
+      >
+        <div className="row" style={{ gap: 12 }}>
+          <StatusBadge status={projeto.status} />
+          {dias != null && <span className="muted" style={{ fontSize: 12.5 }}>há {dias} dia{dias === 1 ? "" : "s"} no sistema</span>}
+        </div>
+        <div className="row" style={{ gap: 14 }}>
+          <div>
+            <div className="muted mono" style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase" }}>Orçado</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
+              {orcado != null ? money(orcado) : "—"}<span className="mono muted" style={{ fontSize: 13 }}>{orcado != null ? "€" : ""}</span>
+            </div>
+          </div>
+          <div style={{ width: 1, alignSelf: "stretch", background: "rgba(90, 14, 14, 0.12)" }} />
+          <div>
+            <div className="muted mono" style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase" }}>Recebido</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>{money(totalPago)}<span className="mono muted" style={{ fontSize: 13 }}>€</span></div>
+          </div>
+          <div style={{ width: 1, alignSelf: "stretch", background: "rgba(90, 14, 14, 0.12)" }} />
+          <div>
+            <div className="muted mono" style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase" }}>Em dívida</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: divida > 0 ? "var(--ember)" : "var(--ink)" }}>{money(divida)}<span className="mono muted" style={{ fontSize: 13 }}>€</span></div>
+          </div>
+        </div>
       </div>
     </div>
   );

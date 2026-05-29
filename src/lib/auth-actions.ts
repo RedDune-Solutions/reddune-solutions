@@ -39,5 +39,5 @@ export async function signInAction(formData: FormData) {
 }
 
 export async function signOutAction() {
-  return await signOut({ redirectTo: "/", redirect: false });
+  await signOut({ redirectTo: "/" });
 }

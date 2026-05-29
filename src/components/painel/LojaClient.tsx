@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Trash2, Pencil, ShoppingBag, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus, Pencil, Trash, Search, Package, ShoppingBag } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,7 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ProductForm } from "./ProductForm";
-import type { Product } from "@/types/product";
+import { conditionMeta, type Product } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +29,24 @@ export function LojaClient({ products }: Props) {
   const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const [cat, setCat] = useState<string>("all");
+  const [q, setQ] = useState("");
+
+  const categorias = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of products) if (p.category?.pt) set.add(p.category.pt);
+    return [...set].sort();
+  }, [products]);
+
+  const filtered = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    return products.filter((p) => {
+      if (cat !== "all" && p.category?.pt !== cat) return false;
+      if (query && !(p.name.pt.toLowerCase().includes(query) || p.category?.pt?.toLowerCase().includes(query))) return false;
+      return true;
+    });
+  }, [products, cat, q]);
+
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -55,16 +72,20 @@ export function LojaClient({ products }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-muted-foreground">
-          {products.length} produto{products.length !== 1 ? "s" : ""}
-        </p>
+      {/* Filtros */}
+      <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
+        <div className="tabs">
+          <button className="active">Catálogo <span className="num">{products.length}</span></button>
+          <button type="button" disabled style={{ opacity: 0.5 }}>Encomendas</button>
+          <button type="button" disabled style={{ opacity: 0.5 }}>Stock</button>
+          <button type="button" disabled style={{ opacity: 0.5 }}>Promoções</button>
+        </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-              Novo produto
-            </Button>
+            <button type="button" className="btn primary">
+              <span>Novo produto</span>
+              <span className="arr-circle"><Plus className="ic" aria-hidden="true" /></span>
+            </button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col p-0">
             <SheetHeader className="px-6 pt-6">
@@ -75,78 +96,90 @@ export function LojaClient({ products }: Props) {
         </Sheet>
       </div>
 
-      {products.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
-          <ShoppingBag className="mx-auto h-8 w-8 text-muted-foreground mb-3" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">Sem produtos. Cria o primeiro.</p>
+      <div className="filterbar">
+        <button type="button" onClick={() => setCat("all")} className={cn("chip", cat === "all" && "active")}>
+          <Package className="ic" aria-hidden="true" /> Todas
+        </button>
+        {categorias.map((c) => (
+          <button key={c} type="button" onClick={() => setCat(cat === c ? "all" : c)} className={cn("chip", cat === c && "active")}>
+            {c}
+          </button>
+        ))}
+        <div className="search-mini">
+          <Search className="ic" aria-hidden="true" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome, categoria…" />
+        </div>
+      </div>
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <div className="empty">
+          <div className="ic"><ShoppingBag aria-hidden="true" /></div>
+          <div className="t">{products.length === 0 ? "Sem produtos" : "Sem resultados"}</div>
+          <div className="desc">{products.length === 0 ? "Cria o primeiro." : "Ajusta os filtros."}</div>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => (
-            <Link
-              key={p.id}
-              href={`/painel/loja/${p.id}`}
-              className="group text-left rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 block"
-            >
-              <div className="relative aspect-video bg-muted">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }} className="tile-grid">
+          {filtered.map((p) => (
+            <div key={p.id} className="tile">
+              <div className="img">
                 {p.imageUrls[0] ? (
-                  <Image
-                    src={p.imageUrls[0]}
-                    alt={p.name.pt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
+                  <Image src={p.imageUrls[0]} alt={p.name.pt} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" style={{ position: "absolute", inset: 0 }} />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    <ShoppingBag className="h-10 w-10" aria-hidden="true" />
-                  </div>
+                  <span className="ph">sem imagem</span>
                 )}
-                <div className="absolute top-2 right-2 flex items-center gap-1">
-                  {p.featured && (
-                    <span className="inline-flex items-center bg-amber-500/90 text-white rounded-full p-1">
-                      <Star className="h-3 w-3" aria-hidden="true" />
-                    </span>
-                  )}
-                  <span
-                    className={cn(
-                      "text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5",
-                      p.available
-                        ? "bg-emerald-500/90 text-white"
-                        : "bg-slate-500/90 text-white"
-                    )}
-                  >
-                    {p.available ? "Disponível" : "Oculto"}
-                  </span>
-                </div>
+                {p.featured && <span className="pill feat">Destaque</span>}
+                {!p.available && <span className="pill" style={{ background: "var(--ink)", color: "#faf4e3" }}>Oculto</span>}
               </div>
-              <div className="p-3 space-y-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-sm text-foreground line-clamp-1">{p.name.pt}</h3>
-                  <span className="font-mono text-sm tabular-nums shrink-0">{p.price.toFixed(2)}€</span>
+              <div className="body">
+                <div className="row between" style={{ gap: 6 }}>
+                  <span className="meta">{p.category?.pt ?? "—"}</span>
+                  {(() => {
+                    const cm = conditionMeta(p.condition?.pt);
+                    return (
+                      <span className="badge" style={{ background: cm.bg, color: cm.color }}>
+                        <span className="dot" /> {cm.label}
+                      </span>
+                    );
+                  })()}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {p.category.pt} · {p.condition.pt}
-                </p>
-                <div className="flex items-center gap-1 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="inline-flex items-center text-xs text-muted-foreground">
-                    <Pencil className="h-3 w-3 mr-1" aria-hidden="true" />
-                    Editar
+                <div className="t">{p.name.pt}</div>
+                <div className="row between" style={{ marginTop: 4 }}>
+                  <span className="price">{p.price.toFixed(2)}€</span>
+                  <span className={cn("badge", p.available ? "terminado" : "cancelado")}>
+                    <span className="dot" /> {p.available ? "Disponível" : "Oculto"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDelete(p.id, e)}
-                    className="ml-auto text-muted-foreground hover:text-destructive p-1 rounded"
-                    aria-label="Apagar"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                </div>
+                <div className="row" style={{ gap: 6, marginTop: 8 }}>
+                  <Link href={`/painel/loja/${p.id}`} className="btn ghost tiny" style={{ flex: 1, justifyContent: "center" }}>
+                    <Pencil className="ic" aria-hidden="true" /> Editar
+                  </Link>
+                  <button type="button" onClick={(e) => handleDelete(p.id, e)} className="btn ghost tiny icon" aria-label="Apagar">
+                    <Trash className="ic" aria-hidden="true" />
                   </button>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
+
+      {/* Encomendas pendentes — sem sistema de encomendas ligado */}
+      <div className="card">
+        <div className="ch">
+          <div>
+            <div className="t">Encomendas pendentes</div>
+            <div className="sub">Sincroniza com a loja online quando ligares pagamentos.</div>
+          </div>
+        </div>
+        <div className="cb">
+          <div className="empty" style={{ margin: 0 }}>
+            <div className="ic"><Package aria-hidden="true" /></div>
+            <div className="t">Sem encomendas</div>
+            <div className="desc">Sistema de encomendas ainda não configurado.</div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

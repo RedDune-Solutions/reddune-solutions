@@ -28,8 +28,13 @@ export function RdLoader({
   const rawId = useId();
   // useId returns ":r0:" which is invalid in CSS url(#...) refs — sanitize.
   const uid = rawId.replace(/[^a-zA-Z0-9_-]/g, "");
-  const sunId = `rd-sun-${uid}`;
-  const clipId = `rd-clip-${uid}`;
+  const pathId = `rd-path-${uid}`;
+  const heartId = `rd-heart-${uid}`;
+
+  // SandFlow palette (Oasis tokens)
+  const PAL = { flame: "#ff6b3f", ember: "#d6422a", apricot: "#e89968", ring: "#a8201a" };
+  const GRAIN_COUNT = 14;
+  const SAND_PATH = "M 30 130 C 50 60, 150 60, 170 130 S 130 200, 100 170 S 50 200, 30 130 Z";
 
   const wrapperClass =
     variant === "page"
@@ -72,93 +77,57 @@ export function RdLoader({
           aria-hidden="true"
         >
           <defs>
-            <radialGradient id={sunId} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ff6b3f" stopOpacity="1" />
-              <stop offset="55%" stopColor="#d6422a" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#d6422a" stopOpacity="0" />
+            <path id={pathId} d={SAND_PATH} />
+            <radialGradient id={heartId} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={PAL.flame} stopOpacity="0.65" />
+              <stop offset="100%" stopColor={PAL.ember} stopOpacity="0" />
             </radialGradient>
-            <clipPath id={clipId}>
-              <circle cx="100" cy="100" r="92" />
-            </clipPath>
           </defs>
 
-          <g clipPath={`url(#${clipId})`}>
-            {/* Sun (rises + breathes) */}
-            <circle cx="100" cy="130" r="36" fill={`url(#${sunId})`}>
-              <animate
-                attributeName="cy"
-                values="135;118;135"
-                dur="4.4s"
-                calcMode="spline"
-                keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
-                repeatCount="indefinite"
-              />
-              <animate
-                attributeName="r"
-                values="34;38;34"
-                dur="3.2s"
-                calcMode="spline"
-                keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
-                repeatCount="indefinite"
-              />
-            </circle>
-            <circle cx="100" cy="130" r="20" fill="#ff6b3f" opacity="0.85">
-              <animate
-                attributeName="cy"
-                values="135;118;135"
-                dur="4.4s"
-                calcMode="spline"
-                keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
-                repeatCount="indefinite"
-              />
-            </circle>
-
-            {/* Far dune */}
-            <path fill="#a8201a" opacity="0.55">
-              <animate
-                attributeName="d"
-                dur="7.2s"
-                calcMode="spline"
-                keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
-                values="M0 130 C 40 110, 80 100, 120 110 S 200 120, 200 120 L 200 200 L 0 200 Z; M0 122 C 50 130, 90 96, 130 108 S 200 132, 200 132 L 200 200 L 0 200 Z; M0 130 C 40 110, 80 100, 120 110 S 200 120, 200 120 L 200 200 L 0 200 Z"
-                repeatCount="indefinite"
-              />
-            </path>
-
-            {/* Mid dune */}
-            <path fill="#5a0e0e" opacity="0.85">
-              <animate
-                attributeName="d"
-                dur="6s"
-                calcMode="spline"
-                keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
-                values="M0 150 C 50 140, 80 158, 120 148 S 200 142, 200 145 L 200 200 L 0 200 Z; M0 155 C 40 160, 90 138, 130 150 S 200 156, 200 152 L 200 200 L 0 200 Z; M0 150 C 50 140, 80 158, 120 148 S 200 142, 200 145 L 200 200 L 0 200 Z"
-                repeatCount="indefinite"
-              />
-            </path>
-
-            {/* Near dune */}
-            <path fill="#2a1410">
-              <animate
-                attributeName="d"
-                dur="5s"
-                calcMode="spline"
-                keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
-                values="M0 175 C 50 170, 100 182, 150 172 S 200 170, 200 175 L 200 200 L 0 200 Z; M0 178 C 60 184, 110 168, 160 178 S 200 178, 200 180 L 200 200 L 0 200 Z; M0 175 C 50 170, 100 182, 150 172 S 200 170, 200 175 L 200 200 L 0 200 Z"
-                repeatCount="indefinite"
-              />
-            </path>
-          </g>
-
-          <circle
-            cx="100"
-            cy="100"
-            r="92"
+          {/* Guide arc */}
+          <use
+            href={`#${pathId}`}
             fill="none"
-            stroke="#a8201a"
-            strokeWidth="1.2"
-            strokeOpacity="0.4"
+            stroke={PAL.ring}
+            strokeWidth="0.8"
+            strokeOpacity="0.25"
+            strokeDasharray="2 4"
           />
+
+          {/* Heart glow */}
+          <circle cx="100" cy="125" r="30" fill={`url(#${heartId})`}>
+            <animate
+              attributeName="r"
+              values="24;34;24"
+              dur="2.8s"
+              calcMode="spline"
+              keySplines="0.4 0 0.2 1; 0.4 0 0.2 1"
+              repeatCount="indefinite"
+            />
+          </circle>
+
+          {/* Grains flowing along the path */}
+          {Array.from({ length: GRAIN_COUNT }).map((_, i) => {
+            const t = i / GRAIN_COUNT;
+            const color = i % 3 === 0 ? PAL.flame : i % 3 === 1 ? PAL.ember : PAL.apricot;
+            const r = 1.4 + (i % 4) * 0.4;
+            const begin = `-${(t * 4.5).toFixed(2)}s`;
+            return (
+              <circle key={i} r={r} fill={color}>
+                <animateMotion dur="4.5s" repeatCount="indefinite" begin={begin}>
+                  <mpath href={`#${pathId}`} />
+                </animateMotion>
+                <animate
+                  attributeName="opacity"
+                  values="0;1;1;0"
+                  keyTimes="0;0.15;0.85;1"
+                  dur="4.5s"
+                  begin={begin}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            );
+          })}
         </svg>
       </div>
 

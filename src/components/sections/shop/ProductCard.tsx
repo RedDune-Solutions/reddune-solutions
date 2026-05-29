@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ImageOff, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/types/product";
+import { conditionMeta, type Product } from "@/types/product";
 
 type Props = {
   product: Product;
@@ -165,15 +165,18 @@ export function ProductCard({ product, locale }: Props) {
             <div className="font-display text-[22px] font-bold leading-none text-ink">
               {priceLabel}
             </div>
-            <div
-              className={cn(
-                "mt-2 inline-flex rounded-btn",
-                "bg-cream/60 px-2.5 py-1",
-                "font-mono text-[10px] uppercase tracking-[0.15em] text-ink-soft",
-              )}
-            >
-              {product.condition[locale]}
-            </div>
+            {(() => {
+              const cm = conditionMeta(product.condition.pt || product.condition[locale]);
+              const label = locale === "en" ? (product.condition.en || cm.label) : cm.label;
+              return (
+                <div
+                  className="mt-2 inline-flex rounded-btn px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.15em] font-semibold"
+                  style={{ background: cm.bg, color: cm.color }}
+                >
+                  {label}
+                </div>
+              );
+            })()}
           </div>
           <Link
             href="/contacto?subject=loja&from=shop"

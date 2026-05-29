@@ -1,8 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { signOutAction } from "@/lib/auth-actions";
 
 type Props = {
@@ -14,23 +14,21 @@ export function SignOutButton({ className, iconOnly }: Props) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <form
-      action={() => {
-        startTransition(() => signOutAction());
-      }}
-    >
-      <Button
+    <form action={() => startTransition(() => signOutAction())}>
+      <button
         type="submit"
-        variant="ghost"
-        size={iconOnly ? "icon" : "sm"}
         disabled={pending}
-        className={className}
-        aria-label={iconOnly ? "Sair" : undefined}
-        title={iconOnly ? "Sair" : undefined}
+        aria-label="Sair"
+        title="Sair"
+        className={cn(iconOnly ? undefined : "btn ghost", className)}
       >
-        <LogOut className="h-4 w-4" aria-hidden="true" />
-        {!iconOnly && "Sair"}
-      </Button>
+        {pending ? (
+          <Loader2 className={cn(!iconOnly && "ic", "h-4 w-4 animate-spin")} aria-hidden="true" />
+        ) : (
+          <LogOut className={cn(!iconOnly && "ic", "h-4 w-4")} aria-hidden="true" />
+        )}
+        {!iconOnly && <span>Sair</span>}
+      </button>
     </form>
   );
 }

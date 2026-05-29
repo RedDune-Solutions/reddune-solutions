@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Trash2, Pencil, Briefcase, ExternalLink, Star } from "lucide-react";
+import { Plus, Eye, Trash, Briefcase, Star } from "lucide-react";
 import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
-import { Button } from "@/components/ui/button";
+import { SERVICO_SLUG } from "@/types/servico";
 import {
   Sheet,
   SheetContent,
@@ -15,7 +15,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { PortfolioForm } from "./PortfolioForm";
-import type { PortfolioItem } from "@/types/portfolio";
+import type { PortfolioItem, PortfolioCategoria } from "@/types/portfolio";
+import { cn } from "@/lib/utils";
 import { safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -24,12 +25,32 @@ type Props = {
   items: PortfolioItem[];
 };
 
+type Filter = "all" | PortfolioCategoria | "destaque";
+
 export function PortfolioClient({ items }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: items.length, destaque: 0 };
+    for (const s of SERVICO_SLUG) c[s] = 0;
+    for (const it of items) {
+      if (it.categoria) c[it.categoria] = (c[it.categoria] ?? 0) + 1;
+      if (it.destaqueLanding) c.destaque += 1;
+    }
+    return c;
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return items;
+    if (filter === "destaque") return items.filter((i) => i.destaqueLanding);
+    return items.filter((i) => i.categoria === filter);
+  }, [items, filter]);
+
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -55,16 +76,26 @@ export function PortfolioClient({ items }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-muted-foreground">
-          {items.length} trabalho{items.length !== 1 ? "s" : ""}
-        </p>
+      <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
+        <div className="tabs">
+          <button type="button" onClick={() => setFilter("all")} className={filter === "all" ? "active" : undefined}>
+            Todos <span className="num">{counts.all}</span>
+          </button>
+          {SERVICO_SLUG.map((s) => (
+            <button key={s} type="button" onClick={() => setFilter(s)} className={filter === s ? "active" : undefined}>
+              {PORTFOLIO_CATEGORIA_LABEL[s]} <span className="num">{counts[s] ?? 0}</span>
+            </button>
+          ))}
+          <button type="button" onClick={() => setFilter("destaque")} className={filter === "destaque" ? "active" : undefined}>
+            Destaques <span className="num">{counts.destaque}</span>
+          </button>
+        </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-              Novo trabalho
-            </Button>
+            <button type="button" className="btn primary">
+              <span>Adicionar trabalho</span>
+              <span className="arr-circle"><Plus className="ic" aria-hidden="true" /></span>
+            </button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
             <SheetHeader className="px-6 pt-6">
@@ -75,75 +106,46 @@ export function PortfolioClient({ items }: Props) {
         </Sheet>
       </div>
 
-      {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
-          <Briefcase className="mx-auto h-8 w-8 text-muted-foreground mb-3" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">Sem trabalhos publicados.</p>
+      {filtered.length === 0 ? (
+        <div className="empty">
+          <div className="ic"><Briefcase aria-hidden="true" /></div>
+          <div className="t">{items.length === 0 ? "Sem trabalhos publicados" : "Sem resultados"}</div>
+          <div className="desc">{items.length === 0 ? "Cria o primeiro." : "Ajusta o filtro."}</div>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <Link
-              key={item.id}
-              href={`/painel/portfolio/${item.id}`}
-              className="group text-left rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 block"
-            >
-              <div className="relative aspect-video bg-muted">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }} className="tile-grid">
+          {filtered.map((item) => (
+            <div key={item.id} className="tile">
+              <div className="img" style={{ aspectRatio: "1/1" }}>
                 {item.imageUrl ? (
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title.pt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
+                  <Image src={item.imageUrl} alt={item.title.pt} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" style={{ position: "absolute", inset: 0 }} />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    <Briefcase className="h-10 w-10" aria-hidden="true" />
-                  </div>
+                  <span className="ph">sem capa</span>
+                )}
+                {item.destaqueLanding && (
+                  <span className="pill feat">
+                    <Star className="h-2.5 w-2.5" style={{ marginRight: 3 }} aria-hidden="true" /> Destaque
+                  </span>
                 )}
               </div>
-              <div className="p-3 space-y-2">
-                <h3 className="font-semibold text-sm text-foreground line-clamp-2">{item.title.pt}</h3>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {item.categoria ? (
-                    <span className="inline-flex items-center text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                      {PORTFOLIO_CATEGORIA_LABEL[item.categoria]}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700">
-                      Sem categoria
-                    </span>
-                  )}
-                  {item.destaqueLanding && (
-                    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-ember/10 text-ember">
-                      <Star className="h-2.5 w-2.5" aria-hidden="true" />
-                      Landing
-                    </span>
-                  )}
-                </div>
-                {item.url && (
-                  <p className="inline-flex items-center gap-1 text-xs text-muted-foreground truncate">
-                    <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{item.url}</span>
-                  </p>
-                )}
-                <div className="flex items-center gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="inline-flex items-center text-xs text-muted-foreground">
-                    <Pencil className="h-3 w-3 mr-1" aria-hidden="true" />
+              <div className="body">
+                <div className="meta">{item.categoria ? PORTFOLIO_CATEGORIA_LABEL[item.categoria] : "Sem categoria"}</div>
+                <div className="t">{item.title.pt}</div>
+                <div className="row" style={{ gap: 6, marginTop: 8 }}>
+                  <Link href={`/painel/portfolio/${item.id}`} className="btn ghost tiny" style={{ flex: 1, justifyContent: "center" }}>
                     Editar
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDelete(item.id, e)}
-                    className="ml-auto text-muted-foreground hover:text-destructive p-1 rounded"
-                    aria-label="Apagar"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                  {item.url && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn ghost tiny icon" aria-label="Ver no site">
+                      <Eye className="ic" aria-hidden="true" />
+                    </a>
+                  )}
+                  <button type="button" onClick={(e) => handleDelete(item.id, e)} className="btn ghost tiny icon" aria-label="Apagar">
+                    <Trash className="ic" aria-hidden="true" />
                   </button>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

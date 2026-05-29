@@ -1,55 +1,58 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 type Props = {
   defaultValue?: string;
 };
 
+/**
+ * GlobalSearch — Oasis v5 `.gsearch`. Submits to /painel/projetos?q=.
+ * ⌘K / Ctrl+K focuses the field.
+ */
 export function GlobalSearch({ defaultValue }: Props) {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(defaultValue ?? "");
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmed = value.trim();
     startTransition(() => {
-      if (trimmed) {
-        router.push(`/painel/projetos?q=${encodeURIComponent(trimmed)}`);
-      } else {
-        router.push("/painel/projetos");
-      }
+      router.push(trimmed ? `/painel/projetos?q=${encodeURIComponent(trimmed)}` : "/painel/projetos");
     });
   }
 
   return (
-    <form
-      role="search"
-      onSubmit={handleSubmit}
-      className="relative w-full max-w-xs"
-    >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-mute"
-      >
-        {pending ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <Search className="h-3.5 w-3.5" />
-        )}
-      </span>
-      <Input
+    <form role="search" onSubmit={handleSubmit} className="gsearch">
+      {pending ? (
+        <Loader2 className="ic animate-spin" aria-hidden="true" />
+      ) : (
+        <Search className="ic" aria-hidden="true" />
+      )}
+      <input
+        ref={inputRef}
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Pesquisar projectos..."
-        className="h-9 pl-8 pr-3 bg-white/70 border-dune-deep/15 rounded-btn focus-visible:ring-ember"
-        aria-label="Pesquisar projectos"
+        placeholder="Procurar projectos, clientes, tarefas…"
+        aria-label="Procurar"
       />
+      <span className="kbd" aria-hidden="true">⌘K</span>
     </form>
   );
 }

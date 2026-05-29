@@ -1,91 +1,105 @@
-import { Euro, Clock, ListChecks, Users, AlertCircle, Hourglass } from "lucide-react";
+import Link from "next/link";
+import { Coins, FolderKanban, Receipt, Users } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
-import { METODO_LABEL, type MetodoPagamento, type Pagamento } from "@/types/pagamento";
 import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
-import { StatusPie } from "@/components/painel/charts/StatusPie";
-import { TipoBar } from "@/components/painel/charts/TipoBar";
-import { ValorMensal } from "@/components/painel/charts/ValorMensal";
-import { PagamentosPorMetodo } from "@/components/painel/charts/PagamentosPorMetodo";
-import { ProjetosPorMes } from "@/components/painel/charts/ProjetosPorMes";
-import { STATUS_GROUPS, PROJETO_STATUS, type ProjetoStatus, type Projeto } from "@/types/projeto";
+import { STATUS_GROUPS, TIPO_TO_CATEGORIA, type Projeto } from "@/types/projeto";
+import type { Pagamento } from "@/types/pagamento";
 
 export const dynamic = "force-dynamic";
+
+const MES_ABBR = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
 
 function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }
 
-function buildValorMensal(
-  projetos: Projeto[],
-  pagamentos: Pagamento[]
-): Array<{ mes: string; estimado: number; pago: number }> {
-  const map = new Map<string, { estimado: number; pago: number }>();
-  const ensure = (k: string) => {
-    if (!map.has(k)) map.set(k, { estimado: 0, pago: 0 });
-    return map.get(k)!;
-  };
-  for (const p of projetos) {
-    if (!p.dataCriado || !p.valorEstimado) continue;
-    if (p.status === "aguardando-cliente") continue; // não conta — orçamento não aceite
-    ensure(monthKey(p.dataCriado)).estimado += p.valorEstimado;
-  }
-  for (const pg of pagamentos) {
-    if (!pg.data || !pg.valor) continue;
-    ensure(monthKey(pg.data)).pago += pg.valor;
-  }
-  return [...map.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-12)
-    .map(([mes, v]) => ({ mes, ...v }));
+// ---- SVG charts (ported from Oasis design handoff) ----
+function LineChart({ data, h = 220, w = 540 }: { data: { l: string; v: number }[]; h?: number; w?: number }) {
+  const max = Math.max(1, ...data.map((d) => d.v)) * 1.1;
+  const step = data.length > 1 ? (w - 40) / (data.length - 1) : 0;
+  const yScale = (v: number) => h - 32 - (v / max) * (h - 50);
+  const pts = data.map((d, i) => `${20 + i * step},${yScale(d.v)}`).join(" ");
+  const areaPts = `20,${h - 30} ${pts} ${20 + (data.length - 1) * step},${h - 30}`;
+  return (
+    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+      {[0, 0.33, 0.66, 1].map((p, i) => (
+        <line key={i} x1="20" x2={w - 20} y1={20 + p * (h - 50)} y2={20 + p * (h - 50)} stroke="rgba(90,14,14,0.06)" strokeDasharray="4 4" />
+      ))}
+      <polygon points={areaPts} fill="rgba(214, 66, 42, 0.10)" />
+      <polyline points={pts} fill="none" stroke="var(--ember)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {data.map((d, i) => (
+        <circle key={i} cx={20 + i * step} cy={yScale(d.v)} r="3.5" fill="var(--sand-warm)" stroke="var(--ember)" strokeWidth="2" />
+      ))}
+      {data.map((d, i) => (
+        <text key={i} x={20 + i * step} y={h - 10} fill="var(--ink-mute)" fontSize="9.5" fontFamily="var(--font-mono)" letterSpacing="0.08em" textAnchor="middle">{d.l}</text>
+      ))}
+    </svg>
+  );
 }
 
-function buildPagamentosPorMetodo(pagamentos: Pagamento[]) {
-  const map = new Map<string, { valor: number; count: number }>();
-  for (const pg of pagamentos) {
-    const k = (pg.metodo ?? "outro") as MetodoPagamento;
-    const cur = map.get(k) ?? { valor: 0, count: 0 };
-    cur.valor += pg.valor;
-    cur.count += 1;
-    map.set(k, cur);
-  }
-  return [...map.entries()].map(([metodo, v]) => ({
-    metodo: METODO_LABEL[metodo as MetodoPagamento] ?? metodo,
-    ...v,
-  }));
+function BarChart({ data, h = 220, w = 540 }: { data: { l: string; a: number; b: number; c: number }[]; h?: number; w?: number }) {
+  const max = Math.max(1, ...data.map((d) => d.a + d.b + d.c)) * 1.1;
+  const bw = (w - 60) / data.length;
+  const groupW = bw * 0.65;
+  return (
+    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+      {[0, 0.33, 0.66, 1].map((p, i) => (
+        <line key={i} x1="20" x2={w - 20} y1={20 + p * (h - 50)} y2={20 + p * (h - 50)} stroke="rgba(90,14,14,0.06)" strokeDasharray="4 4" />
+      ))}
+      {data.map((d, i) => {
+        const x = 30 + i * bw + (bw - groupW) / 2;
+        const aH = (d.a / max) * (h - 50);
+        const bH = (d.b / max) * (h - 50);
+        const cH = (d.c / max) * (h - 50);
+        const y = h - 30;
+        return (
+          <g key={i}>
+            <rect x={x} y={y - aH} width={groupW} height={aH} fill="var(--ember)" />
+            <rect x={x} y={y - aH - bH} width={groupW} height={bH} fill="var(--apricot)" />
+            <rect x={x} y={y - aH - bH - cH} width={groupW} height={cH} fill="var(--peach)" />
+            <text x={x + groupW / 2} y={h - 10} fill="var(--ink-mute)" fontSize="9.5" fontFamily="var(--font-mono)" letterSpacing="0.08em" textAnchor="middle">{d.l}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
 }
 
-function buildProjetosPorMes(projetos: Projeto[]) {
-  const map = new Map<string, { criados: number; fechados: number }>();
-  const ensure = (k: string) => {
-    if (!map.has(k)) map.set(k, { criados: 0, fechados: 0 });
-    return map.get(k)!;
-  };
-  for (const p of projetos) {
-    if (p.dataCriado) ensure(monthKey(p.dataCriado)).criados += 1;
-    if (p.dataFechado) ensure(monthKey(p.dataFechado)).fechados += 1;
-  }
-  return [...map.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-12)
-    .map(([mes, v]) => ({ mes, ...v }));
+function Donut({ data, size = 180, thick = 22 }: { data: { l: string; v: number; c: string }[]; size?: number; thick?: number }) {
+  const total = data.reduce((s, d) => s + d.v, 0);
+  const r = size / 2 - thick / 2;
+  const C = 2 * Math.PI * r;
+  let offset = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--cream-deep)" strokeWidth={thick} fill="none" />
+      {total > 0 && data.map((d, i) => {
+        const len = (d.v / total) * C;
+        const el = (
+          <circle key={i} cx={size / 2} cy={size / 2} r={r} stroke={d.c} strokeWidth={thick} fill="none"
+            strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-offset}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`} strokeLinecap="butt" />
+        );
+        offset += len;
+        return el;
+      })}
+      <text x={size / 2} y={size / 2 - 4} textAnchor="middle" fontFamily="var(--font-display)" fontWeight="700" fontSize="28" fill="var(--ink)">{total}</text>
+      <text x={size / 2} y={size / 2 + 14} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" letterSpacing="0.18em" fill="var(--ink-mute)">PROJECTOS</text>
+    </svg>
+  );
 }
 
-function topClientesPorValorPago(
-  pagamentos: Pagamento[],
-  clientesMap: Map<string, string>
-): Array<{ cliente: string; valor: number }> {
-  const map = new Map<string, number>();
-  for (const p of pagamentos) {
-    if (!p.clienteId) continue;
-    map.set(p.clienteId, (map.get(p.clienteId) ?? 0) + p.valor);
-  }
-  return [...map.entries()]
-    .map(([id, valor]) => ({ cliente: clientesMap.get(id) ?? "(sem nome)", valor }))
-    .sort((a, b) => b.valor - a.valor)
-    .slice(0, 5);
+const AV = ["a", "b", "c", "d"] as const;
+function avFor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AV[h % AV.length];
+}
+function initials(name: string): string {
+  return name.split(/\s+/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 }
 
 export default async function RelatoriosPage() {
@@ -95,189 +109,170 @@ export default async function RelatoriosPage() {
     getAllPagamentos(),
   ]);
 
-  const clientesMap = new Map(clientes.map((c) => [c.id, c.nome]));
+  const clienteNome = new Map(clientes.map((c) => [c.id, c.nome]));
+  const now = new Date();
 
-  // Activos: em-curso, proximo, aguarda-encomenda (aceite) e terminado (entregue, falta pagar).
-  // Exclui aguarda-cliente (orcamento nao aceite ainda).
-  const activos = projetos.filter(
-    (p) =>
-      STATUS_GROUPS.ativo.includes(p.status) ||
-      STATUS_GROUPS.proximo.includes(p.status) ||
-      STATUS_GROUPS.aguardaEncomenda.includes(p.status) ||
-      STATUS_GROUPS.pronto.includes(p.status)
-  );
+  // Last 6 month keys (oldest → newest)
+  const monthsKeys: { key: string; label: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthsKeys.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: MES_ABBR[d.getMonth()] });
+  }
 
-  const comprometidos = projetos.filter((p) =>
-    STATUS_GROUPS.comprometido.includes(p.status)
-  );
-  const valorTotalActivo = comprometidos.reduce((s, p) => s + (p.valorEstimado ?? 0), 0);
+  // Receita mensal (pagamentos)
+  const receitaPorMes = new Map<string, number>();
+  for (const pg of pagamentos as Pagamento[]) {
+    if (!pg.data) continue;
+    receitaPorMes.set(monthKey(pg.data), (receitaPorMes.get(monthKey(pg.data)) ?? 0) + pg.valor);
+  }
+  const lineData = monthsKeys.map((m) => ({ l: m.label, v: Math.round(receitaPorMes.get(m.key) ?? 0) }));
+  const receita6m = lineData.reduce((s, d) => s + d.v, 0);
 
-  const aguardaCliente = projetos.filter((p) => p.status === "aguardando-cliente");
-  const valorPotencial = aguardaCliente.reduce((s, p) => s + (p.valorEstimado ?? 0), 0);
+  // Receita semestre anterior (delta)
+  let receitaPrev = 0;
+  for (const pg of pagamentos as Pagamento[]) {
+    if (!pg.data) continue;
+    const d = new Date(pg.data);
+    const diffMonths = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+    if (diffMonths >= 6 && diffMonths < 12) receitaPrev += pg.valor;
+  }
+  const receitaDelta = receitaPrev > 0 ? Math.round(((receita6m - receitaPrev) / receitaPrev) * 100) : null;
 
-  const statusData = PROJETO_STATUS.map((status) => ({
-    status,
-    count: projetos.filter((p) => p.status === status).length,
-  }));
-
-  const tipoMap = new Map<string, number>();
+  // Bars: por mês, contagem por categoria (assist=a, web=b, recup=c)
+  const barMap = new Map<string, { a: number; b: number; c: number }>();
+  for (const m of monthsKeys) barMap.set(m.key, { a: 0, b: 0, c: 0 });
   for (const p of projetos) {
-    if (!p.tipo) continue;
-    tipoMap.set(p.tipo, (tipoMap.get(p.tipo) ?? 0) + 1);
+    if (!p.dataCriado) continue;
+    const k = monthKey(p.dataCriado);
+    const slot = barMap.get(k);
+    if (!slot) continue;
+    const cat = p.categoria ?? (p.tipo ? TIPO_TO_CATEGORIA[p.tipo] : null);
+    if (cat === "assistencia-tecnica") slot.a += 1;
+    else if (cat === "web-digital") slot.b += 1;
+    else if (cat === "software-recuperacao") slot.c += 1;
   }
-  const tipoData = [...tipoMap.entries()]
-    .map(([tipo, count]) => ({ tipo, count }))
-    .sort((a, b) => b.count - a.count);
+  const barData = monthsKeys.map((m) => ({ l: m.label, ...(barMap.get(m.key) ?? { a: 0, b: 0, c: 0 }) }));
 
-  const valorMensal = buildValorMensal(projetos, pagamentos);
-  const pagamentosPorMetodo = buildPagamentosPorMetodo(pagamentos);
-  const projetosPorMes = buildProjetosPorMes(projetos);
-  const topClientes = topClientesPorValorPago(pagamentos, clientesMap);
+  // Donut: estado actual
+  const donut = [
+    { l: "Em curso", v: projetos.filter((p) => STATUS_GROUPS.ativo.includes(p.status)).length, c: "var(--ember)" },
+    { l: "Próximos", v: projetos.filter((p) => STATUS_GROUPS.proximo.includes(p.status)).length, c: "var(--apricot)" },
+    { l: "Em espera", v: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length, c: "#d49027" },
+    { l: "Prontos", v: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length, c: "#3f6a4d" },
+  ];
 
-  const mesActual = new Date().toISOString().slice(0, 7);
-  const ganhosMes = pagamentos
-    .filter((p) => p.data?.startsWith(mesActual))
-    .reduce((s, p) => s + p.valor, 0);
-  const pagoPorProjeto = new Map<string, number>();
-  for (const pg of pagamentos) {
-    pagoPorProjeto.set(pg.projetoId, (pagoPorProjeto.get(pg.projetoId) ?? 0) + pg.valor);
+  // Top clientes por valor pago
+  const pagoPorCliente = new Map<string, number>();
+  for (const pg of pagamentos as Pagamento[]) {
+    if (!pg.clienteId) continue;
+    pagoPorCliente.set(pg.clienteId, (pagoPorCliente.get(pg.clienteId) ?? 0) + pg.valor);
   }
-  const emDivida = projetos
-    .filter((p) => STATUS_GROUPS.pronto.includes(p.status))
-    .reduce((s, p) => {
-      const pago = pagoPorProjeto.get(p.id) ?? 0;
-      return s + Math.max(0, (p.valorEstimado ?? 0) - pago);
-    }, 0);
+  const projetosPorCliente = new Map<string, number>();
+  for (const p of projetos) {
+    if (p.clienteId) projetosPorCliente.set(p.clienteId, (projetosPorCliente.get(p.clienteId) ?? 0) + 1);
+  }
+  const topClientes = [...pagoPorCliente.entries()]
+    .map(([id, v]) => ({ id, nome: clienteNome.get(id) ?? "(sem nome)", v, p: projetosPorCliente.get(id) ?? 0 }))
+    .sort((a, b) => b.v - a.v)
+    .slice(0, 5);
+
+  // KPIs
+  const fechados = projetos.filter((p: Projeto) => p.status === "terminado" || p.status === "fechado").length;
+  const ticketMedio = fechados > 0 ? Math.round(receita6m / fechados) : 0;
 
   return (
     <>
-      <Topbar title="Relatórios" description="Métricas e distribuições." />
+      <Topbar
+        crumbs={["Painel", "Relatórios"]}
+        titleHtml={`Relatórios · <em>${now.getFullYear()}</em>`}
+        description="Performance financeira e operacional · últimos 6 meses."
+      />
 
-      <div className="px-6 lg:px-8 py-8 space-y-10">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="content">
+        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
           <KpiCard
-            label="Valor estimado activo"
-            value={`${valorTotalActivo.toFixed(0)}€`}
-            icon={Euro}
-            tone="default"
-            hint={`${comprometidos.length} compromissos`}
+            tone="ink"
+            label="Receita 6 meses"
+            value={receita6m.toLocaleString("pt-PT")}
+            unit="€"
+            icon={Coins}
+            hint="vs. semestre anterior"
+            delta={receitaDelta != null ? { text: `${receitaDelta >= 0 ? "+" : ""}${receitaDelta}%`, dir: receitaDelta >= 0 ? "up" : "down" } : undefined}
           />
-          <KpiCard
-            label="A aguardar cliente"
-            value={`${valorPotencial.toFixed(0)}€`}
-            icon={Hourglass}
-            tone="default"
-            hint={`${aguardaCliente.length} orçamentos pendentes`}
-          />
-          <KpiCard
-            label="Ganhos este mês"
-            value={`${ganhosMes.toFixed(0)}€`}
-            icon={Euro}
-            tone="green"
-            hint="Pagamentos recebidos no mês actual"
-          />
-          <KpiCard
-            label="Em dívida"
-            value={`${emDivida.toFixed(0)}€`}
-            icon={AlertCircle}
-            tone="accent"
-            hint="Terminados por cobrar"
-          />
-          <KpiCard
-            label="Projectos totais"
-            value={projetos.length}
-            icon={ListChecks}
-            tone="accent"
-            hint="Histórico completo"
-          />
-          <KpiCard
-            label="Clientes"
-            value={clientes.length}
-            icon={Users}
-            tone="green"
-            hint="Total na base"
-          />
-          <KpiCard
-            label="Concluídos/arquivo"
-            value={
-              projetos.filter(
-                (p) =>
-                  STATUS_GROUPS.arquivo.includes(p.status as ProjetoStatus) ||
-                  STATUS_GROUPS.pronto.includes(p.status as ProjetoStatus)
-              ).length
-            }
-            icon={Clock}
-            tone="default"
-            hint="Terminados + arquivados"
-          />
+          <KpiCard label="Projectos fechados" value={fechados} icon={FolderKanban} hint="terminados + fechados" />
+          <KpiCard tone="accent" label="Ticket médio" value={ticketMedio.toLocaleString("pt-PT")} unit="€" icon={Receipt} hint="receita / fechados" />
+          <KpiCard tone="amber" label="Clientes" value={clientes.length} icon={Users} hint="total na base" />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="font-headline text-lg font-semibold mb-1">Por estado</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Distribuição actual de projectos.
-            </p>
-            <StatusPie data={statusData} />
-          </article>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 18 }} className="rel-row">
+          <div className="card">
+            <div className="ch">
+              <div>
+                <div className="t">Receita mensal</div>
+                <div className="sub">Em euros · pagamentos recebidos</div>
+              </div>
+              <span className="chart-legend it"><span className="sw" style={{ background: "var(--ember)" }} />Receita</span>
+            </div>
+            <div className="cb"><LineChart data={lineData} /></div>
+          </div>
 
-          <article className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="font-headline text-lg font-semibold mb-1">Por tipo</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Categorias de trabalho mais frequentes.
-            </p>
-            <TipoBar data={tipoData} />
-          </article>
-
-          <article className="rounded-lg border border-border bg-surface p-6 lg:col-span-2">
-            <h2 className="font-headline text-lg font-semibold mb-1">Valor por mês: estimado vs pago</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Estimado por mês de criação; pago por data do pagamento (últimos 12 meses).
-            </p>
-            <ValorMensal data={valorMensal} />
-          </article>
-
-          <article className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="font-headline text-lg font-semibold mb-1">Pagamentos por método</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Total recebido por método de pagamento.
-            </p>
-            <PagamentosPorMetodo data={pagamentosPorMetodo} />
-          </article>
-
-          <article className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="font-headline text-lg font-semibold mb-1">Projectos por mês</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Criados vs fechados (últimos 12 meses).
-            </p>
-            <ProjetosPorMes data={projetosPorMes} />
-          </article>
-
-          <article className="rounded-lg border border-border bg-surface p-6 lg:col-span-2">
-            <h2 className="font-headline text-lg font-semibold mb-4">Top 5 clientes por valor pago</h2>
-            {topClientes.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem pagamentos registados.</p>
-            ) : (
-              <ol className="space-y-2">
-                {topClientes.map((c, i) => (
-                  <li
-                    key={c.cliente}
-                    className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-4 py-3"
-                  >
-                    <span className="inline-flex items-center gap-3">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold tabular-nums">
-                        {i + 1}
-                      </span>
-                      <span className="font-medium text-foreground">{c.cliente}</span>
-                    </span>
-                    <span className="font-headline text-base font-semibold tabular-nums">
-                      {c.valor.toFixed(0)}€
-                    </span>
-                  </li>
+          <div className="card">
+            <div className="ch"><div className="t">Distribuição actual</div></div>
+            <div className="cb" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <Donut data={donut} />
+              <div className="col" style={{ gap: 8, flex: 1, minWidth: 140 }}>
+                {donut.map((d) => (
+                  <div key={d.l} className="row" style={{ gap: 8, fontSize: 12.5 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 3, background: d.c }} />
+                    <span className="muted" style={{ flex: 1 }}>{d.l}</span>
+                    <span className="ink mono" style={{ fontWeight: 500 }}>{d.v}</span>
+                  </div>
                 ))}
-              </ol>
-            )}
-          </article>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 18 }} className="rel-row">
+          <div className="card">
+            <div className="ch">
+              <div>
+                <div className="t">Projectos por categoria</div>
+                <div className="sub">Volume mensal — empilhado</div>
+              </div>
+              <div className="row" style={{ gap: 14, flexWrap: "wrap" }}>
+                <span className="chart-legend it"><span className="sw" style={{ background: "var(--ember)" }} />Assistência</span>
+                <span className="chart-legend it"><span className="sw" style={{ background: "var(--apricot)" }} />Web & Digital</span>
+                <span className="chart-legend it"><span className="sw" style={{ background: "var(--peach)" }} />Recuperação</span>
+              </div>
+            </div>
+            <div className="cb"><BarChart data={barData} /></div>
+          </div>
+
+          <div className="card">
+            <div className="ch"><div className="t">Top clientes · 6 meses</div></div>
+            <div className="cb" style={{ padding: 0 }}>
+              {topClientes.length === 0 ? (
+                <p className="muted" style={{ fontSize: 13, padding: "16px 20px" }}>Sem pagamentos registados.</p>
+              ) : (
+                topClientes.map((x, i) => (
+                  <div
+                    key={x.nome}
+                    style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center", padding: "12px 20px", borderBottom: i < topClientes.length - 1 ? "1px dashed rgba(90, 14, 14, 0.10)" : "0" }}
+                  >
+                    <div className={`av-c sm ${avFor(x.nome)}`}>{initials(x.nome)}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <Link href={`/painel/clientes/${x.id}`} style={{ color: "var(--ink)", fontWeight: 500, fontSize: 13 }} className="hover:text-ember">{x.nome}</Link>
+                      <div className="muted" style={{ fontSize: 11.5 }}>{x.p} projecto{x.p === 1 ? "" : "s"}</div>
+                    </div>
+                    <div className="num" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14 }}>
+                      {Math.round(x.v).toLocaleString("pt-PT")}<span className="mono muted" style={{ fontSize: 11, marginLeft: 2 }}>€</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </>

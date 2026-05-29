@@ -8,7 +8,9 @@ import { WeekCalendar } from "@/components/painel/WeekCalendar";
 import { DayCalendar } from "@/components/painel/DayCalendar";
 import { CalendarViewToggle } from "@/components/painel/CalendarViewToggle";
 import { Button } from "@/components/ui/button";
-import { monthKey, parseMonthKey } from "@/lib/dates";
+import { monthKey, parseMonthKey, parseIsoDate, isToday, isWithinNextDays } from "@/lib/dates";
+import type { Projeto } from "@/types/projeto";
+import type { Tarefa } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
 
@@ -113,11 +115,12 @@ export default async function CalendarioPage({
   return (
     <>
       <Topbar
+        crumbs={["Painel", "Calendário"]}
         title="Calendário"
         description="Projectos e tarefas com prazo agendado."
       />
 
-      <div className="px-6 lg:px-8 py-8 space-y-6">
+      <div className="content">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm" className="h-9 bg-surface">
@@ -143,12 +146,15 @@ export default async function CalendarioPage({
         </div>
 
         {view === "mes" && (
-          <MonthCalendar
-            year={target.year}
-            monthIndex={target.monthIndex}
-            projetos={projetos}
-            tarefas={tarefas}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: 18, alignItems: "start" }} className="cal-month-grid">
+            <MonthCalendar
+              year={target.year}
+              monthIndex={target.monthIndex}
+              projetos={projetos}
+              tarefas={tarefas}
+            />
+            <AgendaSide projetos={projetos} tarefas={tarefas} />
+          </div>
         )}
         {view === "semana" && (
           <WeekCalendar projetos={projetos} tarefas={tarefas} weekStart={weekStart} />
@@ -158,5 +164,84 @@ export default async function CalendarioPage({
         )}
       </div>
     </>
+  );
+}
+
+type AgendaEntry = { id: string; href: string; label: string; sub: string | null; date: Date };
+
+function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
+  const now = new Date();
+  const entries: AgendaEntry[] = [];
+  for (const p of projetos) {
+    const d = parseIsoDate(p.prazo ?? null);
+    if (!d) continue;
+    entries.push({ id: `p-${p.id}`, href: `/painel/projetos/${p.id}`, label: p.titulo, sub: p.clienteNome ?? null, date: d });
+  }
+  for (const t of tarefas) {
+    const d = parseIsoDate(t.prazo ?? null);
+    if (!d) continue;
+    entries.push({ id: `t-${t.id}`, href: `/painel/projetos/${t.projetoId}`, label: t.titulo, sub: "Tarefa", date: d });
+  }
+  const hoje = entries.filter((e) => isToday(e.date.toISOString(), now)).sort((a, b) => a.date.getTime() - b.date.getTime());
+  const proximos = entries
+    .filter((e) => !isToday(e.date.toISOString(), now) && isWithinNextDays(e.date.toISOString(), 7, now))
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .slice(0, 8);
+  return { hoje, proximos };
+}
+
+function AgendaSide({ projetos, tarefas }: { projetos: Projeto[]; tarefas: Tarefa[] }) {
+  const { hoje, proximos } = buildAgenda(projetos, tarefas);
+  const fmtDay = (d: Date) =>
+    d.toLocaleDateString("pt-PT", { weekday: "short", day: "2-digit", month: "short" });
+
+  return (
+    <div className="col" style={{ gap: 14 }}>
+      <div className="card">
+        <div className="ch">
+          <div>
+            <div className="t">Hoje</div>
+            <div className="sub">{new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" })}</div>
+          </div>
+        </div>
+        <div className="cb">
+          {hoje.length === 0 ? (
+            <p className="muted" style={{ fontSize: 12.5 }}>Nada agendado hoje.</p>
+          ) : (
+            hoje.map((e, i) => (
+              <a
+                key={e.id}
+                href={e.href}
+                style={{ display: "block", padding: "10px 0", borderBottom: i < hoje.length - 1 ? "1px dashed rgba(90, 14, 14, 0.10)" : "0" }}
+              >
+                <div style={{ color: "var(--ink)", fontWeight: 500, fontSize: 13 }}>{e.label}</div>
+                {e.sub && <div className="muted" style={{ fontSize: 11.5, marginTop: 2 }}>{e.sub}</div>}
+              </a>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="ch"><div className="t">Próximos · esta semana</div></div>
+        <div className="cb">
+          {proximos.length === 0 ? (
+            <p className="muted" style={{ fontSize: 12.5 }}>Sem prazos nos próximos 7 dias.</p>
+          ) : (
+            proximos.map((e, i) => (
+              <a
+                key={e.id}
+                href={e.href}
+                style={{ display: "block", padding: "10px 0", borderBottom: i < proximos.length - 1 ? "1px dashed rgba(90, 14, 14, 0.10)" : "0" }}
+              >
+                <div className="mono muted" style={{ fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 3 }}>{fmtDay(e.date)}</div>
+                <div style={{ color: "var(--ink)", fontWeight: 500, fontSize: 13 }}>{e.label}</div>
+                {e.sub && <div className="muted" style={{ fontSize: 11.5, marginTop: 1 }}>{e.sub}</div>}
+              </a>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -22,11 +22,22 @@ import {
 
 const COLLAPSE_KEY = "painel.sidebar.collapsed";
 
+// Hrefs that belong to the "Conteúdo · Sistema" section (everything else = Principal).
+const SYSTEM_HREFS = new Set([
+  "/painel/precos",
+  "/painel/loja",
+  "/painel/portfolio",
+  "/painel/auditoria",
+  "/painel/definicoes",
+]);
+
 type Props = {
   user: { name?: string | null; email?: string | null };
+  /** Optional real counts keyed by href (e.g. tarefas pendentes, projetos, dívidas). */
+  counts?: Record<string, number>;
 };
 
-export function Sidebar({ user }: Props) {
+export function Sidebar({ user, counts }: Props) {
   const pathname = usePathname() ?? "";
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -61,175 +72,102 @@ export function Sidebar({ user }: Props) {
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   const initial = (user.name ?? user.email ?? "?").slice(0, 1).toUpperCase();
-
-  // Prevent hydration mismatch: render expanded initially, collapse only after mount
   const isCollapsed = mounted && collapsed;
+
+  const principal = nav.filter((n) => !SYSTEM_HREFS.has(n.href));
+  const sistema = nav.filter((n) => SYSTEM_HREFS.has(n.href));
+
+  const renderItem = ({ href, label, Icon, exact }: PainelNavItem) => {
+    const active = isActive(href, exact);
+    const pending = pendingHref === href && pathname !== href;
+    const count = counts?.[href];
+    return (
+      <Link
+        key={href}
+        href={href}
+        onClick={() => {
+          if (href !== pathname) setPendingHref(href);
+        }}
+        aria-busy={pending ? "true" : undefined}
+        title={isCollapsed ? label : undefined}
+        className={cn("side-nav-item", (active || pending) && "active")}
+      >
+        <Icon className="ic" aria-hidden="true" />
+        {!isCollapsed && <span>{label}</span>}
+        {!isCollapsed && pending && <Loader2 className="ic animate-spin" style={{ marginLeft: "auto" }} aria-hidden="true" />}
+        {!isCollapsed && !pending && count != null && count > 0 && (
+          <span className="count">{count}</span>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <aside
-      className={cn(
-        "hidden lg:flex h-screen sticky top-0 flex-col border-r border-dune-deep/10 bg-cream text-ink transition-[width] duration-200",
-        isCollapsed ? "w-16" : "w-64"
-      )}
+      className="side hidden lg:flex"
+      style={{ width: isCollapsed ? 72 : 248, flexShrink: 0 }}
     >
-      {/* Logo + Collapse button */}
-      <div
-        className={cn(
-          "flex items-center border-b border-dune-deep/10",
-          isCollapsed ? "justify-center px-2 pt-5 pb-4" : "justify-between px-4 pt-5 pb-4"
-        )}
-      >
+      <div className="side-head">
         {!isCollapsed && (
-          <Link
-            href="/"
-            aria-label="Voltar ao site público"
-            className="inline-flex items-center gap-2"
-          >
-            <Image
-              src="/logo.png"
-              alt="Reddune Solutions"
-              width={120}
-              height={38}
-              className="h-8 w-auto object-contain"
-            />
+          <Link href="/" aria-label="Ver site público" className="side-logo">
+            <Image src="/logo-mark.png" alt="" width={28} height={28} />
+            <div className="wm">
+              RedDune
+              <small>Painel · 2026</small>
+            </div>
           </Link>
         )}
         <button
           type="button"
           onClick={toggleCollapsed}
           aria-label={isCollapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
-          title={isCollapsed ? "Expandir" : "Recolher"}
-          className="inline-flex items-center justify-center h-8 w-8 rounded-md text-ink-mute hover:bg-cream-deep hover:text-ink transition-colors"
+          className="side-collapse"
         >
           {isCollapsed ? (
-            <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
+            <PanelLeftOpen className="h-3.5 w-3.5" aria-hidden="true" />
           ) : (
-            <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+            <PanelLeftClose className="h-3.5 w-3.5" aria-hidden="true" />
           )}
         </button>
       </div>
 
-      <nav
-        className={cn("flex-1 min-h-0 overflow-y-auto py-5", isCollapsed ? "px-2" : "px-3")}
-        aria-label="Navegação principal"
-      >
-        <ul className="space-y-1">
-          {nav.map(({ href, label, Icon, exact }) => {
-            const active = isActive(href, exact);
-            const pending = pendingHref === href && pathname !== href;
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={() => {
-                    if (href !== pathname) setPendingHref(href);
-                  }}
-                  aria-busy={pending ? "true" : undefined}
-                  title={isCollapsed ? label : undefined}
-                  className={cn(
-                    "group flex items-center rounded-lg text-sm font-medium transition-all duration-200 border-l-2",
-                    isCollapsed ? "justify-center px-0 py-2.5" : "justify-between gap-3 px-3 py-2.5",
-                    active || pending
-                      ? "bg-ember/10 text-ember border-ember"
-                      : "border-transparent text-ink-soft hover:bg-cream-deep hover:text-ink"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "inline-flex items-center",
-                      isCollapsed ? "" : "gap-2"
-                    )}
-                  >
-                    <Icon
-                      className={cn(
-                        "h-4 w-4 shrink-0 transition-colors",
-                        active || pending ? "text-ember" : "text-ink-mute group-hover:text-ink"
-                      )}
-                      aria-hidden="true"
-                    />
-                    {!isCollapsed && label}
-                  </span>
-                  {!isCollapsed && pending && (
-                    <Loader2
-                      className="h-4 w-4 animate-spin text-ember"
-                      aria-hidden="true"
-                    />
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <div>
+        {!isCollapsed && <div className="side-section-label">Principal</div>}
+        <nav className="side-nav" aria-label="Navegação principal">
+          {principal.map(renderItem)}
+        </nav>
+      </div>
 
+      <div>
+        {!isCollapsed && <div className="side-section-label">Conteúdo · Sistema</div>}
+        <nav className="side-nav" aria-label="Conteúdo e sistema">
+          {sistema.map(renderItem)}
+        </nav>
+      </div>
+
+      <div className="side-spacer" />
+
+      <Link
+        href="/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="side-shortcut"
+        title={isCollapsed ? "Ver site público" : undefined}
+      >
+        <ExternalLink className="ic" aria-hidden="true" />
+        {!isCollapsed && <span>Ver site público</span>}
+        {!isCollapsed && <ExternalLink className="arr" aria-hidden="true" />}
+      </Link>
+
+      <div className="side-user">
+        <div className="av">{initial}</div>
         {!isCollapsed && (
-          <div className="mt-6 pt-4 border-t border-dune-deep/10">
-            <p className="px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-mute">
-              Atalhos
-            </p>
-            <Link
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 flex items-center gap-2 rounded-md px-3 py-2 text-xs text-ink-soft hover:bg-cream-deep hover:text-ink transition-colors"
-            >
-              <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              Ver site público
-            </Link>
+          <div className="min-w-0">
+            <div className="name truncate">{user.name ?? "Equipa"}</div>
+            <div className="email truncate">{user.email}</div>
           </div>
         )}
-
-        {isCollapsed && (
-          <div className="mt-6 pt-4 border-t border-dune-deep/10">
-            <Link
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Ver site público"
-              className="flex items-center justify-center rounded-md py-2 text-ink-mute hover:bg-cream-deep hover:text-ink transition-colors"
-            >
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          </div>
-        )}
-      </nav>
-
-      <div
-        className={cn(
-          "shrink-0 border-t border-dune-deep/10 bg-sand-warm/40",
-          isCollapsed ? "px-2 py-3" : "px-4 py-4"
-        )}
-      >
-        {isCollapsed ? (
-          <div className="flex flex-col items-center gap-2">
-            <div
-              title={user.name ?? user.email ?? "Equipa"}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-ember/15 text-ember font-semibold text-sm"
-            >
-              {initial}
-            </div>
-            <SignOutButton
-              iconOnly
-              className="text-ink-soft hover:bg-ember hover:text-cream"
-            />
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-ember/15 text-ember font-semibold text-sm">
-                {initial}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate text-ink">
-                  {user.name ?? "Equipa"}
-                </p>
-                <p className="text-xs text-ink-mute truncate">{user.email}</p>
-              </div>
-            </div>
-            <div className="mt-3">
-              <SignOutButton className="w-full justify-start text-ink-soft hover:bg-ember hover:text-cream" />
-            </div>
-          </>
-        )}
+        <SignOutButton iconOnly className="logout" />
       </div>
     </aside>
   );

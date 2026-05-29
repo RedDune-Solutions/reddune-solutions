@@ -31,6 +31,19 @@ type Props = {
 
 type QuickAction = { icon: React.ReactNode; label: string; target: ProjetoStatus };
 
+// Mapeia status prod → classe de design .badge.<x> (igual ao StatusBadge / mockup).
+const STATUS_DESIGN: Record<ProjetoStatus, string> = {
+  "ideia-interna": "ideia",
+  "ideia-cliente": "ideia",
+  proximo: "proximo",
+  "em-curso": "curso",
+  "aguardando-cliente": "aguarda-cliente",
+  "aguardando-encomenda": "aguarda-encomenda",
+  terminado: "terminado",
+  fechado: "fechado",
+  cancelado: "cancelado",
+};
+
 export function InlineStatusSelect({
   projetoId,
   status,
@@ -93,11 +106,15 @@ export function InlineStatusSelect({
       <Select value={current} onValueChange={onChange} disabled={pending}>
         <SelectTrigger
           className={cn(
-            "h-7 px-2 py-0 text-[10px] font-mono font-semibold uppercase tracking-tight rounded-btn border-dune-deep/15 bg-white/80 min-w-[120px]",
+            "badge",
+            STATUS_DESIGN[current],
+            "h-auto w-auto cursor-pointer outline-none border-0",
+            "[&>svg]:h-3 [&>svg]:w-3 [&>svg]:opacity-60 [&>svg]:shrink-0",
             triggerClassName
           )}
           aria-label={`Mudar estado (actual: ${STATUS_LABELS[current]})`}
         >
+          <span className="dot" aria-hidden="true" />
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

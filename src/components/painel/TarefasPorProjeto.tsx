@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Trash2, ArrowRight, AlertCircle } from "lucide-react";
+import { ChevronRight, Trash2, ArrowRight, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "./StatusBadge";
 import type { Tarefa } from "@/types/tarefa";
@@ -136,13 +136,16 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
 
   if (groups.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
-        <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-3" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground">
+      <div className="empty">
+        <div className="ic"><AlertCircle aria-hidden="true" /></div>
+        <div className="t">
+          {filter === "todas" ? "Tudo em dia" : "Sem tarefas"}
+        </div>
+        <div className="desc">
           {filter === "todas"
-            ? "Sem tarefas pendentes. Tudo em dia."
+            ? "Sem tarefas pendentes."
             : `Sem tarefas para o filtro "${filter}".`}
-        </p>
+        </div>
       </div>
     );
   }
@@ -162,76 +165,65 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
   }
 
   return (
-    <div className="space-y-4">
+    <div className="col" style={{ gap: 16 }}>
       {groups.map(({ projeto, tarefas: ts }) => {
         const sorted = sortTarefas(ts);
         const pendentesCount = ts.filter((t) => !t.feita).length;
 
         return (
-          <details
-            key={projeto.id}
-            open
-            className="group rounded-xl border border-border bg-card overflow-hidden"
-          >
-            <summary className="cursor-pointer list-none flex items-center gap-3 px-5 py-4 hover:bg-muted/30 transition-colors">
-              <ChevronRight
-                className="h-4 w-4 text-muted-foreground group-open:rotate-90 transition-transform"
-                aria-hidden="true"
-              />
-              <Link
-                href={`/painel/projetos/${projeto.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="font-semibold text-foreground hover:text-primary transition-colors"
-              >
-                {projeto.titulo}
-              </Link>
-              {projeto.clienteNome && (
-                <span className="text-xs text-muted-foreground hidden md:inline">
-                  · {projeto.clienteNome}
-                </span>
-              )}
-              <span className="ml-auto flex items-center gap-2">
+          <details key={projeto.id} open className="group card flat" style={{ overflow: "hidden" }}>
+            <summary className="ch cursor-pointer list-none" style={{ gap: 12 }}>
+              <div className="row" style={{ gap: 10, minWidth: 0 }}>
+                <ChevronRight
+                  className="h-4 w-4 text-ink-mute group-open:rotate-90 transition-transform shrink-0"
+                  aria-hidden="true"
+                />
+                <Link
+                  href={`/painel/projetos/${projeto.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="t"
+                  style={{ textDecoration: "none" }}
+                >
+                  {projeto.titulo}
+                </Link>
+                {projeto.clienteNome && (
+                  <span className="muted hidden md:inline" style={{ fontSize: 12 }}>
+                    · {projeto.clienteNome}
+                  </span>
+                )}
+              </div>
+              <span className="row" style={{ gap: 8 }}>
                 <StatusBadge status={projeto.status} />
-                <span className="font-mono text-xs tabular-nums text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                <span className="mono muted" style={{ fontSize: 11 }}>
                   {pendentesCount}/{ts.length}
                 </span>
               </span>
             </summary>
 
-            <ul className="divide-y divide-border/60">
+            <div className="cb checklist">
               {sorted.map((t) => {
                 const ps = prazoStatus(t.prazo);
                 const isBusy = busy === t.id || pending;
                 return (
-                  <li
-                    key={t.id}
-                    className="group/item flex items-center gap-3 px-5 py-3 hover:bg-muted/20 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={t.feita}
-                      onChange={() => toggleFeita(t)}
+                  <div key={t.id} className={cn("item group/item", t.feita && "done")}>
+                    <button
+                      type="button"
+                      onClick={() => toggleFeita(t)}
                       disabled={isBusy}
-                      id={`t-${t.id}`}
-                      className="h-4 w-4 rounded border-border accent-primary shrink-0"
-                    />
-                    <label
-                      htmlFor={`t-${t.id}`}
-                      className={cn(
-                        "flex-1 text-sm cursor-pointer min-w-0",
-                        t.feita && "line-through text-muted-foreground"
-                      )}
+                      aria-label={t.feita ? "Marcar por fazer" : "Marcar feita"}
+                      className="box"
                     >
-                      {t.titulo}
-                    </label>
+                      {t.feita && <Check className="h-2.5 w-2.5" style={{ color: "#faf4e3" }} aria-hidden="true" />}
+                    </button>
+                    <span className="lbl" style={{ flex: 1, minWidth: 0 }}>{t.titulo}</span>
                     {t.prazo && (
                       <span
                         className={cn(
-                          "shrink-0 inline-flex items-center gap-1 text-xs font-mono tabular-nums px-2 py-0.5 rounded",
-                          ps === "vencida" && "bg-rose-500/10 text-rose-600 font-semibold",
-                          ps === "hoje" && "bg-amber-500/10 text-amber-700 font-semibold",
-                          ps === "futura" && "text-muted-foreground"
+                          "due",
+                          ps === "vencida" && "ember",
+                          ps === "hoje" && "ember"
                         )}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                       >
                         {ps === "vencida" && <ArrowRight className="h-3 w-3" aria-hidden="true" />}
                         {formatPrazo(t.prazo)}
@@ -241,14 +233,14 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
                       onClick={() => deleteTarefa(t.id)}
                       disabled={isBusy}
                       aria-label="Apagar tarefa"
-                      className="opacity-0 group-hover/item:opacity-100 transition-opacity text-muted-foreground hover:text-destructive p-1 rounded"
+                      className="opacity-0 group-hover/item:opacity-100 transition-opacity text-ink-mute hover:text-destructive p-1 rounded"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           </details>
         );
       })}

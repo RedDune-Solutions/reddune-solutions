@@ -9,6 +9,18 @@ import { readKanbanOrder, KANBAN_DEFAULT_COLUMNS } from "./KanbanOrderSettings";
 
 const ARCHIVE_STATUSES: ProjetoStatus[] = ["fechado", "cancelado"];
 
+const STATUS_DOT: Record<ProjetoStatus, string> = {
+  "ideia-interna": "#5b4a3a",
+  "ideia-cliente": "#5b4a3a",
+  proximo: "#2f4d6e",
+  "em-curso": "var(--ember)",
+  "aguardando-cliente": "#8a5a13",
+  "aguardando-encomenda": "#8a5a13",
+  terminado: "#3f6a4d",
+  fechado: "#466a4f",
+  cancelado: "#6e3a2a",
+};
+
 const COLLAPSE_KEY = "painel.kanban.collapsedColumns";
 
 type Props = {
@@ -61,33 +73,28 @@ export function KanbanBoard({ projetos, className }: Props) {
   const ideiasCliente = grouped["ideia-cliente"] ?? [];
 
   return (
-    <div className={cn("space-y-6", className)}>
-      <div className="flex gap-4 overflow-x-auto pb-8 -mx-4 px-4 snap-x snap-mandatory">
+    <div className={cn("col", className)} style={{ gap: 24 }}>
+      <div
+        className="kanban"
+        style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(240px, 1fr))` }}
+      >
         {columns.map((status) => {
           const items = grouped[status] ?? [];
           const isCollapsed = collapsed.has(status);
           return (
-            <section
-              key={status}
-              className={cn(
-                "flex-shrink-0 snap-start rounded-card bg-cream/40 border border-dune-deep/8 px-3 pt-3 pb-4 overflow-visible transition-[width] duration-200",
-                isCollapsed ? "w-48" : "w-80"
-              )}
-              aria-label={`Coluna ${STATUS_LABELS[status]}`}
-            >
-              <div className="flex items-center justify-between mb-3 px-1 gap-2">
-                <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft truncate">
+            <div key={status} className="kanban-col" aria-label={`Coluna ${STATUS_LABELS[status]}`}>
+              <div className="h">
+                <span className="name">
+                  <span className="dot" style={{ background: STATUS_DOT[status] ?? "var(--ink-mute)" }} />
                   {STATUS_LABELS[status]}
-                </h3>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 rounded-btn bg-cream-deep font-mono text-[10px] tabular-nums text-ink-soft">
-                    {items.length}
-                  </span>
+                </span>
+                <span className="ct" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  {items.length}
                   <button
                     type="button"
                     onClick={() => toggle(status)}
                     aria-label={isCollapsed ? "Expandir coluna" : "Recolher coluna"}
-                    className="inline-flex items-center justify-center h-5 w-5 rounded text-ink-mute hover:text-ink hover:bg-cream-deep transition-colors"
+                    className="text-ink-mute hover:text-ink"
                   >
                     {isCollapsed ? (
                       <ChevronRight className="h-3.5 w-3.5" />
@@ -95,20 +102,15 @@ export function KanbanBoard({ projetos, className }: Props) {
                       <ChevronDown className="h-3.5 w-3.5" />
                     )}
                   </button>
-                </div>
+                </span>
               </div>
-              {!isCollapsed && (
-                <div className="space-y-4">
-                  {items.length === 0 ? (
-                    <div className="rounded-card border border-dashed border-dune-deep/15 bg-white/30 p-6 text-center font-mono text-[11px] uppercase tracking-tight text-ink-mute">
-                      Vazio
-                    </div>
-                  ) : (
-                    items.map((projeto) => <TarefaCard key={projeto.id} projeto={projeto} />)
-                  )}
-                </div>
-              )}
-            </section>
+              {!isCollapsed &&
+                (items.length === 0 ? (
+                  <div className="add">Vazio</div>
+                ) : (
+                  items.map((projeto) => <TarefaCard key={projeto.id} projeto={projeto} />)
+                ))}
+            </div>
           );
         })}
       </div>

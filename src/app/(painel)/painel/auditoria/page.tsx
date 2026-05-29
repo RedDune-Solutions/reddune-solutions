@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { History } from "lucide-react";
 import { Topbar } from "@/components/painel/Topbar";
 import { getRecentAuditEntries } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
+
+type OpFilter = "todos" | "create" | "update" | "delete";
 
 const OP_LABEL: Record<string, string> = {
   create: "Criou",
@@ -10,11 +13,6 @@ const OP_LABEL: Record<string, string> = {
   delete: "Apagou",
 };
 
-const OP_COLOR: Record<string, string> = {
-  create: "bg-emerald-500/10 text-emerald-700",
-  update: "bg-blue-500/10 text-blue-700",
-  delete: "bg-rose-500/10 text-rose-700",
-};
 
 const COLL_LABEL: Record<string, string> = {
   projetos: "Projecto",
@@ -25,6 +23,44 @@ const COLL_LABEL: Record<string, string> = {
   portfolio: "Trabalho",
   servicos: "Serviço",
 };
+
+function auditTarget(e: { collection: string; entityId: string; before: unknown; after: unknown }) {
+  const pickLabel = (obj: unknown): string | undefined => {
+    if (!obj || typeof obj !== "object") return undefined;
+    const entry = obj as Record<string, unknown>;
+    const maybeString = (value: unknown): string | undefined =>
+      typeof value === "string" && value.trim() ? value.trim() : undefined;
+
+    return (
+      maybeString(entry.titulo) ||
+      maybeString(entry.nome) ||
+      maybeString(entry.title) ||
+      (typeof entry.name === "string" ? maybeString(entry.name) : undefined) ||
+      (typeof entry.title === "object" && entry.title != null
+        ? maybeString((entry.title as Record<string, unknown>).pt) || maybeString((entry.title as Record<string, unknown>).en)
+        : undefined) ||
+      (typeof entry.name === "object" && entry.name != null
+        ? maybeString((entry.name as Record<string, unknown>).pt) || maybeString((entry.name as Record<string, unknown>).en)
+        : undefined)
+    );
+  };
+
+  const label = pickLabel(e.after) || pickLabel(e.before) ||
+    `${COLL_LABEL[e.collection] ?? e.collection} · ${e.entityId.slice(0, 8)}`;
+
+  const href =
+    e.collection === "projetos"
+      ? `/painel/projetos/${e.entityId}`
+      : e.collection === "clientes"
+      ? `/painel/clientes/${e.entityId}`
+      : undefined;
+
+  if (href) {
+    return <Link href={href}>{label}</Link>;
+  }
+
+  return label;
+}
 
 function fmtDateTime(d: Date): string {
   try {
@@ -40,55 +76,88 @@ function fmtDateTime(d: Date): string {
   }
 }
 
-export default async function AuditoriaPage() {
-  const entries = await getRecentAuditEntries(200);
+export default async function AuditoriaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ op?: string }>;
+}) {
+  const [all, params] = await Promise.all([getRecentAuditEntries(200), searchParams]);
+  const opFilter: OpFilter =
+    params.op === "create" || params.op === "update" || params.op === "delete"
+      ? (params.op as OpFilter)
+      : "todos";
+
+  const counts = {
+    todos: all.length,
+    create: all.filter((e) => e.op === "create").length,
+    update: all.filter((e) => e.op === "update").length,
+    delete: all.filter((e) => e.op === "delete").length,
+  };
+  const entries = opFilter === "todos" ? all : all.filter((e) => e.op === opFilter);
+
+  const tab = (op: OpFilter, label: string) => (
+    <Link
+      href={op === "todos" ? "/painel/auditoria" : `/painel/auditoria?op=${op}`}
+      className={opFilter === op ? "active" : undefined}
+    >
+      {label}
+      {counts[op] > 0 && <span className="num">{counts[op]}</span>}
+    </Link>
+  );
 
   return (
     <>
       <Topbar
-        title="Auditoria"
-        description={`Últimas ${entries.length} alterações registadas.`}
+        crumbs={["Painel", "Auditoria"]}
+        titleHtml={`Auditoria · <em>log de actividade</em>`}
+        description={`${all.length} alterações registadas (mais recentes).`}
       />
 
-      <div className="px-6 lg:px-8 py-8 space-y-4">
+      <div className="content">
+        <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
+          <div className="tabs">
+            {tab("todos", "Todos")}
+            {tab("create", "Criações")}
+            {tab("update", "Edições")}
+            {tab("delete", "Eliminações")}
+          </div>
+        </div>
+
         {entries.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
-            <History className="mx-auto h-8 w-8 text-muted-foreground mb-3" aria-hidden="true" />
-            <p className="text-sm text-muted-foreground">
-              Sem alterações registadas ainda. As próximas mutações aparecerão aqui.
-            </p>
+          <div className="empty">
+            <div className="ic">
+              <History aria-hidden="true" />
+            </div>
+            <div className="t">Sem alterações registadas</div>
+            <div className="desc">As próximas mutações aparecerão aqui.</div>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40">
+          <div className="card flat" style={{ padding: 0, overflow: "hidden" }}>
+            <table className="tbl">
+              <thead>
                 <tr>
-                  <th className="text-left font-semibold px-4 py-2.5">Quando</th>
-                  <th className="text-left font-semibold px-4 py-2.5">Quem</th>
-                  <th className="text-left font-semibold px-4 py-2.5">Acção</th>
-                  <th className="text-left font-semibold px-4 py-2.5">Recurso</th>
-                  <th className="text-left font-semibold px-4 py-2.5">ID</th>
+                  <th>Quando</th>
+                  <th>Quem</th>
+                  <th>Acção</th>
+                  <th>Recurso</th>
+                  <th>Referência</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {entries.map((e, i) => (
-                  <tr key={`${e.collection}-${e.entityId}-${i}`} className="hover:bg-muted/20">
-                    <td className="px-4 py-2 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                  <tr key={`${e.collection}-${e.entityId}-${i}`}>
+                    <td className="num" style={{ whiteSpace: "nowrap", fontSize: 11.5 }}>
                       {fmtDateTime(e.at)}
                     </td>
-                    <td className="px-4 py-2 text-xs">{e.userEmail ?? "—"}</td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded text-[11px] font-mono uppercase tracking-wide ${
-                          OP_COLOR[e.op] ?? "bg-muted text-muted-foreground"
-                        }`}
-                      >
+                    <td style={{ fontSize: 12 }}>{e.userEmail ?? "—"}</td>
+                    <td>
+                      <span className={`act ${e.op === "create" ? "create" : e.op === "delete" ? "delete" : "edit"} mono`} style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                         {OP_LABEL[e.op] ?? e.op}
                       </span>
                     </td>
-                    <td className="px-4 py-2">{COLL_LABEL[e.collection] ?? e.collection}</td>
-                    <td className="px-4 py-2 font-mono text-[11px] text-muted-foreground truncate max-w-[200px]">
-                      {e.entityId}
+                    <td>{COLL_LABEL[e.collection] ?? e.collection}</td>
+                    <td className="mono muted" style={{ fontSize: 11, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {auditTarget(e)}
                     </td>
                   </tr>
                 ))}

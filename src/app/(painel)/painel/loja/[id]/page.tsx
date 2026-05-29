@@ -19,7 +19,7 @@ export default async function ProdutoDetailPage({ params }: { params: Params }) 
     <>
       <Topbar title={product.name.pt} description="Produto da loja" />
 
-      <div className="px-6 lg:px-8 py-8 space-y-6 max-w-4xl">
+      <div className="content max-w-4xl">
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href="/painel/loja">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />

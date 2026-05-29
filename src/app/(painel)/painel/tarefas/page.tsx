@@ -24,11 +24,16 @@ export default async function TarefasPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const [allTarefas, allProjetos, params] = await Promise.all([
+  const [allTarefasRaw, allProjetos, params] = await Promise.all([
     getAllTarefas(),
     getAllProjetos(),
     searchParams,
   ]);
+
+  // Só tarefas de projetos EM ABERTO (em curso / próximo).
+  const emAberto = new Set(["em-curso", "proximo"]);
+  const openIds = new Set(allProjetos.filter((p) => emAberto.has(p.status)).map((p) => p.id));
+  const allTarefas = allTarefasRaw.filter((t) => openIds.has(t.projetoId));
 
   const filter: TarefaFilter =
     params.filter === "hoje" || params.filter === "semana" || params.filter === "vencidas"
@@ -55,44 +60,50 @@ export default async function TarefasPage({
   })();
 
   const pendentes = allTarefas.filter((t) => !t.feita).length;
+  const counts: Record<TarefaFilter, number> = {
+    todas: allTarefas.length,
+    hoje: 0,
+    semana: 0,
+    vencidas: 0,
+  };
+  {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(start);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    for (const t of allTarefas) {
+      if (!t.prazo) continue;
+      const d = new Date(t.prazo);
+      d.setHours(0, 0, 0, 0);
+      if (d.getTime() === start.getTime()) counts.hoje += 1;
+      if (d < start) counts.vencidas += 1;
+      if (d >= start && d <= weekEnd) counts.semana += 1;
+    }
+  }
 
   return (
     <>
       <Topbar
-        title="Tarefas"
-        description={`${pendentes} acção${pendentes !== 1 ? "ões" : ""} pendente${pendentes !== 1 ? "s" : ""}.`}
+        crumbs={["Painel", "Tarefas"]}
+        titleHtml={`Tarefas · <em>${pendentes} aberta${pendentes !== 1 ? "s" : ""}</em>`}
+        description="Acções associadas a projectos · ordenado por urgência."
+        actions={<NovaTarefaGlobalButton projetos={allProjetos} />}
       />
 
-      <div className="px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
+      <div className="content">
+        <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
+          <div className="tabs">
             {(Object.keys(FILTER_LABELS) as TarefaFilter[]).map((f) => (
-              <Link
-                key={f}
-                href={buildUrl(f)}
-                className={cn(
-                  "text-sm font-medium px-3 py-1.5 rounded-md transition-colors",
-                  filter === f
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
-              >
+              <Link key={f} href={buildUrl(f)} className={filter === f ? "active" : undefined}>
                 {FILTER_LABELS[f]}
+                {counts[f] > 0 && <span className="num">{counts[f]}</span>}
               </Link>
             ))}
-            <Link
-              href={toggleFeitasUrl}
-              className={cn(
-                "ml-2 text-xs font-mono uppercase tracking-wide px-2.5 py-1 rounded border transition-colors",
-                showFeitas
-                  ? "bg-muted border-border text-foreground"
-                  : "border-dashed border-border text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {showFeitas ? "✓ Feitas visíveis" : "Mostrar feitas"}
-            </Link>
           </div>
-          <NovaTarefaGlobalButton projetos={allProjetos} />
+          <Link href={toggleFeitasUrl} className={cn("toggle", showFeitas && "on")}>
+            <span className="sw" />
+            Mostrar feitas
+          </Link>
         </div>
 
         <TarefasPorProjeto
