@@ -4,13 +4,18 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "RedDune Solutions",
     short_name: "RedDune",
-    description: "Soluções informáticas profissionais no Algarve",
-    start_url: "/",
+    description: "Painel e site da RedDune Solutions — soluções informáticas no Algarve.",
+    start_url: "/painel",
+    scope: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#8b1a1a",
+    orientation: "portrait-primary",
+    background_color: "#f7eedb",
+    theme_color: "#d6422a",
+    lang: "pt-PT",
     icons: [
-      { src: "/icone.png", sizes: "any", type: "image/png" },
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

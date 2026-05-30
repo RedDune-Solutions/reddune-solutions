@@ -133,14 +133,15 @@ export default async function AuditoriaPage({
           </div>
         ) : (
           <div className="card flat" style={{ padding: 0, overflow: "hidden" }}>
+            <div style={{ overflowX: "auto" }}>
             <table className="tbl">
               <thead>
                 <tr>
                   <th>Quando</th>
-                  <th>Quem</th>
+                  <th className="col-hide-sm">Quem</th>
                   <th>Acção</th>
                   <th>Recurso</th>
-                  <th>Referência</th>
+                  <th className="col-hide-sm">Referência</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,20 +150,21 @@ export default async function AuditoriaPage({
                     <td className="num" style={{ whiteSpace: "nowrap", fontSize: 11.5 }}>
                       {fmtDateTime(e.at)}
                     </td>
-                    <td style={{ fontSize: 12 }}>{e.userEmail ?? "—"}</td>
+                    <td className="col-hide-sm" style={{ fontSize: 12 }}>{e.userEmail ?? "—"}</td>
                     <td>
                       <span className={`act ${e.op === "create" ? "create" : e.op === "delete" ? "delete" : "edit"} mono`} style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                         {OP_LABEL[e.op] ?? e.op}
                       </span>
                     </td>
                     <td>{COLL_LABEL[e.collection] ?? e.collection}</td>
-                    <td className="mono muted" style={{ fontSize: 11, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <td className="col-hide-sm mono muted" style={{ fontSize: 11, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {auditTarget(e)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

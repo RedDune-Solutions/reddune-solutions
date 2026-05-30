@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Poppins, Inter } from "next/font/google";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/painel/Sidebar";
+import { BottomNav } from "@/components/painel/BottomNav";
 import { ensureIndexes } from "@/lib/mongodb/init-indexes";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
@@ -88,6 +89,7 @@ export default async function PainelLayout({
         counts={counts}
       />
       <main className="main flex-1 min-w-0 flex flex-col">{children}</main>
+      <BottomNav counts={counts} />
     </div>
   );
 }

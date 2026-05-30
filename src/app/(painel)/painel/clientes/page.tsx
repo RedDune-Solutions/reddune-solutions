@@ -99,12 +99,12 @@ export default async function ClientesPage() {
                 <thead>
                   <tr>
                     <th>Cliente</th>
-                    <th style={{ width: 240 }}>Contacto</th>
-                    <th style={{ width: 160 }}>Local</th>
+                    <th className="col-hide-sm" style={{ width: 240 }}>Contacto</th>
+                    <th className="col-hide-sm" style={{ width: 160 }}>Local</th>
                     <th style={{ width: 110 }}>Projectos</th>
-                    <th style={{ width: 120 }}>Última</th>
+                    <th className="col-hide-sm" style={{ width: 120 }}>Última</th>
                     <th className="right" style={{ width: 110 }}>Dívida</th>
-                    <th style={{ width: 44 }} />
+                    <th className="col-hide-sm" style={{ width: 44 }} />
                   </tr>
                 </thead>
                 <tbody>
@@ -121,23 +121,23 @@ export default async function ClientesPage() {
                             </span>
                           </Link>
                         </td>
-                        <td>
+                        <td className="col-hide-sm">
                           {c.telefone && <div className="mono" style={{ fontSize: 12 }}>{c.telefone}</div>}
                           {c.email && <div className="mono muted" style={{ fontSize: 11 }}>{c.email}</div>}
                           {!c.telefone && !c.email && <span className="muted mono">—</span>}
                         </td>
-                        <td><span className="muted" style={{ fontSize: 12 }}>{c.morada ?? "—"}</span></td>
+                        <td className="col-hide-sm"><span className="muted" style={{ fontSize: 12 }}>{c.morada ?? "—"}</span></td>
                         <td>
                           <span className="badge" style={{ background: (a?.total ?? 0) > 0 ? "rgba(214, 66, 42, 0.10)" : "var(--cream-deep)", color: (a?.total ?? 0) > 0 ? "var(--dune)" : "var(--ink-mute)" }}>
                             <span className="dot" /> {a?.total ?? 0}
                             {(a?.ativas ?? 0) > 0 && <span style={{ marginLeft: 4, opacity: 0.7 }}>· {a!.ativas} act.</span>}
                           </span>
                         </td>
-                        <td><span className="muted" style={{ fontSize: 12 }}>{fmtDate(a?.ult ?? c.criadoEm)}</span></td>
+                        <td className="col-hide-sm"><span className="muted" style={{ fontSize: 12 }}>{fmtDate(a?.ult ?? c.criadoEm)}</span></td>
                         <td className="right">
                           {(a?.divida ?? 0) > 0 ? <span className="num warn">{Math.round(a!.divida).toLocaleString("pt-PT")}€</span> : <span className="muted mono">—</span>}
                         </td>
-                        <td>
+                        <td className="col-hide-sm">
                           <Link href={`/painel/clientes/${c.id}`} aria-label="Abrir ficha">
                             <MoreVertical className="row-menu" aria-hidden="true" />
                           </Link>

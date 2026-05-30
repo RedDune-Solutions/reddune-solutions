@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Bricolage_Grotesque,
   Newsreader,
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { RdLoaderFirstPaint } from "@/components/ui/rd-loader-first-paint";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
@@ -56,6 +57,14 @@ const mono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.baseUrl),
+  appleWebApp: {
+    capable: true,
+    title: "RedDune",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
   openGraph: {
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     siteName: "Reddune Solutions",
@@ -65,6 +74,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     images: ["/og-image.png"],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#d6422a",
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default async function RootLayout({
@@ -87,6 +103,7 @@ export default async function RootLayout({
       )}
     >
       <body className={cn("font-body antialiased")}>
+        <ServiceWorkerRegister />
         <RdLoaderFirstPaint />
         <StructuredData />
         <NextIntlClientProvider messages={messages}>

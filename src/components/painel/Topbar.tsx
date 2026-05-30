@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { auth } from "@/lib/auth";
 import { GlobalSearch } from "./GlobalSearch";
-import { MobileMenuButton } from "./MobileMenuButton";
 
 type Props = {
   title?: string;
@@ -22,7 +20,7 @@ type Props = {
  * Topbar — Oasis v5 `.topbar`. Grid: left (crumbs + title + desc),
  * center (global search), right (bell + actions). Bell is decorative for now.
  */
-export async function Topbar({
+export function Topbar({
   title,
   titleHtml,
   description,
@@ -31,18 +29,10 @@ export async function Topbar({
   className,
   hideSearch = false,
 }: Props) {
-  const session = await auth();
-  const user = session?.user
-    ? { name: session.user.name ?? null, email: session.user.email ?? null }
-    : { name: null, email: null };
-
   return (
     <header className={cn("topbar", className)}>
       <div className="min-w-0">
         <div className="row" style={{ gap: 8 }}>
-          <span className="lg:hidden">
-            <MobileMenuButton user={user} />
-          </span>
           <div className="min-w-0">
             {crumbs && crumbs.length > 0 && (
               <div className="crumbs">

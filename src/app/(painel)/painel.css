@@ -972,3 +972,164 @@
 @media (max-width: 520px)  { .pnl .tile-grid { grid-template-columns: 1fr !important; } }
 
 .pnl { font-family: var(--font-body); }
+
+/* ============================================================
+   RESPONSIVO MOBILE — consolidado (paridade total no telemóvel)
+   ============================================================ */
+
+/* Tablet ≤ 900px */
+@media (max-width: 900px) {
+  .pnl .content { padding: 20px 20px 56px; gap: 18px; }
+  .pnl .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .pnl .kpi { min-height: 110px; }
+  .pnl .topbar { grid-template-columns: 1fr auto; padding: 16px 20px 14px; }
+  .pnl .topbar .gsearch { display: none; }            /* search colapsa em tablet/mobile */
+  .pnl .topbar .title { font-size: 24px; }
+}
+
+/* Mobile ≤ 640px */
+@media (max-width: 640px) {
+  .pnl .content { padding: 16px 14px 56px; gap: 16px; }
+
+  /* KPIs uma coluna */
+  .pnl .kpi-grid { grid-template-columns: 1fr !important; }
+  .pnl .kpi .v { font-size: 32px; }
+
+  /* Qualquer grid inline de página → 1 coluna */
+  .pnl .ov-top, .pnl .ov-bottom, .pnl .ov-cards,
+  .pnl .rel-row, .pnl .cal-month-grid { grid-template-columns: 1fr !important; }
+  .pnl .content[style] { grid-template-columns: 1fr !important; }
+
+  /* Topbar compacta */
+  .pnl .topbar { padding: 14px 14px 12px; gap: 10px; }
+  .pnl .topbar .title { font-size: 21px; }
+  .pnl .topbar .crumbs { font-size: 9.5px; }
+  .pnl .topbar .desc { font-size: 12px; }
+  /* botões da topbar → só ícone (esconde label) */
+  .pnl .topbar .btn.primary span:not(.arr-circle):not(.ic) { display: none; }
+  .pnl .topbar .btn.primary { padding: 0 8px; }
+
+  /* Tabs com scroll horizontal em vez de quebrar */
+  .pnl .tabs { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  .pnl .tabs::-webkit-scrollbar { display: none; }
+
+  /* Filterbar empilha */
+  .pnl .filterbar { gap: 8px; }
+  .pnl .filterbar .search-mini { min-width: 100%; order: -1; }
+
+  /* Kanban: scroll-x suave, colunas largura fixa */
+  .pnl .kanban { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: 80vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Tabelas: padding menor + scroll-x garantido pelo wrapper */
+  .pnl .tbl thead th, .pnl .tbl tbody td { padding: 10px 10px; }
+  .pnl .col-hide-sm { display: none !important; }
+
+  /* Dívidas / linhas: re-fluir grid de 4 col → bloco */
+  .pnl .divida-row { grid-template-columns: auto 1fr !important; }
+  .pnl .divida-row .divida-val { grid-column: 1 / -1; text-align: left !important; }
+  .pnl .divida-row .divida-actions { grid-column: 1 / -1; }
+
+  /* Cards de detalhe: aside empilha (já flex-col via Tailwind) */
+  .pnl .card .ch { flex-wrap: wrap; gap: 8px; }
+
+  /* Reduz títulos de secção */
+  .pnl .section-h .t { font-size: 20px; }
+}
+
+/* Mobile pequeno ≤ 400px */
+@media (max-width: 400px) {
+  .pnl .kanban { grid-auto-columns: 86vw; }
+  .pnl .kpi .v { font-size: 28px; }
+}
+
+/* ============================================================
+   BOTTOM NAV (mobile) — barra inferior horizontal scrollável
+   ============================================================ */
+.pnl-bottomnav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, #2a1410 0%, #1f0d09 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -8px 24px -12px rgba(0, 0, 0, 0.4);
+}
+.pnl-bottomnav__scroll {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 8px 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pnl-bottomnav__scroll::-webkit-scrollbar { display: none; }
+.pnl .pnl-bottomnav__item {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  color: #e8d5b8;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.pnl .pnl-bottomnav__item .ic { width: 20px; height: 20px; opacity: 1; color: currentColor; }
+.pnl .pnl-bottomnav__item.active {
+  background: rgba(214, 66, 42, 0.22);
+  color: #faf4e3;
+}
+.pnl .pnl-bottomnav__item.active .ic { color: var(--ember); }
+
+/* Espaço p/ a barra não tapar conteúdo (só onde a barra existe) */
+@media (max-width: 1023px) {
+  .pnl .content { padding-bottom: 88px; }
+}
+
+/* ============================================================
+   FIX nav mobile — esconder sidebar lateral <1024, bottomnav só mobile
+   (.pnl .side tem display:flex do design → vence Tailwind 'hidden')
+   ============================================================ */
+@media (max-width: 1023px) {
+  .pnl .side { display: none !important; }
+}
+.pnl-bottomnav { display: none; }
+@media (max-width: 1023px) {
+  .pnl-bottomnav { display: block; }
+}
+
+/* .num em tabs-link (estava colado: "TODAS12") */
+.pnl .tabs a .num {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--ember);
+}
+.pnl .tabs a.active .num { color: var(--apricot); }
+
+/* contagem no bottomnav */
+.pnl-bottomnav__item .count {
+  position: absolute;
+  top: 2px; right: 8px;
+  min-width: 15px; height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--ember);
+  color: #faf4e3;
+  font-size: 9px; line-height: 15px;
+  text-align: center;
+}
+.pnl-bottomnav__item { position: relative; }
+
+/* Calendário mês — scroll lateral em mobile (7 colunas não cabem) */
+@media (max-width: 720px) {
+  .pnl .cal-month-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .pnl .cal { min-width: 600px; }
+}
+
+/* Calendário — colunas iguais (1fr) + eventos truncados com reticências */
+.pnl .cal .dy { min-width: 0; }
+.pnl .cal .ev { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }

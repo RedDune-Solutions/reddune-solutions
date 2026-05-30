@@ -156,7 +156,7 @@ export default async function DividasPage({
               return (
                 <div
                   key={p.id}
-                  className="card flat"
+                  className="card flat divida-row"
                   style={{
                     background: `${bg}, var(--sand-warm)`,
                     borderLeft: `3px solid ${accent}`,
@@ -182,7 +182,7 @@ export default async function DividasPage({
                       {ultCobranca ? ` · última cobrança ${fmtDate(ultCobranca)}` : " · sem pagamentos"}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
+                  <div className="divida-val" style={{ textAlign: "right" }}>
                     <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: accent, letterSpacing: "-0.02em" }}>
                       {eur(Math.round(restante))}<span className="mono muted" style={{ fontSize: 13, marginLeft: 2 }}>€</span>
                     </div>
@@ -190,7 +190,7 @@ export default async function DividasPage({
                       {dias} dias em dívida
                     </div>
                   </div>
-                  <div className="row" style={{ gap: 6 }}>
+                  <div className="row divida-actions" style={{ gap: 6 }}>
                     {email && (
                       <a className="btn ghost tiny" href={`mailto:${email}?subject=${encodeURIComponent("Pagamento pendente · " + p.titulo)}`}>
                         <Mail className="ic" aria-hidden="true" /> Lembrete
