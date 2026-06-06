@@ -63,7 +63,7 @@ export function HardwareSection({ projeto }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-border bg-card p-6 space-y-3">
+    <section className="card p-6 space-y-3">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

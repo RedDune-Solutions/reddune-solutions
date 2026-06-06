@@ -1,8 +1,10 @@
 /* RedDune Painel — Oasis v5 styles, scoped under .pnl. Ported from Claude Design handoff (painel.css). */
 .pnl *, .pnl *::before, .pnl *::after { box-sizing: border-box;  }
-.pnl button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer;  }
-.pnl input, .pnl select, .pnl textarea { font: inherit; color: inherit;  }
-.pnl a { color: inherit; text-decoration: none;  }
+/* Resets com :where() → especificidade zero, para não pisar utilities Tailwind
+   nem classes de componentes (ex.: botões shadcn bg-ink/text-cream/hover:bg-ember). */
+:where(.pnl button) { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:where(.pnl input), :where(.pnl select), :where(.pnl textarea) { font: inherit; color: inherit; }
+:where(.pnl a) { color: inherit; text-decoration: none; }
 .pnl .app {
   display: grid;
   grid-template-columns: 248px 1fr;

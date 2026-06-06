@@ -107,6 +107,7 @@ export async function POST(request: Request) {
     linhas: pick("linhas", null),
     garantiaAte: pick("garantiaAte", null),
     hardware: pick("hardware", null),
+    arquivos: pick("arquivos", null),
   };
 
   try {

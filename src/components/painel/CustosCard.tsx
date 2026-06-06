@@ -82,7 +82,7 @@ export function CustosCard({ projeto }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-border bg-card p-6 space-y-4">
+    <section className="card p-6 space-y-4">
       <div className="flex items-center justify-between">
         <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           <Euro className="h-3.5 w-3.5" aria-hidden="true" />

@@ -135,12 +135,12 @@ function ShopEmptyState({ filtering }: { filtering: boolean }) {
         <h3 className="font-display text-[24px] font-bold leading-tight tracking-[-0.02em] text-ink mb-3">
           {filtering ? t("noResults") : t("emptyState")}
         </h3>
-        <p className="text-[15px] leading-[1.55] text-ink-soft mb-7">
-          {filtering
-            ? "Tenta limpar os filtros ou pesquisar por outro termo."
-            : "A loja está em preparação — novos produtos estarão disponíveis em breve. Fala connosco se procuras algo específico."}
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        {filtering && (
+          <p className="text-[15px] leading-[1.55] text-ink-soft mb-7">
+            {t("noResultsHint")}
+          </p>
+        )}
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <a
             href={waLink("Olá! Procuro um produto específico: ")}
             target="_blank"
@@ -153,7 +153,7 @@ function ShopEmptyState({ filtering }: { filtering: boolean }) {
               "hover:bg-ember hover:scale-[1.04]",
             )}
           >
-            Pedir produto
+            {t("requestProduct")}
             <ArrowRight
               className="size-[15px] shrink-0"
               strokeWidth={2.25}
@@ -171,7 +171,7 @@ function ShopEmptyState({ filtering }: { filtering: boolean }) {
               "hover:border-ember hover:bg-white/80 hover:text-ember",
             )}
           >
-            Falar connosco
+            {t("contactUs")}
           </Link>
         </div>
       </div>

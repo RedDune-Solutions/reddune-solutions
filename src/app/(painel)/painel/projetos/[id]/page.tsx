@@ -21,8 +21,9 @@ import { CustosCard } from "@/components/painel/CustosCard";
 import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
 import { TarefaChecklist } from "@/components/painel/TarefaChecklist";
 import { TarefaForm } from "@/components/painel/TarefaForm";
-import { NotasContextoCard } from "@/components/painel/NotasContextoCard";
+import { ArquivosCard } from "@/components/painel/ArquivosCard";
 import { HardwareSection } from "@/components/painel/HardwareSection";
+import { sanitizeArquivo } from "@/types/projeto";
 import { StatusBadge } from "@/components/painel/StatusBadge";
 import { Button } from "@/components/ui/button";
 
@@ -87,13 +88,16 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
             {/* Status strip — orçado / recebido / em dívida */}
             <StatusStrip projeto={projeto} totalPago={pagamentos.reduce((s, p) => s + p.valor, 0)} />
 
-            {/* Notas / Contexto — topo */}
-            <NotasContextoCard projeto={projeto} />
-
             {/* Editor inline */}
             <section className="card">
               <TarefaForm projeto={projeto} clientes={clientes} />
             </section>
+
+            {/* Ficheiros / Orçamentos */}
+            <ArquivosCard
+              projetoId={projeto.id}
+              arquivos={(projeto.arquivos ?? []).map(sanitizeArquivo)}
+            />
 
             {/* Checklist de tarefas */}
             <section className="card" style={{ padding: 24 }}>

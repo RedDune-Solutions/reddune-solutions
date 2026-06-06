@@ -425,7 +425,10 @@
         "contactButton": "Contactar sobre este produto",
         "searchPlaceholder": "Pesquisar produtos...",
         "noResults": "Nenhum produto encontrado com essa pesquisa.",
+        "noResultsHint": "Tenta limpar os filtros ou pesquisar por outro termo.",
         "emptyState": "Nenhum produto disponível de momento.",
+        "requestProduct": "Pedir produto",
+        "contactUs": "Falar connosco",
         "filters": {
             "categoryLabel": "Categoria",
             "conditionLabel": "Condição",

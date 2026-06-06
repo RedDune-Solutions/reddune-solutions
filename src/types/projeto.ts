@@ -145,6 +145,24 @@ export interface ProjetoHardware {
   acessoriosEntregues?: string;
 }
 
+export interface ProjetoArquivo {
+  id: string; // uuid
+  pathname: string; // path no blob store: projetos/<projetoId>/<uuid>.<ext>
+  blobUrl?: string; // URL cru do Vercel Blob — APENAS server-side, nunca enviado ao cliente
+  url: string; // URL do proxy autenticado servido ao cliente
+  nome: string; // nome original do ficheiro
+  tamanho: number; // bytes
+  tipo: string; // MIME
+  dataUpload: string; // ISO
+}
+
+/** Remove campos server-only antes de enviar arquivos ao cliente. */
+export function sanitizeArquivo(a: ProjetoArquivo): ProjetoArquivo {
+  const { blobUrl: _blobUrl, ...rest } = a;
+  void _blobUrl;
+  return rest;
+}
+
 export interface Projeto {
   id: string;
   titulo: string;
@@ -168,6 +186,7 @@ export interface Projeto {
   linhas: ProjetoLinha[] | null;
   garantiaAte: string | null;
   hardware: ProjetoHardware | null;
+  arquivos: ProjetoArquivo[] | null;
 }
 
 export function deriveCategoriasFromTipos(tipos: ProjetoTipo[] | null): ServicoSlug[] {
