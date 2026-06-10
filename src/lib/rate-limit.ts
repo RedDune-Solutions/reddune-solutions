@@ -37,9 +37,10 @@ export function rateLimit(
   };
 }
 
-// Prefer the shared Upstash store (consistent across serverless instances),
-// falling back to the per-instance in-memory limiter when Redis is not
-// configured or unreachable.
+// Shared rate limit, consistent across serverless instances. Tries Upstash
+// (if configured) -> the app's own MongoDB -> the per-instance in-memory
+// limiter as last resort. Node runtime only (Mongo driver); the Edge
+// middleware keeps its own limiter.
 export async function rateLimitDistributed(
   key: string,
   limit: number,
@@ -47,6 +48,9 @@ export async function rateLimitDistributed(
 ): Promise<RateLimitResult> {
   const redis = await redisRateLimit(key, limit, windowMs);
   if (redis) return redis;
+  const { mongoRateLimit } = await import("./rate-limit-mongo");
+  const mongo = await mongoRateLimit(key, limit, windowMs);
+  if (mongo) return mongo;
   return rateLimit(key, limit, windowMs);
 }
 
