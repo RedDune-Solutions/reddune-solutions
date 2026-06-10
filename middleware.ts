@@ -14,6 +14,11 @@ const buckets = new Map<string, Bucket>();
 const API_LIMIT = 200;
 const API_WINDOW_MS = 60 * 1000;
 
+// Tighter limit for the credentials sign-in to slow down brute-force. Other
+// /api/auth paths (e.g. session polling) keep the generous global limit.
+const LOGIN_LIMIT = 10;
+const LOGIN_WINDOW_MS = 60 * 1000;
+
 function checkRateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const existing = buckets.get(key);
@@ -44,6 +49,25 @@ export default auth((req) => {
 
   if (pathname.startsWith("/api")) {
     const ip = getClientIp(req);
+
+    // Brute-force protection on the password sign-in endpoint.
+    if (pathname.startsWith("/api/auth/callback/credentials")) {
+      const login = checkRateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS);
+      if (!login.allowed) {
+        return NextResponse.json(
+          { error: "Too many login attempts" },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": Math.ceil(
+                (login.resetAt - Date.now()) / 1000
+              ).toString(),
+            },
+          }
+        );
+      }
+    }
+
     const rl = checkRateLimit(`api:${ip}`, API_LIMIT, API_WINDOW_MS);
     if (!rl.allowed) {
       return NextResponse.json(
