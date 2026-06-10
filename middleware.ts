@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth.config";
+import { redisRateLimit } from "@/lib/rate-limit-redis";
 
 const { auth } = NextAuth(authConfig);
 
@@ -36,6 +37,13 @@ function checkRateLimit(key: string, limit: number, windowMs: number) {
   return { allowed: true, resetAt: existing.resetAt };
 }
 
+// Prefer the shared Upstash store, falling back to the per-instance limiter.
+async function limit(key: string, max: number, windowMs: number) {
+  const redis = await redisRateLimit(key, max, windowMs);
+  if (redis) return { allowed: redis.allowed, resetAt: redis.resetAt };
+  return checkRateLimit(key, max, windowMs);
+}
+
 function getClientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();
@@ -44,7 +52,7 @@ function getClientIp(req: Request): string {
   return "unknown";
 }
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { pathname } = req.nextUrl;
 
   if (pathname.startsWith("/api")) {
@@ -52,7 +60,7 @@ export default auth((req) => {
 
     // Brute-force protection on the password sign-in endpoint.
     if (pathname.startsWith("/api/auth/callback/credentials")) {
-      const login = checkRateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS);
+      const login = await limit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS);
       if (!login.allowed) {
         return NextResponse.json(
           { error: "Too many login attempts" },
@@ -68,7 +76,7 @@ export default auth((req) => {
       }
     }
 
-    const rl = checkRateLimit(`api:${ip}`, API_LIMIT, API_WINDOW_MS);
+    const rl = await limit(`api:${ip}`, API_LIMIT, API_WINDOW_MS);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },

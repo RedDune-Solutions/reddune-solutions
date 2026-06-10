@@ -12,6 +12,7 @@ import {
   validateContact,
 } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import Turnstile from "@/components/Turnstile";
 
 type SubmissionStatus = "idle" | "loading" | "success" | "error";
 
@@ -35,6 +36,7 @@ function resolveSubject(param: string | null): ContactSubject {
 export function ContactForm() {
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [subject, setSubject] = useState<ContactSubject>("other");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const { toast } = useToast();
   const t = useTranslations("HomePage.ContactSection");
   const searchParams = useSearchParams();
@@ -74,7 +76,11 @@ export function ContactForm() {
       const response = await fetch("/api/sendEmail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...validation.data, website: honeypot }),
+        body: JSON.stringify({
+          ...validation.data,
+          website: honeypot,
+          turnstileToken,
+        }),
       });
 
       if (!response.ok) throw new Error("Request failed");
@@ -209,6 +215,8 @@ export function ContactForm() {
           />
         </label>
       </div>
+
+      <Turnstile onVerify={setTurnstileToken} />
 
       <div className="mt-7 flex flex-wrap items-center gap-5">
         <button

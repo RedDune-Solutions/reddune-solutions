@@ -1,4 +1,5 @@
 import "server-only";
+import { redisRateLimit } from "./rate-limit-redis";
 
 type Bucket = { count: number; resetAt: number };
 
@@ -34,6 +35,19 @@ export function rateLimit(
     remaining: limit - existing.count,
     resetAt: existing.resetAt,
   };
+}
+
+// Prefer the shared Upstash store (consistent across serverless instances),
+// falling back to the per-instance in-memory limiter when Redis is not
+// configured or unreachable.
+export async function rateLimitDistributed(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  const redis = await redisRateLimit(key, limit, windowMs);
+  if (redis) return redis;
+  return rateLimit(key, limit, windowMs);
 }
 
 export function getClientIp(request: Request): string {
