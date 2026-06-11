@@ -1,5 +1,4 @@
 import "server-only";
-import { redisRateLimit } from "./rate-limit-redis";
 
 type Bucket = { count: number; resetAt: number };
 
@@ -35,23 +34,6 @@ export function rateLimit(
     remaining: limit - existing.count,
     resetAt: existing.resetAt,
   };
-}
-
-// Shared rate limit, consistent across serverless instances. Tries Upstash
-// (if configured) -> the app's own MongoDB -> the per-instance in-memory
-// limiter as last resort. Node runtime only (Mongo driver); the Edge
-// middleware keeps its own limiter.
-export async function rateLimitDistributed(
-  key: string,
-  limit: number,
-  windowMs: number
-): Promise<RateLimitResult> {
-  const redis = await redisRateLimit(key, limit, windowMs);
-  if (redis) return redis;
-  const { mongoRateLimit } = await import("./rate-limit-mongo");
-  const mongo = await mongoRateLimit(key, limit, windowMs);
-  if (mongo) return mongo;
-  return rateLimit(key, limit, windowMs);
 }
 
 export function getClientIp(request: Request): string {

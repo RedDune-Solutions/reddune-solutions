@@ -3,8 +3,7 @@ import { render } from "@react-email/render";
 import { validateContact, SUBJECT_LABELS } from "@/lib/validation";
 import { businessEmail } from "@/config/contact";
 import { getResend } from "@/lib/resend";
-import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
-import { verifyTurnstile } from "@/lib/turnstile";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +12,7 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const rl = await rateLimitDistributed(
-    `sendEmail:${ip}`,
-    RATE_LIMIT_MAX,
-    RATE_LIMIT_WINDOW_MS
-  );
+  const rl = rateLimit(`sendEmail:${ip}`, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS);
   if (!rl.allowed) {
     return Response.json(
       { error: "Too many requests" },
@@ -45,22 +40,6 @@ export async function POST(request: Request) {
     (body as Record<string, unknown>).website !== ""
   ) {
     return Response.json({ id: "ok" });
-  }
-
-  // CAPTCHA — verified only when Turnstile is configured (otherwise skipped).
-  const captchaToken =
-    body && typeof body === "object"
-      ? (body as Record<string, unknown>).turnstileToken
-      : undefined;
-  const captchaOk = await verifyTurnstile(
-    typeof captchaToken === "string" ? captchaToken : null,
-    ip
-  );
-  if (!captchaOk) {
-    return Response.json(
-      { error: "Verificação anti-spam falhou. Tenta novamente." },
-      { status: 403 }
-    );
   }
 
   const result = validateContact(body);

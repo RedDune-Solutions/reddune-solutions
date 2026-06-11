@@ -3,7 +3,7 @@ import { put } from "@vercel/blob";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { getProjetoById, patchProjeto } from "@/lib/mongodb/projetos";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { sanitizeArquivo, type ProjetoArquivo } from "@/types/projeto";
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const rl = await rateLimitDistributed(`upload-arquivo:${ip}`, 30, 60 * 1000);
+  const rl = rateLimit(`upload-arquivo:${ip}`, 30, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
