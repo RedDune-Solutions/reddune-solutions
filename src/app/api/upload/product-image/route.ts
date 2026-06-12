@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const rl = rateLimit(`upload-image:${ip}`, 20, 60 * 1000);
+  const rl = await rateLimitDistributed(`upload-image:${ip}`, 20, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
