@@ -3,6 +3,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { logAuthEvent } from "@/lib/mongodb/audit";
 import { authConfig as edgeAuthConfig } from "@/lib/auth.config";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 function getAllowedEmails(): Set<string> {
   const raw = process.env.AUTH_ALLOWED_EMAILS ?? "";
@@ -25,6 +26,12 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 30 dias
 
+// Throttle de brute-force do login. In-memory, best-effort por instância em
+// serverless (sem store distribuído por agora — ver revert 233aa27). Mesmo
+// assim eleva muito a barra vs. zero protecção.
+const LOGIN_RATE_LIMIT = 8;
+const LOGIN_RATE_WINDOW_MS = 5 * 60 * 1000; // 8 tentativas / 5 min por IP
+
 const authConfig: NextAuthConfig = {
   ...edgeAuthConfig,
   session: {
@@ -39,16 +46,29 @@ const authConfig: NextAuthConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
         const password = String(credentials?.password ?? "");
 
         if (!email || !password) return null;
 
+        // Throttle por IP ANTES de validar credenciais — limita brute-force.
+        const ip = request ? getClientIp(request) : "unknown";
+        if (!rateLimit(`login:${ip}`, LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW_MS).allowed) {
+          await logAuthEvent({
+            email,
+            ip,
+            type: "signin-rejected",
+            details: { reason: "rate-limited" },
+          });
+          return null;
+        }
+
         const allowed = getAllowedEmails();
         if (!allowed.has(email)) {
           await logAuthEvent({
             email,
+            ip,
             type: "signin-rejected",
             details: { reason: "not-allowlisted" },
           });
@@ -64,6 +84,7 @@ const authConfig: NextAuthConfig = {
         if (!timingSafeEqual(password, expected)) {
           await logAuthEvent({
             email,
+            ip,
             type: "signin-rejected",
             details: { reason: "wrong-password" },
           });

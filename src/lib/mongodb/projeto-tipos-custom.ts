@@ -1,5 +1,5 @@
 import "server-only";
-import clientPromise from "./client";
+import { getDb } from "./client";
 import type { ServicoSlug } from "@/types/servico";
 
 export interface ProjetoTipoCustom {
@@ -11,11 +11,6 @@ export interface ProjetoTipoCustom {
 }
 
 const COLLECTION = "projeto_tipos_custom";
-
-async function getDb() {
-  const client = await clientPromise;
-  return client.db(process.env.MONGODB_DB_NAME);
-}
 
 export async function getAllProjetoTiposCustom(): Promise<ProjetoTipoCustom[]> {
   const db = await getDb();

@@ -1,12 +1,7 @@
 import "server-only";
-import clientPromise from "./client";
+import { getDb } from "./client";
 
 const AUDIT = "auth_audit";
-
-async function getDb() {
-  const client = await clientPromise;
-  return client.db(process.env.MONGODB_DB_NAME);
-}
 
 export type AuthEventType =
   | "magic-link-request"

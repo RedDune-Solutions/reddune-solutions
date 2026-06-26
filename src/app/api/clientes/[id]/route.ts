@@ -1,42 +1,35 @@
-import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
 import { deleteCliente } from "@/lib/mongodb/clientes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
+import { apiOk, apiError, withAuth } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-export async function DELETE(
-  _request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const DELETE = withAuth(
+  async (
+    session,
+    _request,
+    context: { params: Promise<{ id: string }> }
+  ) => {
+    try {
+      const { id } = await context.params;
+      if (!id) return apiError("Missing id", 400);
 
-  try {
-    const { id } = await context.params;
-    if (!id) {
-      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      const ok = await deleteCliente(id);
+      if (!ok) return apiError("Cliente não encontrado", 404);
+
+      await logMutation({
+        collection: "clientes",
+        entityId: id,
+        op: "delete",
+        userEmail: session.user.email ?? null,
+      });
+
+      revalidatePath("/painel/clientes");
+      return apiOk({ ok: true });
+    } catch (e) {
+      console.error(e);
+      return apiError("Internal error", 500);
     }
-
-    const ok = await deleteCliente(id);
-    if (!ok) {
-      return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
-    }
-
-    await logMutation({
-      collection: "clientes",
-      entityId: id,
-      op: "delete",
-      userEmail: session.user.email ?? null,
-    });
-
-    revalidatePath("/painel/clientes");
-    return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+);

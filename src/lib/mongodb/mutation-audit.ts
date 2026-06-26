@@ -1,5 +1,5 @@
 import "server-only";
-import clientPromise from "./client";
+import { getDb } from "./client";
 
 const COLL = "audit_log";
 
@@ -20,8 +20,7 @@ type LogParams = {
  */
 export async function logMutation(params: LogParams): Promise<void> {
   try {
-    const client = await clientPromise;
-    const db = client.db(process.env.MONGODB_DB_NAME);
+    const db = await getDb();
     await db.collection(COLL).insertOne({
       collection: params.collection,
       entityId: params.entityId,
@@ -48,8 +47,7 @@ export type AuditEntry = {
 };
 
 export async function getRecentAuditEntries(limit = 100): Promise<AuditEntry[]> {
-  const client = await clientPromise;
-  const db = client.db(process.env.MONGODB_DB_NAME);
+  const db = await getDb();
   const docs = await db
     .collection<AuditEntry>(COLL)
     .find({})
@@ -64,8 +62,7 @@ export async function getAuditEntriesFor(
   entityId: string,
   limit = 50
 ): Promise<AuditEntry[]> {
-  const client = await clientPromise;
-  const db = client.db(process.env.MONGODB_DB_NAME);
+  const db = await getDb();
   const docs = await db
     .collection<AuditEntry>(COLL)
     .find({ collection, entityId })

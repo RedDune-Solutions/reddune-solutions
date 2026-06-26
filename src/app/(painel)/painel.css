@@ -1,4 +1,13 @@
 /* RedDune Painel — Oasis v5 styles, scoped under .pnl. Ported from Claude Design handoff (painel.css). */
+/* Tokens que faltaram no port do handoff. Sem isto: cards sem sombra e
+   transições sem easing (var() não resolvia). Scope .pnl → não afeta o site
+   público. --font-mono/--font-serif NÃO entram aqui: já vêm herdados do root
+   layout (Geist Mono / Newsreader) e redefinir mudaria o aspeto. */
+.pnl {
+  --ease-oasis: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-xs: 0 1px 2px rgba(42, 20, 16, 0.06);
+  --shadow-warm-lift: 0 8px 24px -8px rgba(42, 20, 16, 0.16), 0 2px 6px rgba(42, 20, 16, 0.07);
+}
 .pnl *, .pnl *::before, .pnl *::after { box-sizing: border-box;  }
 /* Resets com :where() → especificidade zero, para não pisar utilities Tailwind
    nem classes de componentes (ex.: botões shadcn bg-ink/text-cream/hover:bg-ember). */
