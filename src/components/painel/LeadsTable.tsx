@@ -78,24 +78,33 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
   const router = useRouter();
   const { toast } = useToast();
   const [openId, setOpenId] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"estado" | "delete" | null>(null);
+  const [busy, setBusy] = useState<"delete" | null>(null);
+  // Override otimista do estado por id — UI reage já, servidor sincroniza depois.
+  const [overrides, setOverrides] = useState<Record<string, LeadEstado>>({});
   const [, startTransition] = useTransition();
 
+  const estadoOf = (l: Lead): LeadEstado => overrides[l.id] ?? l.estado;
   const selected = leads.find((l) => l.id === openId) ?? null;
 
   async function changeEstado(id: string, estado: LeadEstado) {
-    setBusy("estado");
+    const previous = overrides[id] ?? leads.find((l) => l.id === id)?.estado;
+    setOverrides((o) => ({ ...o, [id]: estado })); // otimista
     const res = await safeFetch(`/api/leads/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ estado }),
     });
-    setBusy(null);
     if (!res.ok) {
+      setOverrides((o) => {
+        const n = { ...o };
+        if (previous) n[id] = previous;
+        else delete n[id];
+        return n;
+      });
       toast({ title: "Erro a mudar estado", description: res.error, variant: "destructive" });
       return;
     }
-    startTransition(() => router.refresh());
+    startTransition(() => router.refresh()); // sincroniza KPIs/ordem em background
   }
 
   async function remove(id: string) {
@@ -161,7 +170,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                     </span>
                   </td>
                   <td>
-                    <EstadoBadge estado={l.estado} />
+                    <EstadoBadge estado={estadoOf(l)} />
                   </td>
                   <td className="col-hide-sm right">
                     <span className="muted" style={{ fontSize: 12 }}>{fmtDate(l.criadoEm)}</span>
@@ -194,7 +203,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
 
               <div className="flex flex-col gap-5 px-6 py-2 text-sm text-ink">
                 <div className="flex items-center gap-2">
-                  <EstadoBadge estado={selected.estado} />
+                  <EstadoBadge estado={estadoOf(selected)} />
                   <span className="text-ink-soft" style={{ fontSize: 12 }}>
                     {SUBJECT_LABELS[selected.subject] ?? selected.subject}
                   </span>
@@ -223,9 +232,8 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                     Estado
                   </div>
                   <Select
-                    value={selected.estado}
+                    value={estadoOf(selected)}
                     onValueChange={(v) => changeEstado(selected.id, v as LeadEstado)}
-                    disabled={busy === "estado"}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue />
