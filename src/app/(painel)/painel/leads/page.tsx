@@ -4,6 +4,8 @@ import { Topbar } from "@/components/painel/Topbar";
 import { KpiCard } from "@/components/painel/KpiCard";
 import { SUBJECT_LABELS } from "@/lib/validation";
 import { LEAD_ESTADO_LABELS, type LeadEstado } from "@/types/lead";
+import { PushOptIn } from "@/components/painel/PushOptIn";
+import { BlockIpButton } from "@/components/painel/BlockIpButton";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,7 @@ export default async function LeadsPage() {
         crumbs={["Painel", "Leads"]}
         titleHtml={`Leads · <em>${leads.length}</em>`}
         description={`${novos} novos por tratar.`}
+        actions={<PushOptIn />}
       />
 
       <div className="content">
@@ -71,6 +74,7 @@ export default async function LeadsPage() {
                     <th className="col-hide-sm">Mensagem</th>
                     <th style={{ width: 120 }}>Estado</th>
                     <th className="col-hide-sm right" style={{ width: 130 }}>Recebido</th>
+                    <th className="col-hide-sm" style={{ width: 150 }}>IP</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -111,6 +115,12 @@ export default async function LeadsPage() {
                         </td>
                         <td className="col-hide-sm right">
                           <span className="muted" style={{ fontSize: 12 }}>{fmtDate(l.criadoEm)}</span>
+                        </td>
+                        <td className="col-hide-sm">
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <span className="mono muted" style={{ fontSize: 10.5 }}>{l.ip ?? "—"}</span>
+                            {l.ip ? <BlockIpButton ip={l.ip} /> : null}
+                          </span>
                         </td>
                       </tr>
                     );

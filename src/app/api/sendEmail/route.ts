@@ -1,8 +1,10 @@
-import { validateContact } from "@/lib/validation";
+import { validateContact, SUBJECT_LABELS } from "@/lib/validation";
 import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { randomUUID } from "node:crypto";
 import { createLead } from "@/lib/mongodb/leads";
+import { isIpBlocked } from "@/lib/mongodb/blocked-ips";
+import { sendPushToAll } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +12,9 @@ const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 // Formulário de contacto do site público. Já NÃO envia email — grava a
-// submissão como lead em `/painel/leads`. Mantém rate-limit + honeypot +
-// Turnstile + validação. Como o lead é agora o único canal, uma falha a gravar
-// devolve erro (antes era best-effort porque o email era o canal principal).
+// submissão como lead em `/painel/leads` e notifica por push. Defesa de spam
+// (tudo self-hosted): honeypot + rate-limit + blocklist de IP (+ Turnstile
+// opcional). Como o lead é o único canal, falha a gravar devolve erro.
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const rl = await rateLimitDistributed(
@@ -49,6 +51,18 @@ export async function POST(request: Request) {
     return Response.json({ id: "ok" });
   }
 
+  // IP na blocklist (spam conhecido) → 200 silencioso, sem gravar nem notificar.
+  // Fail-open: se a verificação falhar (BD em baixo) NÃO bloqueia o visitante.
+  let blocked = false;
+  try {
+    blocked = await isIpBlocked(ip);
+  } catch {
+    blocked = false;
+  }
+  if (blocked) {
+    return Response.json({ id: "ok" });
+  }
+
   // CAPTCHA — verified only when Turnstile is configured (otherwise skipped).
   const captchaToken =
     body && typeof body === "object"
@@ -82,12 +96,12 @@ export async function POST(request: Request) {
       mensagem: message,
       origem: "contact-form",
       estado: "novo",
+      ip,
       notas: null,
       clienteId: null,
       criadoEm: now,
       atualizadoEm: now,
     });
-    return Response.json({ ok: true });
   } catch (e) {
     console.error("Falha a guardar lead:", e);
     return Response.json(
@@ -95,4 +109,17 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  // Notificação push (best-effort, no-op sem chaves VAPID). Não quebra a resposta.
+  try {
+    await sendPushToAll({
+      title: "Novo lead 🌵",
+      body: `${name} — ${SUBJECT_LABELS[subject]}`,
+      url: "/painel/leads",
+    });
+  } catch (e) {
+    console.error("Falha a notificar push:", e);
+  }
+
+  return Response.json({ ok: true });
 }

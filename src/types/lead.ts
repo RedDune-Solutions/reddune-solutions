@@ -26,6 +26,7 @@ export interface Lead {
   mensagem: string;
   origem: "contact-form";
   estado: LeadEstado;
+  ip?: string | null;
   notas?: string | null;
   /** Preenchido quando o lead é convertido em cliente. */
   clienteId?: string | null;
