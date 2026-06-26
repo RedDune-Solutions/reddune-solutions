@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { unstable_cache } from "next/cache";
 import { Poppins, Inter } from "next/font/google";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/painel/Sidebar";
@@ -29,6 +30,46 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+// Contagens p/ badges da sidebar. Cache curto (20s) — antes corria 3 scans de
+// colecção INTEIRA (projetos+tarefas+pagamentos) em CADA navegação no painel.
+// Badges podem ficar até 20s desatualizados, aceitável para contadores.
+// Apenas LÊ dados (read-only) — não altera nada.
+const getSidebarCounts = unstable_cache(
+  async (): Promise<Record<string, number>> => {
+    const [projetos, tarefas, pagamentos] = await Promise.all([
+      getAllProjetos(),
+      getAllTarefas(),
+      getAllPagamentos(),
+    ]);
+    const pagoPorProjeto = new Map<string, number>();
+    for (const p of pagamentos) {
+      pagoPorProjeto.set(p.projetoId, (pagoPorProjeto.get(p.projetoId) ?? 0) + p.valor);
+    }
+    const dividasCount = projetos.filter(
+      (p) =>
+        p.status === "terminado" &&
+        p.valorEstimado != null &&
+        (pagoPorProjeto.get(p.id) ?? 0) < p.valorEstimado
+    ).length;
+
+    // Tarefas pendentes só de projetos EM ABERTO (em curso / próximo).
+    const projetoStatus = new Map(projetos.map((p) => [p.id, p.status]));
+    const emAberto = new Set(["em-curso", "proximo"]);
+    const tarefasPendentes = tarefas.filter(
+      (t) => !t.feita && emAberto.has(projetoStatus.get(t.projetoId) ?? "")
+    ).length;
+    const projetosActivos = projetos.filter((p) => emAberto.has(p.status)).length;
+
+    return {
+      "/painel/tarefas": tarefasPendentes,
+      "/painel/projetos": projetosActivos,
+      "/painel/dividas": dividasCount,
+    };
+  },
+  ["painel-sidebar-counts"],
+  { revalidate: 20, tags: ["painel-counts"] }
+);
+
 export default async function PainelLayout({
   children,
 }: {
@@ -42,39 +83,8 @@ export default async function PainelLayout({
   // Idempotente — cria indexes na primeira request, no-op nas seguintes.
   await ensureIndexes();
 
-  // Contagens reais p/ badges da sidebar (tarefas pendentes, projetos, dívidas).
-  const [projetos, tarefas, pagamentos] = await Promise.all([
-    getAllProjetos(),
-    getAllTarefas(),
-    getAllPagamentos(),
-  ]);
-  const pagoPorProjeto = new Map<string, number>();
-  for (const p of pagamentos) {
-    pagoPorProjeto.set(p.projetoId, (pagoPorProjeto.get(p.projetoId) ?? 0) + p.valor);
-  }
-  const dividasCount = projetos.filter(
-    (p) =>
-      p.status === "terminado" &&
-      p.valorEstimado != null &&
-      (pagoPorProjeto.get(p.id) ?? 0) < p.valorEstimado
-  ).length;
-
-  // Tarefas pendentes só de projetos EM ABERTO (em curso / próximo).
-  // Exclui ideias, terminado, à espera de pagamento/encomenda, fechado, cancelado.
-  const projetoStatus = new Map(projetos.map((p) => [p.id, p.status]));
-  const emAberto = new Set(["em-curso", "proximo"]);
-  const tarefasPendentes = tarefas.filter(
-    (t) => !t.feita && emAberto.has(projetoStatus.get(t.projetoId) ?? "")
-  ).length;
-
-  // Projetos em aberto (em curso / próximo) — coerente com badge.
-  const projetosActivos = projetos.filter((p) => emAberto.has(p.status)).length;
-
-  const counts: Record<string, number> = {
-    "/painel/tarefas": tarefasPendentes,
-    "/painel/projetos": projetosActivos,
-    "/painel/dividas": dividasCount,
-  };
+  // Contagens p/ badges da sidebar (cacheadas 20s — ver getSidebarCounts).
+  const counts = await getSidebarCounts();
 
   return (
     <div

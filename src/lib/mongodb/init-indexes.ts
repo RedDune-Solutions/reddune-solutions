@@ -44,6 +44,10 @@ async function doInit(): Promise<void> {
     db.collection("audit_log").createIndex({ at: -1 }),
     db.collection("audit_log").createIndex({ collection: 1, entityId: 1, at: -1 }),
     db.collection("audit_log").createIndex({ userEmail: 1, at: -1 }),
+
+    db.collection("leads").createIndex({ id: 1 }, { unique: true }),
+    db.collection("leads").createIndex({ estado: 1, criadoEm: -1 }),
+    db.collection("leads").createIndex({ criadoEm: -1 }),
   ]);
 }
 

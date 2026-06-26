@@ -1,19 +1,14 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { getAllClientes } from "@/lib/mongodb/clientes";
+import { apiOk, apiError, withAuth } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const GET = withAuth(async () => {
   try {
     const clientes = await getAllClientes();
-    return NextResponse.json({ clientes }, { headers: { "Cache-Control": "no-store" } });
+    return apiOk({ clientes }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("GET /api/clientes error:", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return apiError("Internal error", 500);
   }
-}
+});

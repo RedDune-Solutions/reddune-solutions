@@ -1,13 +1,8 @@
 import "server-only";
-import clientPromise from "./client";
+import { getDb } from "./client";
 import type { TarefaTemplate } from "@/types/tarefa-template";
 
 const COLLECTION = "tarefa_templates";
-
-async function getDb() {
-  const client = await clientPromise;
-  return client.db(process.env.MONGODB_DB_NAME);
-}
 
 export async function getAllTarefaTemplates(): Promise<TarefaTemplate[]> {
   const db = await getDb();

@@ -11,6 +11,7 @@ import {
   Briefcase,
   Settings,
   History,
+  Inbox,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ export const PAINEL_NAV_DEFAULT: PainelNavItem[] = [
   { href: "/painel/tarefas", label: "Tarefas", Icon: ListChecks },
   { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban },
   { href: "/painel/clientes", label: "Clientes", Icon: Users },
+  { href: "/painel/leads", label: "Leads", Icon: Inbox },
   { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
   { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
   { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },

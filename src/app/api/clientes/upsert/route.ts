@@ -1,36 +1,18 @@
-import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
-import { auth } from "@/lib/auth";
 import { upsertCliente } from "@/lib/mongodb/clientes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { clienteInputSchema } from "@/lib/validation-projeto";
+import { apiOk, withAuth, parseJson } from "@/lib/api";
 import type { Cliente } from "@/types/cliente";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = clienteInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid payload", issues: parsed.error.issues },
-      { status: 400 }
-    );
-  }
-
+export const POST = withAuth(async (session, request) => {
+  const parsed = await parseJson(request, clienteInputSchema);
+  if (!parsed.ok) return parsed.response;
   const input = parsed.data;
+
   const id = input.id ?? randomUUID();
   const now = new Date().toISOString();
 
@@ -55,5 +37,5 @@ export async function POST(request: Request) {
   });
   revalidatePath("/painel/clientes");
   revalidatePath(`/painel/clientes/${id}`);
-  return NextResponse.json({ ok: true, id });
-}
+  return apiOk({ ok: true, id });
+});

@@ -35,3 +35,12 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export default clientPromise;
+
+/**
+ * Helper partilhado: devolve a Db já ligada usando MONGODB_DB_NAME.
+ * Centraliza a resolução do nome da BD (antes duplicada em cada loader).
+ */
+export async function getDb() {
+  const client = await clientPromise;
+  return client.db(process.env.MONGODB_DB_NAME);
+}

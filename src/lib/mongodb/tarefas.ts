@@ -1,13 +1,8 @@
 import "server-only";
-import clientPromise from "./client";
+import { getDb } from "./client";
 import type { Tarefa } from "@/types/tarefa";
 
 const COLLECTION = "tarefas";
-
-async function getDb() {
-  const client = await clientPromise;
-  return client.db(process.env.MONGODB_DB_NAME);
-}
 
 export async function getTarefasByProjeto(projetoId: string): Promise<Tarefa[]> {
   const db = await getDb();

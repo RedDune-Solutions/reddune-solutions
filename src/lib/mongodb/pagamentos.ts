@@ -1,13 +1,8 @@
 import "server-only";
-import clientPromise from "./client";
+import { getDb } from "./client";
 import type { Pagamento } from "@/types/pagamento";
 
 const COLLECTION = "pagamentos";
-
-async function getDb() {
-  const client = await clientPromise;
-  return client.db(process.env.MONGODB_DB_NAME);
-}
 
 export async function getPagamentosByProjeto(projetoId: string): Promise<Pagamento[]> {
   const db = await getDb();
