@@ -1,8 +1,4 @@
-import { EmailTemplate } from "@/components/templates/email-template";
-import { render } from "@react-email/render";
-import { validateContact, SUBJECT_LABELS } from "@/lib/validation";
-import { businessEmail } from "@/config/contact";
-import { getResend } from "@/lib/resend";
+import { validateContact } from "@/lib/validation";
 import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { randomUUID } from "node:crypto";
@@ -13,6 +9,10 @@ export const dynamic = "force-dynamic";
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
+// Formulário de contacto do site público. Já NÃO envia email — grava a
+// submissão como lead em `/painel/leads`. Mantém rate-limit + honeypot +
+// Turnstile + validação. Como o lead é agora o único canal, uma falha a gravar
+// devolve erro (antes era best-effort porque o email era o canal principal).
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const rl = await rateLimitDistributed(
@@ -71,51 +71,28 @@ export async function POST(request: Request) {
   }
 
   const { name, email, subject, message } = result.data;
-  const subjectLabel = SUBJECT_LABELS[subject];
 
   try {
-    const emailHtml = await render(
-      EmailTemplate({ name, email, subject: subjectLabel, message })
-    );
-
-    const { data, error } = await getResend().emails.send({
-      from: "Website Form <onboarding@resend.dev>",
-      to: businessEmail,
-      subject: `Contacto: ${subjectLabel}`,
-      replyTo: email,
-      html: emailHtml,
+    const now = new Date().toISOString();
+    await createLead({
+      id: randomUUID(),
+      nome: name,
+      email,
+      subject,
+      mensagem: message,
+      origem: "contact-form",
+      estado: "novo",
+      notas: null,
+      clienteId: null,
+      criadoEm: now,
+      atualizadoEm: now,
     });
-
-    if (error) {
-      console.error("Resend error:", error);
-      return Response.json({ error: "Failed to send email" }, { status: 502 });
-    }
-
-    // Pipeline de leads: guarda a enquiry best-effort. NUNCA quebra o envio —
-    // uma falha de BD não pode transformar um 200 num erro. Coleção NOVA `leads`,
-    // não toca em dados existentes.
-    try {
-      const now = new Date().toISOString();
-      await createLead({
-        id: randomUUID(),
-        nome: name,
-        email,
-        subject,
-        mensagem: message,
-        origem: "contact-form",
-        estado: "novo",
-        notas: null,
-        clienteId: null,
-        criadoEm: now,
-        atualizadoEm: now,
-      });
-    } catch (e) {
-      console.error("Falha a guardar lead (email enviado na mesma):", e);
-    }
-
-    return Response.json({ id: data?.id });
-  } catch (error) {
-    console.error("sendEmail error:", error);
-    return Response.json({ error: "Failed to send email" }, { status: 500 });
+    return Response.json({ ok: true });
+  } catch (e) {
+    console.error("Falha a guardar lead:", e);
+    return Response.json(
+      { error: "Não foi possível guardar. Tenta novamente." },
+      { status: 500 }
+    );
   }
 }

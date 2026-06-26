@@ -24,11 +24,10 @@ function resolveSubject(param: string | null): ContactSubject {
 }
 
 /**
- * ContactForm — Phase 5d Oasis-styled contact form.
+ * ContactForm — Oasis-styled contact form.
  *
- * Keeps the Resend POST → /api/sendEmail logic from the previous Contact.tsx
- * intact. Re-skinned to match `design-handoff/project/site/contacto/index.html`
- * — sand-warm field background, Geist Mono labels, ember focus ring.
+ * POSTs to /api/sendEmail, que grava a submissão como lead em /painel/leads
+ * (já não envia email). Honeypot + Turnstile + rate-limit no servidor.
  *
  * Subject is prefilled from `?subject=` query param (set by /loja
  * ProductCard CTAs).
