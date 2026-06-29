@@ -24,6 +24,18 @@ export const STATUS_LABELS: Record<ProjetoStatus, string> = {
   cancelado: "Cancelado",
 };
 
+// Estados de projeto cujos cartões de tarefas são visíveis em /painel/tarefas.
+// Tem de cobrir TODOS os estados em que o NovaTarefaGlobalButton permite criar
+// tarefas — caso contrário trabalho criado fica invisível. Ver STATUS_GROUPS
+// abaixo: ativo + proximo + aguarda + pronto.
+export const TAREFAS_VISIVEIS_STATUSES: ProjetoStatus[] = [
+  "em-curso",
+  "proximo",
+  "aguardando-cliente",
+  "aguardando-encomenda",
+  "terminado",
+];
+
 export const STATUS_GROUPS = {
   ativo: ["em-curso"] as ProjetoStatus[],
   proximo: ["proximo"] as ProjetoStatus[],

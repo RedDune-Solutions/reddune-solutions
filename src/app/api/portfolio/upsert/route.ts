@@ -6,6 +6,7 @@ import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { deleteManagedBlob } from "@/lib/blob";
 import { SERVICO_SLUG } from "@/types/servico";
 import type { PortfolioCategoria } from "@/types/portfolio";
+import { portfolioInputSchema } from "@/lib/validation-portfolio";
 
 export const dynamic = "force-dynamic";
 
@@ -15,45 +16,53 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Record<string, unknown>;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  try {
-    const titlePt = String((body.title as Record<string, unknown>)?.pt ?? "").trim();
-    if (!titlePt) {
-      return NextResponse.json({ error: "Título PT obrigatório" }, { status: 400 });
-    }
+  const parsed = portfolioInputSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.issues },
+      { status: 400 }
+    );
+  }
+  const input = parsed.data;
 
-    const rawCat = body.categoria;
+  try {
+    // titlePt já validado como não-vazio pelo schema (trim aplicado).
+    const titlePt = input.title.pt;
+
+    // Categoria continua a ser validada contra SERVICO_SLUG: inválida => null.
+    const rawCat = input.categoria;
     const categoria: PortfolioCategoria | null =
       typeof rawCat === "string" && VALID.has(rawCat) ? (rawCat as PortfolioCategoria) : null;
 
-    const wasUpdate = typeof body.id === "string";
-    const newImageUrl = String(body.imageUrl ?? "").trim();
+    const wasUpdate = typeof input.id === "string";
+    const newImageUrl = (input.imageUrl ?? "").trim();
 
     // Cleanup blob antigo se imagem foi trocada.
     let orphanUrl: string | null = null;
     if (wasUpdate) {
-      const existing = await getPortfolioItemById(body.id as string);
+      const existing = await getPortfolioItemById(input.id as string);
       if (existing && existing.imageUrl && existing.imageUrl !== newImageUrl) {
         orphanUrl = existing.imageUrl;
       }
     }
 
     const id = await upsertPortfolioItem({
-      id: typeof body.id === "string" ? body.id : undefined,
+      id: typeof input.id === "string" ? input.id : undefined,
       title: {
         pt: titlePt,
-        en: String((body.title as Record<string, unknown>)?.en ?? titlePt),
+        en: input.title.en ?? titlePt,
       },
       imageUrl: newImageUrl,
-      url: String(body.url ?? "").trim(),
+      url: (input.url ?? "").trim(),
       categoria,
-      destaqueLanding: body.destaqueLanding === true,
+      destaqueLanding: input.destaqueLanding === true,
     });
 
     if (orphanUrl) {

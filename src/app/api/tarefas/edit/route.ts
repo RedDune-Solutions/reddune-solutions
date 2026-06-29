@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { patchTarefa } from "@/lib/mongodb/tarefas";
+import { patchTarefa, getTarefaProjetoId } from "@/lib/mongodb/tarefas";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +40,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // Lê o projetoId antes do patch para revalidar a página do projeto (o patch
+  // nunca altera o projetoId, por isso o valor lido continua válido).
+  const projetoId = await getTarefaProjetoId(parsed.data.tarefaId);
+
   const ok = await patchTarefa(parsed.data.tarefaId, parsed.data.patch);
   if (!ok) {
     return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
@@ -56,6 +60,7 @@ export async function POST(request: Request) {
   revalidatePath("/painel/tarefas");
   revalidatePath("/painel/calendario");
   revalidatePath("/painel");
+  if (projetoId) revalidatePath(`/painel/projetos/${projetoId}`);
 
   return NextResponse.json({ ok: true });
 }

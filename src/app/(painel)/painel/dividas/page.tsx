@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Coins, AlertTriangle, Clock, Check, Mail, ChevronDown } from "lucide-react";
+import { Coins, AlertTriangle, Clock, Check, Mail, ChevronRight } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
@@ -197,7 +197,7 @@ export default async function DividasPage({
                       </a>
                     )}
                     <Link className="btn ghost tiny" href={`/painel/projetos/${p.id}`}>
-                      <Check className="ic" aria-hidden="true" /> Receber
+                      <ChevronRight className="ic" aria-hidden="true" /> Ver projecto
                     </Link>
                   </div>
                 </div>

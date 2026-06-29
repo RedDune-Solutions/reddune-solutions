@@ -4,7 +4,6 @@ import { getDb } from "./client";
 const AUDIT = "auth_audit";
 
 export type AuthEventType =
-  | "magic-link-request"
   | "signin-success"
   | "signin-rejected"
   | "signout";

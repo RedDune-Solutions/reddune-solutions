@@ -42,6 +42,28 @@ export async function updateLeadEstado(
   return result.matchedCount > 0;
 }
 
+/**
+ * Liga o lead a um cliente já criado e marca-o como "ganho".
+ * Patch apenas do próprio lead — não toca noutras colecções.
+ */
+export async function setLeadCliente(
+  id: string,
+  clienteId: string
+): Promise<boolean> {
+  const db = await getDb();
+  const result = await db.collection<Lead>(COLLECTION).updateOne(
+    { id },
+    {
+      $set: {
+        clienteId,
+        estado: "ganho",
+        atualizadoEm: new Date().toISOString(),
+      },
+    }
+  );
+  return result.matchedCount > 0;
+}
+
 export async function deleteLead(id: string): Promise<boolean> {
   const db = await getDb();
   const result = await db.collection<Lead>(COLLECTION).deleteOne({ id });

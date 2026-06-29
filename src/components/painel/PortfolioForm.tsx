@@ -24,11 +24,22 @@ type Props = {
   item: PortfolioItem | null;
   onSaved?: () => void;
   onCancel?: () => void;
+  /** Se definido, redireciona para este caminho após guardar com sucesso. */
+  backHref?: string;
 };
 
 const NONE = "__none__";
 
-export function PortfolioForm({ item, onSaved, onCancel }: Props) {
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function PortfolioForm({ item, onSaved, onCancel, backHref }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [, startTransition] = useTransition();
@@ -55,13 +66,20 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
       setError("Para destacar na landing precisas de escolher uma categoria.");
       return;
     }
+    const trimmedUrl = url.trim();
+    if (trimmedUrl && !isValidHttpUrl(trimmedUrl)) {
+      const msg = "URL inválido. Usa um endereço http(s) completo (ex: https://exemplo.pt).";
+      setError(msg);
+      toast({ title: "URL inválido", description: msg, variant: "destructive" });
+      return;
+    }
     setSaving(true);
     setError(null);
     const res = await safeJsonPost("/api/portfolio/upsert", {
       id: item?.id,
       title: { pt: titlePt.trim(), en: titleEn.trim() || titlePt.trim() },
       imageUrl: imageUrl.trim(),
-      url: url.trim(),
+      url: trimmedUrl,
       categoria,
       destaqueLanding,
     });
@@ -74,6 +92,7 @@ export function PortfolioForm({ item, onSaved, onCancel }: Props) {
     toast({ title: "Trabalho guardado", variant: "success" });
     startTransition(() => router.refresh());
     onSaved?.();
+    if (backHref) router.push(backHref);
   }
 
   return (

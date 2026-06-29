@@ -66,13 +66,11 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     siteName: "Reddune Solutions",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og-image.png"],
   },
 };
 

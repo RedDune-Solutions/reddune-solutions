@@ -11,6 +11,7 @@
         "services": "Services",
         "portfolio": "Portfolio",
         "shop": "Shop",
+        "faq": "FAQ",
         "contact": "Contact"
     },
     "HomePage": {
@@ -559,6 +560,62 @@
         "section4P1": "Reddune Solutions retains your personal data only for the period strictly necessary to fulfil the purpose for which it was collected. Once this retention period has elapsed, Reddune Solutions ensures that your personal data is deleted.",
         "closingTitle": "Questions about your data?",
         "closingBody": "We are available to clarify any doubts about the processing of your personal data or to help you exercise your rights under the GDPR.",
+        "ctaContact": "Get in touch"
+    },
+    "FaqPage": {
+        "metaTitle": "Frequently Asked Questions — Reddune Solutions",
+        "metaDescription": "Answers to the most common questions about Reddune Solutions services: tech support, equipment shop, websites and software, and data recovery in the Algarve.",
+        "eyebrow": "Help · Frequently asked questions",
+        "title": "Frequently Asked Questions",
+        "subtitle": "We've gathered the most common questions about our services. Can't find what you're looking for? Get in touch — we answer everything.",
+        "items": [
+            {
+                "q": "What services do you offer?",
+                "a": "We work across four areas: tech support (repairs, cleaning, upgrades and PC builds), an IT equipment shop, web and software development (websites, online stores and custom systems) and data recovery. You can see the detail of each area on the Services page."
+            },
+            {
+                "q": "Do you offer on-site support or only in-store?",
+                "a": "We do both. You can bring your equipment in or, whenever it makes sense, we can come to you. Call-outs have a per-kilometre cost from Fuseta, which we always confirm before going ahead."
+            },
+            {
+                "q": "How does a quote work? Is it free?",
+                "a": "Quotes are free and with no obligation. For repairs, we run a diagnosis first to understand the fault and only proceed with your approval. No work is ever charged without prior authorisation."
+            },
+            {
+                "q": "How long does a repair take?",
+                "a": "It depends on the type of fault and parts availability. We always give an estimate in the quote and, when you need something faster, we can assess an urgent service subject to availability (with an additional fee)."
+            },
+            {
+                "q": "Can you recover data from a faulty drive?",
+                "a": "In most cases of logical failure (accidental formatting, corrupted drive, deleted files), yes. Physical failures requiring a clean room are referred to certified partner labs. We run a diagnosis before any commitment and always keep your data confidential."
+            },
+            {
+                "q": "Do you build custom PCs?",
+                "a": "Yes. We advise on parts according to the intended use (office, gaming, professional work) and your available budget, ensuring compatibility and balance between components. We handle the build, system installation and testing before delivery."
+            },
+            {
+                "q": "Do you also sell equipment and components?",
+                "a": "Yes, we have an IT equipment and components shop. You can browse part of the range on the Shop page; for specific requests or advice, just get in touch."
+            },
+            {
+                "q": "Do you build websites and custom software?",
+                "a": "Yes. We develop everything from landing pages and brochure sites to online stores and custom systems, using modern technology with a focus on speed, SEO and conversion. Every project starts with a conversation to understand your business goal before we present a detailed quote."
+            },
+            {
+                "q": "Do your services come with a warranty?",
+                "a": "Yes. Repairs are covered by a warranty on labour, and parts follow the respective manufacturer's warranty. The specific terms are stated in the quote or invoice for each service."
+            },
+            {
+                "q": "Which areas do you serve?",
+                "a": "We are based in Fuseta and mainly serve the Algarve. For online services (websites, software, consulting) we work without geographical limits. If you're unsure about your area, just get in touch."
+            },
+            {
+                "q": "How can I contact you?",
+                "a": "You can reach us via WhatsApp, phone or email, or use the form on the Contact page. We reply as quickly as possible and help you figure out the best path for your case."
+            }
+        ],
+        "closingTitle": "Didn't find your answer?",
+        "closingBody": "Every case is different. Tell us what you need and we'll give you a clear answer, with no obligation.",
         "ctaContact": "Get in touch"
     }
 }

@@ -52,6 +52,8 @@ async function doInit(): Promise<void> {
     db.collection("push_subscriptions").createIndex({ endpoint: 1 }, { unique: true }),
 
     db.collection("blocked_ips").createIndex({ ip: 1 }, { unique: true }),
+
+    db.collection("settings").createIndex({ id: 1 }, { unique: true }),
   ]);
 }
 

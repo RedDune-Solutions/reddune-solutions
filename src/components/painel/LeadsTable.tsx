@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Trash2, Loader2, Calendar, Globe } from "lucide-react";
+import { Mail, Trash2, Loader2, Calendar, Globe, UserPlus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -78,7 +78,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
   const router = useRouter();
   const { toast } = useToast();
   const [openId, setOpenId] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"delete" | null>(null);
+  const [busy, setBusy] = useState<"delete" | "convert" | null>(null);
   // Override otimista do estado por id — UI reage já, servidor sincroniza depois.
   const [overrides, setOverrides] = useState<Record<string, LeadEstado>>({});
   const [, startTransition] = useTransition();
@@ -118,6 +118,21 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
     }
     setOpenId(null);
     startTransition(() => router.refresh());
+  }
+
+  async function convert(id: string) {
+    setBusy("convert");
+    const res = await safeFetch<{ clienteId: string }>(`/api/leads/${id}/convert`, {
+      method: "POST",
+    });
+    setBusy(null);
+    if (!res.ok) {
+      toast({ title: "Erro a converter", description: res.error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Lead convertido em cliente" });
+    setOpenId(null);
+    router.push(`/painel/clientes/${res.data.clienteId}`);
   }
 
   return (
@@ -263,6 +278,28 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                   )}
                   Eliminar
                 </button>
+                {selected.clienteId ? (
+                  <a
+                    href={`/painel/clientes/${selected.clienteId}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-btn border border-dune-deep/15 px-3 py-2 text-sm text-ink-soft hover:bg-ink/5 transition-colors"
+                  >
+                    <UserPlus size={14} aria-hidden="true" /> Ver cliente
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => convert(selected.id)}
+                    disabled={busy !== null}
+                    className="inline-flex items-center justify-center gap-2 rounded-btn border border-dune-deep/15 px-3 py-2 text-sm text-ink hover:bg-ink/5 transition-colors disabled:opacity-50"
+                  >
+                    {busy === "convert" ? (
+                      <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <UserPlus size={14} aria-hidden="true" />
+                    )}
+                    Converter em cliente
+                  </button>
+                )}
                 <a
                   href={`mailto:${selected.email}?subject=${encodeURIComponent(
                     "RE: " + (SUBJECT_LABELS[selected.subject] ?? selected.subject)

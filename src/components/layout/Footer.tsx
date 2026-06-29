@@ -100,6 +100,11 @@ export function Footer() {
               <FooterLi>
                 <FooterLink href="/loja">{tNav("shop")}</FooterLink>
               </FooterLi>
+              <FooterLi>
+                <FooterLink href="/faq">
+                  {tNav.has("faq") ? tNav("faq") : "FAQ"}
+                </FooterLink>
+              </FooterLi>
             </ul>
           </nav>
 

@@ -26,6 +26,8 @@ type Props = {
 type VarianteDraft = { label: string; labelEn: string; preco: string; precoMax: string };
 
 type Draft = {
+  /** Chave estável por-draft (cliente). Independente do índice e do id da BD. */
+  key: string;
   id: string | null;
   titulo: string;
   tituloEn: string;
@@ -47,9 +49,19 @@ type Draft = {
 
 const DEFAULT_LABELS = ["Desktop", "Portátil", "Consola"];
 
+let keySeq = 0;
+function genKey(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  keySeq += 1;
+  return `draft_${Date.now()}_${keySeq}`;
+}
+
 function toDraft(s: Servico): Draft {
   const temVariantes = !!(s.variantes && s.variantes.length > 0);
   return {
+    key: genKey(),
     id: s.id,
     titulo: s.titulo,
     tituloEn: s.tituloI18n?.en ?? "",
@@ -79,6 +91,7 @@ function toDraft(s: Servico): Draft {
 
 function emptyDraft(ordem: number): Draft {
   return {
+    key: genKey(),
     id: null,
     titulo: "",
     tituloEn: "",
@@ -105,8 +118,20 @@ export function ServicosEditor({ slug, servicos }: Props) {
   const confirm = useConfirm();
   const [, startTransition] = useTransition();
   const [items, setItems] = useState<Draft[]>(servicos.map(toDraft));
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function setCardError(key: string, msg: string | null) {
+    setErrors((prev) => {
+      if (msg == null) {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return { ...prev, [key]: msg };
+    });
+  }
 
   function update(idx: number, patch: Partial<Draft>) {
     setItems((prev) =>
@@ -176,7 +201,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
   async function save(idx: number) {
     const d = items[idx]!;
     if (!d.titulo.trim()) {
-      setError("Título obrigatório.");
+      setCardError(d.key, "Título obrigatório.");
       return;
     }
 
@@ -185,12 +210,12 @@ export function ServicosEditor({ slug, servicos }: Props) {
       const parsed: VariantePreco[] = [];
       for (const v of d.variantes) {
         if (!v.label.trim()) {
-          setError("Todas as variantes precisam de um label.");
+          setCardError(d.key, "Todas as variantes precisam de um label.");
           return;
         }
         const n = parseMoney(v.preco);
         if (n == null || n < 0) {
-          setError(`Preço inválido na variante "${v.label}".`);
+          setCardError(d.key, `Preço inválido na variante "${v.label}".`);
           return;
         }
         const nMax = v.precoMax.trim() ? parseMoney(v.precoMax) : null;
@@ -204,8 +229,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
       variantesPayload = parsed;
     }
 
-    setSavingId(d.id ?? `new_${idx}`);
-    setError(null);
+    setSavingKey(d.key);
+    setCardError(d.key, null);
     try {
       const precoBase = d.precoBase.trim() ? parseMoney(d.precoBase) : null;
       const precoMax = d.precoMax.trim() ? parseMoney(d.precoMax) : null;
@@ -237,16 +262,16 @@ export function ServicosEditor({ slug, servicos }: Props) {
       };
       const res = await safeJsonPost<{ id: string }>("/api/servicos/upsert", payload);
       if (!res.ok) {
-        setError(res.error);
+        setCardError(d.key, res.error);
         toast({ title: "Erro a guardar serviço", description: res.error, variant: "destructive" });
         return;
       }
       setItems((prev) =>
-        prev.map((it, i) => (i === idx ? { ...it, id: res.data.id, dirty: false } : it))
+        prev.map((it) => (it.key === d.key ? { ...it, id: res.data.id, dirty: false } : it))
       );
       startTransition(() => router.refresh());
     } finally {
-      setSavingId(null);
+      setSavingKey(null);
     }
   }
 
@@ -266,7 +291,8 @@ export function ServicosEditor({ slug, servicos }: Props) {
         return;
       }
     }
-    setItems((prev) => prev.filter((_, i) => i !== idx));
+    setCardError(d.key, null);
+    setItems((prev) => prev.filter((it) => it.key !== d.key));
     startTransition(() => router.refresh());
   }
 
@@ -279,18 +305,12 @@ export function ServicosEditor({ slug, servicos }: Props) {
         </Button>
       </div>
 
-      {error && (
-        <p className="text-xs text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded px-2 py-1">
-          {error}
-        </p>
-      )}
-
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">Sem serviços. Adiciona o primeiro.</p>
       ) : (
         <div className="space-y-3">
           {items.map((d, idx) => (
-            <div key={d.id ?? `new_${idx}`} className="rounded-md border border-border-strong bg-surface-elevated p-3 space-y-3">
+            <div key={d.key} className="rounded-md border border-border-strong bg-surface-elevated p-3 space-y-3">
               {/* Linha 1: Título / Ordem / Activo */}
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-12 sm:col-span-8 space-y-1">
@@ -515,19 +535,25 @@ export function ServicosEditor({ slug, servicos }: Props) {
                 <ImageUploadZone
                   value={d.imageUrl ? [d.imageUrl] : []}
                   onChange={(urls) => update(idx, { imageUrl: urls[0] ?? "" })}
-                  disabled={savingId === (d.id ?? `new_${idx}`)}
+                  disabled={savingKey === d.key}
                   max={1}
                 />
               </div>
+
+              {errors[d.key] && (
+                <p className="text-xs text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded px-2 py-1">
+                  {errors[d.key]}
+                </p>
+              )}
 
               <div className="flex items-center justify-end gap-2">
                 {d.dirty && (
                   <Button
                     size="sm"
                     onClick={() => save(idx)}
-                    disabled={savingId === (d.id ?? `new_${idx}`)}
+                    disabled={savingKey === d.key}
                   >
-                    {savingId === (d.id ?? `new_${idx}`) && (
+                    {savingKey === d.key && (
                       <Loader2 className="h-3 w-3 mr-1 animate-spin" aria-hidden="true" />
                     )}
                     Guardar
@@ -537,6 +563,7 @@ export function ServicosEditor({ slug, servicos }: Props) {
                   size="sm"
                   variant="ghost"
                   onClick={() => remove(idx)}
+                  disabled={savingKey === d.key}
                   className="text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />

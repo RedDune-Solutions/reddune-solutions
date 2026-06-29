@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Trash2, ArrowRight, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import type { Tarefa } from "@/types/tarefa";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type TarefaFilter = "todas" | "hoje" | "semana" | "vencidas";
 
@@ -77,11 +78,19 @@ function prazoStatus(iso: string | null): "vencida" | "hoje" | "futura" | null {
 export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
+  // Estado local optimista — reconciliado com as props quando o
+  // router.refresh() traz dados novos do servidor.
+  const [items, setItems] = useState<Tarefa[]>(tarefas);
+
+  useEffect(() => {
+    setItems(tarefas);
+  }, [tarefas]);
 
   // Filter tarefas by feita state + active filter
-  const filtered = tarefas.filter((t) => {
+  const filtered = items.filter((t) => {
     if (!showFeitas && t.feita) return false;
     return applyTarefaFilter(t, filter);
   });
@@ -110,13 +119,18 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
     });
 
   async function toggleFeita(t: Tarefa) {
+    const novoFeita = !t.feita;
+    // Optimista: flipa já localmente.
+    setItems((prev) => prev.map((x) => (x.id === t.id ? { ...x, feita: novoFeita } : x)));
     setBusy(t.id);
     const res = await safeJsonPost("/api/tarefas/edit", {
       tarefaId: t.id,
-      patch: { feita: !t.feita },
+      patch: { feita: novoFeita },
     });
     setBusy(null);
     if (!res.ok) {
+      // Revert.
+      setItems((prev) => prev.map((x) => (x.id === t.id ? { ...x, feita: t.feita } : x)));
       toast({ title: "Erro a actualizar tarefa", description: res.error, variant: "destructive" });
       return;
     }
@@ -124,10 +138,22 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
   }
 
   async function deleteTarefa(id: string) {
+    const ok = await confirm({
+      title: "Apagar tarefa?",
+      description: "Esta acção remove a tarefa. Não pode ser desfeita.",
+      confirmLabel: "Apagar",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    // Optimista: remove já localmente, guardando para repor em caso de erro.
+    const removida = items.find((t) => t.id === id);
+    setItems((prev) => prev.filter((t) => t.id !== id));
     setBusy(id);
     const res = await safeDelete(`/api/tarefas/${encodeURIComponent(id)}`);
     setBusy(null);
     if (!res.ok) {
+      // Revert: repõe a tarefa.
+      if (removida) setItems((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removida]));
       toast({ title: "Erro a apagar tarefa", description: res.error, variant: "destructive" });
       return;
     }

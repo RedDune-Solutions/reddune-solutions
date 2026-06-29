@@ -28,7 +28,7 @@ export default async function PortfolioDetailPage({ params }: { params: Params }
         </Button>
 
         <div className="rounded-xl border border-border bg-card">
-          <PortfolioForm item={item} />
+          <PortfolioForm item={item} backHref="/painel/portfolio" />
         </div>
       </div>
     </>

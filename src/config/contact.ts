@@ -6,6 +6,3 @@ export const contactInfo = {
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ??
     "https://www.instagram.com/reddune_solutions/",
 } as const;
-
-export const businessEmail =
-  process.env.BUSINESS_EMAIL ?? "reddunesolutions@gmail.com";

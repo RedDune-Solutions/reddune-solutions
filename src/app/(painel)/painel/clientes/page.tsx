@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, FolderKanban, AlertTriangle, RefreshCw, MoreVertical } from "lucide-react";
+import { Users, FolderKanban, AlertTriangle, RefreshCw, ChevronRight } from "lucide-react";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
@@ -139,7 +139,7 @@ export default async function ClientesPage() {
                         </td>
                         <td className="col-hide-sm">
                           <Link href={`/painel/clientes/${c.id}`} aria-label="Abrir ficha">
-                            <MoreVertical className="row-menu" aria-hidden="true" />
+                            <ChevronRight className="row-menu" aria-hidden="true" />
                           </Link>
                         </td>
                       </tr>

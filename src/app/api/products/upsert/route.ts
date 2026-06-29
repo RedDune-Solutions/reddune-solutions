@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { upsertProduct, getProductById } from "@/lib/mongodb/products";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { deleteManagedBlobs } from "@/lib/blob";
+import { productInputSchema } from "@/lib/validation-product";
 
 export const dynamic = "force-dynamic";
 
@@ -11,26 +12,33 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: Record<string, unknown>;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  try {
-    const namePt = String((body.name as Record<string, unknown>)?.pt ?? "").trim();
-    if (!namePt) {
-      return NextResponse.json({ error: "Nome PT obrigatório" }, { status: 400 });
-    }
+  const parsed = productInputSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.issues },
+      { status: 400 }
+    );
+  }
+  const input = parsed.data;
 
-    const wasUpdate = typeof body.id === "string";
-    const newImageUrls = Array.isArray(body.imageUrls) ? body.imageUrls.map(String) : [];
+  try {
+    // namePt já validado como não-vazio pelo schema (trim aplicado).
+    const namePt = input.name.pt;
+
+    const wasUpdate = typeof input.id === "string";
+    const newImageUrls = input.imageUrls ?? [];
 
     // Cleanup blobs órfãos: URLs que estavam em existing mas saíram do novo.
     let orphanedUrls: string[] = [];
     if (wasUpdate) {
-      const existing = await getProductById(body.id as string);
+      const existing = await getProductById(input.id as string);
       if (existing) {
         const newSet = new Set(newImageUrls);
         orphanedUrls = existing.imageUrls.filter((u) => !newSet.has(u));
@@ -38,27 +46,27 @@ export async function POST(request: Request) {
     }
 
     const id = await upsertProduct({
-      id: typeof body.id === "string" ? body.id : undefined,
+      id: typeof input.id === "string" ? input.id : undefined,
       name: {
         pt: namePt,
-        en: String((body.name as Record<string, unknown>)?.en ?? namePt),
+        en: input.name.en ?? namePt,
       },
       description: {
-        pt: String((body.description as Record<string, unknown>)?.pt ?? ""),
-        en: String((body.description as Record<string, unknown>)?.en ?? ""),
+        pt: input.description?.pt ?? "",
+        en: input.description?.en ?? "",
       },
       category: {
-        pt: String((body.category as Record<string, unknown>)?.pt ?? "outro"),
-        en: String((body.category as Record<string, unknown>)?.en ?? "other"),
+        pt: input.category?.pt ?? "outro",
+        en: input.category?.en ?? "other",
       },
       condition: {
-        pt: String((body.condition as Record<string, unknown>)?.pt ?? "novo"),
-        en: String((body.condition as Record<string, unknown>)?.en ?? "new"),
+        pt: input.condition?.pt ?? "novo",
+        en: input.condition?.en ?? "new",
       },
-      price: Number(body.price) || 0,
+      price: input.price ?? 0,
       imageUrls: newImageUrls,
-      available: body.available !== false,
-      featured: body.featured === true,
+      available: input.available !== false,
+      featured: input.featured === true,
     });
 
     // Best-effort cleanup após save bem-sucedido.

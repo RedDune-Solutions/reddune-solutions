@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { deleteTarefa } from "@/lib/mongodb/tarefas";
+import { deleteTarefa, getTarefaProjetoId } from "@/lib/mongodb/tarefas";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
+  // Lê o projetoId antes de apagar para revalidar a página do projeto.
+  const projetoId = await getTarefaProjetoId(id);
+
   const ok = await deleteTarefa(id);
   if (!ok) {
     return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
@@ -35,5 +38,6 @@ export async function DELETE(
   revalidatePath("/painel/tarefas");
   revalidatePath("/painel/calendario");
   revalidatePath("/painel");
+  if (projetoId) revalidatePath(`/painel/projetos/${projetoId}`);
   return NextResponse.json({ ok: true });
 }

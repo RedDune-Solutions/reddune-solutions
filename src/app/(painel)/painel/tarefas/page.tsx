@@ -4,6 +4,7 @@ import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { Topbar } from "@/components/painel/Topbar";
 import { TarefasPorProjeto } from "@/components/painel/TarefasPorProjeto";
 import { NovaTarefaGlobalButton } from "@/components/painel/NovaTarefaGlobalButton";
+import { TAREFAS_VISIVEIS_STATUSES } from "@/types/projeto";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +31,10 @@ export default async function TarefasPage({
     searchParams,
   ]);
 
-  // Só tarefas de projetos EM ABERTO (em curso / próximo).
-  const emAberto = new Set(["em-curso", "proximo"]);
-  const openIds = new Set(allProjetos.filter((p) => emAberto.has(p.status)).map((p) => p.id));
+  // Só tarefas de projetos em estados onde se podem criar tarefas (mesmo
+  // conjunto que o NovaTarefaGlobalButton oferece — ver TAREFAS_VISIVEIS_STATUSES).
+  const visiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
+  const openIds = new Set(allProjetos.filter((p) => visiveis.has(p.status)).map((p) => p.id));
   const allTarefas = allTarefasRaw.filter((t) => openIds.has(t.projetoId));
 
   const filter: TarefaFilter =

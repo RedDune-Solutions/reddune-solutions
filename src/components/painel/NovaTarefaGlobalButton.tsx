@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATUS_GROUPS, type Projeto, type ProjetoStatus } from "@/types/projeto";
+import { TAREFAS_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
 import { safeJsonPost } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,13 +28,10 @@ type Props = {
   projetos: Projeto[];
 };
 
-// Show only "active" projects in the selector (not archived/closed)
-const ACTIVE_STATUSES: ProjetoStatus[] = [
-  ...STATUS_GROUPS.ativo,
-  ...STATUS_GROUPS.proximo,
-  ...STATUS_GROUPS.aguarda,
-  ...STATUS_GROUPS.pronto,
-];
+// Mostra no selector apenas projetos cujas tarefas são visíveis em
+// /painel/tarefas (não arquivados/fechados). Partilhado com o filtro da página
+// para que nenhuma tarefa criada fique invisível.
+const ACTIVE_STATUSES = TAREFAS_VISIVEIS_STATUSES;
 
 export function NovaTarefaGlobalButton({ projetos }: Props) {
   const router = useRouter();

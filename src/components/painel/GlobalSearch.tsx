@@ -9,7 +9,8 @@ type Props = {
 };
 
 /**
- * GlobalSearch — Oasis v5 `.gsearch`. Submits to /painel/projetos?q=.
+ * GlobalSearch — Oasis v5 `.gsearch`. Submits to /painel/procurar?q=
+ * (pesquisa global: projectos + clientes + tarefas).
  * ⌘K / Ctrl+K focuses the field.
  */
 export function GlobalSearch({ defaultValue }: Props) {
@@ -33,7 +34,7 @@ export function GlobalSearch({ defaultValue }: Props) {
     event.preventDefault();
     const trimmed = value.trim();
     startTransition(() => {
-      router.push(trimmed ? `/painel/projetos?q=${encodeURIComponent(trimmed)}` : "/painel/projetos");
+      router.push(trimmed ? `/painel/procurar?q=${encodeURIComponent(trimmed)}` : "/painel/procurar");
     });
   }
 

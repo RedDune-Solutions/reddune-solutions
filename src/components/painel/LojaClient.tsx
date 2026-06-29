@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Pencil, Trash, Search, Package, ShoppingBag } from "lucide-react";
+import { Plus, Pencil, Trash, Search, Package, ShoppingBag, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -31,6 +31,7 @@ export function LojaClient({ products }: Props) {
   const [open, setOpen] = useState(false);
   const [cat, setCat] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const categorias = useMemo(() => {
     const set = new Set<string>();
@@ -57,8 +58,10 @@ export function LojaClient({ products }: Props) {
       tone: "destructive",
     });
     if (!ok) return;
+    setBusyId(id);
     const res = await safeDelete(`/api/products/${encodeURIComponent(id)}`);
     if (!res.ok) {
+      setBusyId(null);
       toast({ title: "Erro a apagar produto", description: res.error, variant: "destructive" });
       return;
     }
@@ -76,9 +79,6 @@ export function LojaClient({ products }: Props) {
       <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
         <div className="tabs">
           <button className="active">Catálogo <span className="num">{products.length}</span></button>
-          <button type="button" disabled style={{ opacity: 0.5 }}>Encomendas</button>
-          <button type="button" disabled style={{ opacity: 0.5 }}>Stock</button>
-          <button type="button" disabled style={{ opacity: 0.5 }}>Promoções</button>
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -154,8 +154,8 @@ export function LojaClient({ products }: Props) {
                   <Link href={`/painel/loja/${p.id}`} className="btn ghost tiny" style={{ flex: 1, justifyContent: "center" }}>
                     <Pencil className="ic" aria-hidden="true" /> Editar
                   </Link>
-                  <button type="button" onClick={(e) => handleDelete(p.id, e)} className="btn ghost tiny icon" aria-label="Apagar">
-                    <Trash className="ic" aria-hidden="true" />
+                  <button type="button" onClick={(e) => handleDelete(p.id, e)} disabled={busyId === p.id} className="btn ghost tiny icon" aria-label="Apagar">
+                    {busyId === p.id ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <Trash className="ic" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
@@ -163,23 +163,6 @@ export function LojaClient({ products }: Props) {
           ))}
         </div>
       )}
-
-      {/* Encomendas pendentes — sem sistema de encomendas ligado */}
-      <div className="card">
-        <div className="ch">
-          <div>
-            <div className="t">Encomendas pendentes</div>
-            <div className="sub">Sincroniza com a loja online quando ligares pagamentos.</div>
-          </div>
-        </div>
-        <div className="cb">
-          <div className="empty" style={{ margin: 0 }}>
-            <div className="ic"><Package aria-hidden="true" /></div>
-            <div className="t">Sem encomendas</div>
-            <div className="desc">Sistema de encomendas ainda não configurado.</div>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

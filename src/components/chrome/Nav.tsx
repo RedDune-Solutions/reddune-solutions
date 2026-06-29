@@ -29,6 +29,7 @@ export function Nav({ pillHidden = false }: NavProps) {
       label: t.has("portfolio") ? t("portfolio") : "Portfólio",
     },
     { href: "/loja", label: t("shop") },
+    { href: "/faq", label: t.has("faq") ? t("faq") : "FAQ" },
   ];
 
   const isActive = useCallback(

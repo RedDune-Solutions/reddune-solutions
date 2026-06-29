@@ -22,6 +22,28 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    // CSP em REPORT-ONLY de propósito: o browser apenas reporta violações na
+    // consola, nunca bloqueia recursos. Isto permite observar o que partiria
+    // ANTES de fazer enforce, sem risco de partir o site. Para passar a enforce
+    // (header "Content-Security-Policy") é preciso testar no browser primeiro —
+    // confirmar que nada aparece como violação (scripts inline do Next, mapas
+    // embed, imagens dos hosts em images.remotePatterns, etc.).
+    const cspReportOnly = [
+      "default-src 'self'",
+      // Next precisa de inline/eval (sobretudo em dev). Em report-only é seguro.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      // Cobre os hosts de imagem usados (ver images.remotePatterns) + blob/data.
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      // Mapas Google embed.
+      "frame-src https://www.google.com",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+
     return [
       {
         source: "/:path*",
@@ -34,6 +56,8 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
+          // Report-only: observação, nunca bloqueio. Ver comentário acima.
+          { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
         ],
       },
     ];

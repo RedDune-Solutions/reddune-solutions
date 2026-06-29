@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import type { Tarefa } from "@/types/tarefa";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   tarefas: Tarefa[];
@@ -26,19 +27,44 @@ function fmtData(iso: string): string {
 export function TarefaChecklist({ tarefas, projetoId }: Props) {
   const router = useRouter();
   const { toast } = useToast();
-  const [pending, startTransition] = useTransition();
+  const confirm = useConfirm();
+  const [, startTransition] = useTransition();
+  // Estado local optimista — reconciliado com as props quando o
+  // router.refresh() traz dados novos do servidor.
+  const [items, setItems] = useState<Tarefa[]>(tarefas);
+  const [busy, setBusy] = useState<Set<string>>(new Set());
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoPrazo, setNovoPrazo] = useState("");
   const [novaHora, setNovaHora] = useState("");
   const [adding, setAdding] = useState(false);
   const [showInput, setShowInput] = useState(false);
 
+  useEffect(() => {
+    setItems(tarefas);
+  }, [tarefas]);
+
+  function setBusyId(id: string, on: boolean) {
+    setBusy((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
   async function toggleFeita(tarefa: Tarefa) {
+    const novoFeita = !tarefa.feita;
+    // Optimista: flipa já localmente.
+    setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, feita: novoFeita } : t)));
+    setBusyId(tarefa.id, true);
     const res = await safeJsonPost("/api/tarefas/edit", {
       tarefaId: tarefa.id,
-      patch: { feita: !tarefa.feita },
+      patch: { feita: novoFeita },
     });
+    setBusyId(tarefa.id, false);
     if (!res.ok) {
+      // Revert.
+      setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, feita: tarefa.feita } : t)));
       toast({ title: "Erro a actualizar tarefa", description: res.error, variant: "destructive" });
       return;
     }
@@ -46,11 +72,18 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
   }
 
   async function updatePrazo(tarefa: Tarefa, prazo: string | null) {
+    const prazoAnterior = tarefa.prazo;
+    // Optimista: actualiza já localmente.
+    setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, prazo } : t)));
+    setBusyId(tarefa.id, true);
     const res = await safeJsonPost("/api/tarefas/edit", {
       tarefaId: tarefa.id,
       patch: { prazo },
     });
+    setBusyId(tarefa.id, false);
     if (!res.ok) {
+      // Revert.
+      setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, prazo: prazoAnterior } : t)));
       toast({ title: "Erro a actualizar prazo", description: res.error, variant: "destructive" });
       return;
     }
@@ -58,8 +91,22 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
   }
 
   async function deletarTarefa(id: string) {
+    const ok = await confirm({
+      title: "Apagar tarefa?",
+      description: "Esta acção remove a tarefa. Não pode ser desfeita.",
+      confirmLabel: "Apagar",
+      tone: "destructive",
+    });
+    if (!ok) return;
+    // Optimista: remove já localmente, guardando para repor em caso de erro.
+    const removida = items.find((t) => t.id === id);
+    setItems((prev) => prev.filter((t) => t.id !== id));
+    setBusyId(id, true);
     const res = await safeDelete(`/api/tarefas/${encodeURIComponent(id)}`);
+    setBusyId(id, false);
     if (!res.ok) {
+      // Revert: repõe a tarefa.
+      if (removida) setItems((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removida]));
       toast({ title: "Erro a apagar tarefa", description: res.error, variant: "destructive" });
       return;
     }
@@ -78,7 +125,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
       prazo: novoPrazo || null,
       prazoHora: novoPrazo && novaHora ? novaHora : null,
       notas: null,
-      ordem: tarefas.length,
+      ordem: items.length,
     });
     setAdding(false);
     if (!res.ok) {
@@ -92,12 +139,12 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     startTransition(() => router.refresh());
   }
 
-  const pendentes = tarefas.filter((t) => !t.feita);
-  const feitas = tarefas.filter((t) => t.feita);
+  const pendentes = items.filter((t) => !t.feita);
+  const feitas = items.filter((t) => t.feita);
 
   return (
     <div className="space-y-3">
-      {tarefas.length === 0 && !showInput && (
+      {items.length === 0 && !showInput && (
         <p className="text-sm text-muted-foreground">Sem tarefas ainda.</p>
       )}
 
@@ -108,7 +155,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
           onToggle={() => toggleFeita(tarefa)}
           onDelete={() => deletarTarefa(tarefa.id)}
           onPrazo={(p) => updatePrazo(tarefa, p)}
-          disabled={pending}
+          disabled={busy.has(tarefa.id)}
         />
       ))}
 
@@ -126,7 +173,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
                 onToggle={() => toggleFeita(tarefa)}
                 onDelete={() => deletarTarefa(tarefa.id)}
                 onPrazo={(p) => updatePrazo(tarefa, p)}
-                disabled={pending}
+                disabled={busy.has(tarefa.id)}
               />
             ))}
           </div>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "./GlobalSearch";
+import { NotificationsBell } from "./NotificationsBell";
 
 type Props = {
   title?: string;
@@ -18,7 +18,7 @@ type Props = {
 
 /**
  * Topbar — Oasis v5 `.topbar`. Grid: left (crumbs + title + desc),
- * center (global search), right (bell + actions). Bell is decorative for now.
+ * center (global search), right (notifications bell + actions).
  */
 export function Topbar({
   title,
@@ -63,9 +63,7 @@ export function Topbar({
       )}
 
       <div className="row" style={{ gap: 8 }}>
-        <button className="btn ghost icon" aria-label="Notificações" type="button">
-          <Bell className="ic" aria-hidden="true" />
-        </button>
+        <NotificationsBell />
         {actions}
       </div>
     </header>

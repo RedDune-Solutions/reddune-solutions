@@ -23,6 +23,8 @@ type Props = {
   product: Product | null;
   onSaved?: () => void;
   onCancel?: () => void;
+  /** Se definido, redireciona para este caminho após guardar com sucesso. */
+  backHref?: string;
 };
 
 const CONDITION_OPTIONS = [
@@ -31,7 +33,7 @@ const CONDITION_OPTIONS = [
   { pt: "segunda mão", en: "second-hand" },
 ];
 
-export function ProductForm({ product, onSaved, onCancel }: Props) {
+export function ProductForm({ product, onSaved, onCancel, backHref }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [, startTransition] = useTransition();
@@ -80,6 +82,7 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
     toast({ title: "Produto guardado", variant: "success" });
     startTransition(() => router.refresh());
     onSaved?.();
+    if (backHref) router.push(backHref);
   }
 
   return (

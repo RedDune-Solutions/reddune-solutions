@@ -22,6 +22,15 @@ export async function getAllTarefas(): Promise<Tarefa[]> {
     .toArray();
 }
 
+/** Lê apenas o projetoId de uma tarefa (para revalidar a página do projeto). */
+export async function getTarefaProjetoId(id: string): Promise<string | null> {
+  const db = await getDb();
+  const doc = await db
+    .collection<Tarefa>(COLLECTION)
+    .findOne({ id }, { projection: { _id: 0, projetoId: 1 } });
+  return doc?.projetoId ?? null;
+}
+
 export async function upsertTarefa(tarefa: Tarefa): Promise<void> {
   const db = await getDb();
   const col = db.collection<Tarefa>(COLLECTION);

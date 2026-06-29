@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Eye, Trash, Briefcase, Star } from "lucide-react";
+import { Plus, Eye, Trash, Briefcase, Star, Loader2 } from "lucide-react";
 import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import { SERVICO_SLUG } from "@/types/servico";
 import {
@@ -34,6 +34,7 @@ export function PortfolioClient({ items }: Props) {
   const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: items.length, destaque: 0 };
@@ -61,8 +62,10 @@ export function PortfolioClient({ items }: Props) {
       tone: "destructive",
     });
     if (!ok) return;
+    setBusyId(id);
     const res = await safeDelete(`/api/portfolio/${encodeURIComponent(id)}`);
     if (!res.ok) {
+      setBusyId(null);
       toast({ title: "Erro a apagar trabalho", description: res.error, variant: "destructive" });
       return;
     }
@@ -140,8 +143,8 @@ export function PortfolioClient({ items }: Props) {
                       <Eye className="ic" aria-hidden="true" />
                     </a>
                   )}
-                  <button type="button" onClick={(e) => handleDelete(item.id, e)} className="btn ghost tiny icon" aria-label="Apagar">
-                    <Trash className="ic" aria-hidden="true" />
+                  <button type="button" onClick={(e) => handleDelete(item.id, e)} disabled={busyId === item.id} className="btn ghost tiny icon" aria-label="Apagar">
+                    {busyId === item.id ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <Trash className="ic" aria-hidden="true" />}
                   </button>
                 </div>
               </div>

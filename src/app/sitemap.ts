@@ -16,6 +16,7 @@ const routes: Array<{
   { path: "/loja/politica-garantia", changeFrequency: "yearly", priority: 0.4 },
   { path: "/loja/politica-devolucao", changeFrequency: "yearly", priority: 0.4 },
   { path: "/contacto", changeFrequency: "yearly", priority: 0.6 },
+  { path: "/faq", changeFrequency: "monthly", priority: 0.5 },
   { path: "/politica-privacidade", changeFrequency: "yearly", priority: 0.3 },
 ];
 

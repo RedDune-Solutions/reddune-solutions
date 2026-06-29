@@ -28,7 +28,7 @@ export default async function ProdutoDetailPage({ params }: { params: Params }) 
         </Button>
 
         <div className="rounded-xl border border-border bg-card">
-          <ProductForm product={product} />
+          <ProductForm product={product} backHref="/painel/loja" />
         </div>
       </div>
     </>

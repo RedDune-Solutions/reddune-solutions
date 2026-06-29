@@ -11,6 +11,7 @@
         "services": "Serviços",
         "portfolio": "Portfólio",
         "shop": "Loja",
+        "faq": "FAQ",
         "contact": "Contactar"
     },
     "HomePage": {
@@ -559,6 +560,62 @@
         "section4P1": "A Reddune Solutions retém os seus dados pessoais apenas pelo período de tempo estritamente necessário para executar a finalidade para a qual os recolheu. Decorrido esse período de conservação, a Reddune Solutions assegura que procede à eliminação dos seus dados pessoais.",
         "closingTitle": "Tem questões sobre os seus dados?",
         "closingBody": "Estamos disponíveis para esclarecer qualquer dúvida sobre o tratamento dos seus dados pessoais ou exercer os seus direitos ao abrigo do RGPD.",
+        "ctaContact": "Falar connosco"
+    },
+    "FaqPage": {
+        "metaTitle": "Perguntas Frequentes — Reddune Solutions",
+        "metaDescription": "Respostas às dúvidas mais comuns sobre os serviços da Reddune Solutions: assistência técnica, loja de equipamento, websites e software, e recuperação de dados no Algarve.",
+        "eyebrow": "Ajuda · Perguntas frequentes",
+        "title": "Perguntas Frequentes",
+        "subtitle": "Reunimos as dúvidas mais comuns sobre os nossos serviços. Não encontra o que procura? Fale connosco — respondemos a tudo.",
+        "items": [
+            {
+                "q": "Que serviços oferecem?",
+                "a": "Trabalhamos em quatro áreas: assistência técnica (reparação, limpeza, upgrades e montagem de PCs), loja de equipamento informático, desenvolvimento web e software (websites, lojas online e sistemas à medida) e recuperação de dados. Pode ver o detalhe de cada área na página de Serviços."
+            },
+            {
+                "q": "Fazem assistência ao domicílio ou só em loja?",
+                "a": "Atendemos ambos. Pode trazer o equipamento ou, sempre que fizer sentido, deslocamo-nos ao domicílio. A deslocação tem um custo associado por quilómetro a partir da Fuseta, que indicamos antes de avançar."
+            },
+            {
+                "q": "Como funciona o orçamento? É gratuito?",
+                "a": "O orçamento é gratuito e sem compromisso. Em reparações, fazemos primeiro um diagnóstico para perceber a avaria e só avançamos com a sua autorização. Nunca há trabalho cobrado sem aprovação prévia."
+            },
+            {
+                "q": "Quanto tempo demora uma reparação?",
+                "a": "Depende do tipo de avaria e da disponibilidade de peças. Damos sempre uma estimativa no orçamento e, quando precisa de algo mais rápido, podemos avaliar um serviço urgente sob disponibilidade (com taxa adicional)."
+            },
+            {
+                "q": "Conseguem recuperar dados de um disco avariado?",
+                "a": "Na maioria dos casos de avaria lógica (formatação acidental, disco corrompido, ficheiros apagados), sim. Avarias físicas que exijam sala limpa são reencaminhadas para laboratórios parceiros certificados. Fazemos um diagnóstico antes de qualquer compromisso e mantemos sempre os seus dados confidenciais."
+            },
+            {
+                "q": "Montam PCs à medida?",
+                "a": "Sim. Aconselhamos as peças de acordo com o uso pretendido (escritório, gaming, trabalho profissional) e o orçamento disponível, garantindo compatibilidade e equilíbrio entre componentes. Fazemos a montagem, instalação do sistema e testes antes da entrega."
+            },
+            {
+                "q": "Também vendem equipamento e componentes?",
+                "a": "Sim, temos loja de equipamento e componentes informáticos. Pode consultar parte da oferta na página da Loja; para pedidos específicos ou aconselhamento, é só falar connosco."
+            },
+            {
+                "q": "Fazem websites e software à medida?",
+                "a": "Sim. Desenvolvemos desde landing pages e sites institucionais a lojas online e sistemas personalizados, com tecnologia moderna e foco em velocidade, SEO e conversão. Cada projeto começa com uma conversa para entender o objetivo do seu negócio antes de apresentarmos um orçamento detalhado."
+            },
+            {
+                "q": "Os trabalhos têm garantia?",
+                "a": "Sim. As reparações têm garantia sobre a mão-de-obra e as peças seguem a garantia do respetivo fabricante. As condições concretas são indicadas no orçamento ou na fatura de cada serviço."
+            },
+            {
+                "q": "Que zonas servem?",
+                "a": "Estamos sediados na Fuseta e servimos sobretudo o Algarve. Para serviços online (websites, software, aconselhamento) trabalhamos sem limitação geográfica. Em caso de dúvida sobre a sua zona, fale connosco."
+            },
+            {
+                "q": "Como vos posso contactar?",
+                "a": "Pode falar connosco por WhatsApp, telefone ou email, ou usar o formulário da página de Contacto. Respondemos o mais rápido possível e ajudamos a perceber qual o melhor caminho para o seu caso."
+            }
+        ],
+        "closingTitle": "Não encontrou a resposta?",
+        "closingBody": "Cada caso é diferente. Diga-nos o que precisa e damos-lhe uma resposta clara, sem compromisso.",
         "ctaContact": "Falar connosco"
     }
 }

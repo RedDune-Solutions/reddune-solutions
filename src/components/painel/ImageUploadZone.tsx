@@ -6,7 +6,6 @@ import imageCompression from "browser-image-compression";
 import { Upload, X, ArrowUp, ArrowDown, Loader2, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { safeJsonPost } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
@@ -161,11 +160,12 @@ export function ImageUploadZone({ value, onChange, disabled, max }: Props) {
     setDragOver(false);
   }
 
-  async function removeAt(idx: number) {
-    const url = value[idx]!;
+  function removeAt(idx: number) {
+    // Só remove da lista local. NÃO apaga o blob aqui: se o utilizador
+    // cancelar o form sem guardar, a imagem continua referenciada e válida.
+    // A reconciliação server-side (products/portfolio/servicos upsert) apaga
+    // blobs órfãos depois de um save bem-sucedido.
     onChange(value.filter((_, i) => i !== idx));
-    // Best-effort cleanup do blob
-    await safeJsonPost("/api/upload/product-image/delete", { url }).catch(() => null);
   }
 
   function moveUp(idx: number) {
