@@ -1,110 +1,86 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 
 /**
- * ClosingCTA — Oasis v5 closing CTA para páginas internas (políticas, FAQ, loja).
+ * ClosingCTA — closing CTA das páginas internas (políticas, FAQ).
  *
- * Substitui o antigo card plano `bg-sand-warm/70 ... text-center` (sem piada):
- * mais quente e vivo, mas mais leve que o slab ember da home (CTAWave).
- * Detalhe-assinatura: anéis concêntricos "dune sun" + halo radial ember por
- * trás do título (eco do halo do CTAWave) sobre gradiente sand→apricot.
+ * Coerente com o CTAWave da home: slab de gradiente ember -> dune-deep,
+ * texto cream, halo radial pulsante (`ctapulse`) e onda decorativa em baixo.
+ * Escala reduzida vs home (é CTA secundário) e um único botão primário
+ * (cream -> apricot). Reutiliza os keyframes globais `ctapulse`.
  *
- * TYPE: display bold + serif itálico no acento (default do site)
- * COLOR: base sand-warm/cream/apricot, glow ember, texto ink
- * LAYOUT: arejado/centrado, quebrado pelo halo + anéis assimétricos
- * ACCENT_MOTIF: "dune sun" (anéis concêntricos + halo radial ember)
- * INTERACTION: contido/warm — CTA ember + seta roda -45°, card lift no hover
- *
- * `title` aceita rich text: envolve uma palavra em <em> para o acento serif.
+ * `title` aceita rich text: envolve uma palavra em <em> para o acento
+ * serif itálico apricot (igual ao CTAWave).
  */
 type Props = {
   title: React.ReactNode;
   body: string;
   ctaLabel: string;
   ctaHref: string;
-  /** Rótulo mono por cima do título. Default: chave i18n ClosingCta.eyebrow. */
-  eyebrow?: string;
 };
 
-export function ClosingCTA({ title, body, ctaLabel, ctaHref, eyebrow }: Props) {
-  const t = useTranslations("ClosingCta");
-  const label = eyebrow ?? t("eyebrow");
-
+export function ClosingCTA({ title, body, ctaLabel, ctaHref }: Props) {
   return (
     <section className="mx-auto my-20 w-full max-w-content px-8">
       <Reveal>
         <div
           className={cn(
-            "group/cta relative overflow-hidden rounded-[32px]",
-            "border border-ember/15",
-            "px-8 py-14 md:px-14 md:py-16",
-            "text-center",
-            "shadow-[0_24px_70px_-30px_rgba(214,66,42,0.30)]",
-            "transition-shadow duration-500 hover:shadow-[0_30px_84px_-28px_rgba(214,66,42,0.44)]",
+            "relative overflow-hidden rounded-[40px]",
+            "px-8 py-[72px] md:px-[60px] md:py-[84px]",
+            "text-center text-cream",
           )}
           style={{
             background:
-              "linear-gradient(150deg, #faf4e3 0%, #f7eedb 55%, #f4dcc6 100%)",
+              "linear-gradient(160deg, #d6422a 0%, #a8201a 50%, #5a0e0e 100%)",
           }}
         >
-          {/* Halo radial ember (estático, subtil) */}
+          {/* Halo radial pulsante — igual ao CTAWave */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -top-[220px] left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full"
+            className="pointer-events-none absolute -top-[200px] left-1/2 h-[640px] w-[640px] -translate-x-1/2 rounded-full"
             style={{
               background:
-                "radial-gradient(circle, rgba(214,66,42,0.18), transparent 62%)",
+                "radial-gradient(circle, rgba(255,107,63,0.5), transparent 60%)",
+              animation: "ctapulse 4s ease-in-out infinite",
             }}
           />
-          {/* Assinatura: anéis concêntricos dune-sun */}
+          {/* Onda decorativa em baixo — igual ao CTAWave */}
           <svg
             aria-hidden
-            viewBox="0 0 400 400"
-            className="pointer-events-none absolute -top-[150px] left-1/2 h-[420px] w-[420px] -translate-x-1/2"
+            viewBox="0 0 1920 200"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-0 w-full opacity-35"
           >
-            {[70, 120, 170, 220].map((r) => (
-              <circle
-                key={r}
-                cx="200"
-                cy="200"
-                r={r}
-                fill="none"
-                stroke="#d6422a"
-                strokeOpacity={0.13}
-                strokeWidth={1.25}
-              />
-            ))}
+            <path
+              d="M 0 100 C 320 60, 640 140, 960 100 C 1280 60, 1600 140, 1920 100 L 1920 200 L 0 200 Z"
+              fill="#fff7e8"
+            />
           </svg>
 
-          <div className="relative z-[1] mx-auto max-w-[620px]">
-            {label ? (
-              <span className="mb-4 inline-block font-mono text-[11px] uppercase tracking-[0.2em] text-ember">
-                {label}
-              </span>
-            ) : null}
+          {/* Conteúdo */}
+          <div className="relative z-[1] mx-auto max-w-[720px]">
             <h2
               className={cn(
-                "font-display font-bold text-ink",
-                "mb-5 text-[clamp(28px,3.6vw,46px)] leading-[1.08] tracking-[-0.02em]",
-                "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-ember",
+                "font-display font-bold mb-5",
+                "text-[clamp(32px,5vw,60px)] leading-[1.02] tracking-[-0.03em]",
+                "[&_em]:font-serif [&_em]:italic [&_em]:font-medium [&_em]:text-apricot",
               )}
             >
               {title}
             </h2>
-            <p className="mx-auto mb-9 max-w-[560px] text-[16px] leading-[1.65] text-ink-soft">
+            <p className="mx-auto mb-9 max-w-[560px] text-[17px] leading-[1.55] text-cream-deep">
               {body}
             </p>
             <Link
               href={ctaHref}
               className={cn(
                 "group/btn inline-flex items-center gap-3",
-                "rounded-btn bg-ink px-7 py-4",
-                "text-[14px] font-semibold text-cream",
+                "rounded-btn bg-cream px-8 py-5",
+                "text-[15px] font-semibold text-ink",
                 "transition-all duration-300",
-                "hover:bg-ember hover:scale-[1.04]",
+                "hover:bg-apricot hover:scale-[1.04]",
               )}
             >
               {ctaLabel}
@@ -112,7 +88,7 @@ export function ClosingCTA({ title, body, ctaLabel, ctaHref, eyebrow }: Props) {
                 aria-hidden
                 className="inline-block transition-transform duration-300 group-hover/btn:rotate-[-45deg]"
               >
-                <ArrowRight className="size-[15px] shrink-0" strokeWidth={2.25} />
+                <ArrowRight className="size-[18px]" strokeWidth={2.25} />
               </span>
             </Link>
           </div>
