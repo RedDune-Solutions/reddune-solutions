@@ -31,14 +31,16 @@ const nextConfig: NextConfig = {
     const cspReportOnly = [
       "default-src 'self'",
       // Next precisa de inline/eval (sobretudo em dev). Em report-only é seguro.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // challenges.cloudflare.com: Turnstile (adormecido) exige-o em script-src E
+      // frame-src; incluir já evita 403 no form quando ativarem chaves + enforce.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       // Cobre os hosts de imagem usados (ver images.remotePatterns) + blob/data.
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "connect-src 'self'",
-      // Mapas Google embed.
-      "frame-src https://www.google.com",
+      // Mapas Google embed + widget Turnstile (ver nota em script-src).
+      "frame-src https://www.google.com https://challenges.cloudflare.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -65,9 +67,6 @@ const nextConfig: NextConfig = {
 
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "placehold.co", pathname: "/**" },
-      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
-      { protocol: "https", hostname: "picsum.photos", pathname: "/**" },
       { protocol: "https", hostname: "flagcdn.com", pathname: "/**" },
       { protocol: "https", hostname: "instagram.flis11-1.fna.fbcdn.net", pathname: "/**" },
       { protocol: "https", hostname: "drive.google.com", pathname: "/**" },

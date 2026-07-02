@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { getProjetoById, patchProjeto } from "@/lib/mongodb/projetos";
+import { getProjetoById, pullArquivo } from "@/lib/mongodb/projetos";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { deleteManagedBlob } from "@/lib/blob";
 
@@ -76,8 +76,9 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     return NextResponse.json({ error: "Ficheiro não encontrado" }, { status: 404 });
   }
 
-  const arquivos = (projeto.arquivos ?? []).filter((a) => a.id !== id);
-  const ok = await patchProjeto(projetoId, { arquivos });
+  // Pull atómico ($filter) — evita lost update com escritas concorrentes
+  // (painel PWA/multi-dispositivo) que reescreveriam o array inteiro.
+  const ok = await pullArquivo(projetoId, id);
   if (!ok) {
     return NextResponse.json({ error: "Falha ao actualizar projeto" }, { status: 500 });
   }

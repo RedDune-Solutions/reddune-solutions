@@ -14,6 +14,8 @@ type Props = {
   actions?: ReactNode;
   className?: string;
   hideSearch?: boolean;
+  /** Pré-preenche a caixa da pesquisa global (ex.: termo já pesquisado). */
+  searchDefault?: string;
 };
 
 /**
@@ -28,6 +30,7 @@ export function Topbar({
   actions,
   className,
   hideSearch = false,
+  searchDefault,
 }: Props) {
   return (
     <header className={cn("topbar", className)}>
@@ -55,11 +58,11 @@ export function Topbar({
       </div>
 
       {!hideSearch ? (
-        <div className="hidden md:block">
-          <GlobalSearch />
+        <div className="hidden min-[901px]:block">
+          <GlobalSearch defaultValue={searchDefault} />
         </div>
       ) : (
-        <div />
+        <div className="hidden min-[901px]:block" />
       )}
 
       <div className="row" style={{ gap: 8 }}>

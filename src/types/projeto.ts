@@ -36,6 +36,14 @@ export const TAREFAS_VISIVEIS_STATUSES: ProjetoStatus[] = [
   "terminado",
 ];
 
+// Fonte ÚNICA de "projecto activo" — usada pelo badge da sidebar/bottomnav E
+// pelo título de /painel/projetos, para os números baterem certo (antes o badge
+// contava em-curso/proximo e o título contava tudo menos fechado/cancelado).
+export const PROJETO_ATIVO_STATUSES: ProjetoStatus[] = ["em-curso", "proximo"];
+export function isProjetoAtivo(status: ProjetoStatus): boolean {
+  return PROJETO_ATIVO_STATUSES.includes(status);
+}
+
 export const STATUS_GROUPS = {
   ativo: ["em-curso"] as ProjetoStatus[],
   proximo: ["proximo"] as ProjetoStatus[],

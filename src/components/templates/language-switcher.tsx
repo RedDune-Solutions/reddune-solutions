@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { Locale } from "@/types/i18n";
 
 const COOKIE_NAME = "MYNEXTAPP_LOCALE";
@@ -32,6 +33,7 @@ const normalize = (value: string | undefined): Locale =>
 const LanguageSwitcher = () => {
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const router = useRouter();
+  const a11y = useTranslations("A11y");
 
   useEffect(() => {
     const cookieLocale = readCookie(COOKIE_NAME);
@@ -54,6 +56,7 @@ const LanguageSwitcher = () => {
   };
 
   const { src, label } = FLAGS[locale];
+  const switchLabel = locale === "pt" ? a11y("switchToEn") : a11y("switchToPt");
 
   return (
     <Button
@@ -61,7 +64,7 @@ const LanguageSwitcher = () => {
       size="sm"
       className="px-1.5 py-1 h-auto"
       onClick={toggle}
-      aria-label={label}
+      aria-label={switchLabel}
     >
       <span className="relative block h-[18px] w-[26px] shrink-0 overflow-hidden rounded-sm">
         <Image

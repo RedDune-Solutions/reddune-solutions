@@ -1,4 +1,4 @@
-import { getAllLeads, countLeadsNovos } from "@/lib/mongodb/leads";
+import { getLeadsNovosRecentes, countLeadsNovos } from "@/lib/mongodb/leads";
 import { getRecentAuditEntries } from "@/lib/mongodb/mutation-audit";
 import { SUBJECT_LABELS } from "@/lib/validation";
 import { apiOk, apiError, withAuth } from "@/lib/api";
@@ -75,13 +75,11 @@ export const GET = withAuth(async () => {
   try {
     const [unread, leads, audit] = await Promise.all([
       countLeadsNovos(),
-      getAllLeads(),
+      getLeadsNovosRecentes(MAX_LEADS),
       getRecentAuditEntries(MAX_AUDIT),
     ]);
 
     const leadItems: NotificationItem[] = leads
-      .filter((l) => l.estado === "novo")
-      .slice(0, MAX_LEADS)
       .map((l) => ({
         id: `lead-${l.id}`,
         type: "lead" as const,

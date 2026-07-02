@@ -74,3 +74,25 @@ export async function countLeadsNovos(): Promise<number> {
   const db = await getDb();
   return db.collection<Lead>(COLLECTION).countDocuments({ estado: "novo" });
 }
+
+export type LeadNovoResumo = Pick<Lead, "id" | "nome" | "subject" | "criadoEm">;
+
+/**
+ * Leads em estado "novo" mais recentes, SÓ os campos necessários para o feed
+ * do sino. Usa o índice { estado, criadoEm } — evita trazer a colecção inteira
+ * (com mensagem + IP) a cada poll de 60s por aba, como fazia getAllLeads().
+ */
+export async function getLeadsNovosRecentes(
+  limit = 8
+): Promise<LeadNovoResumo[]> {
+  const db = await getDb();
+  return db
+    .collection<Lead>(COLLECTION)
+    .find(
+      { estado: "novo" },
+      { projection: { _id: 0, id: 1, nome: 1, subject: 1, criadoEm: 1 } }
+    )
+    .sort({ criadoEm: -1 })
+    .limit(limit)
+    .toArray() as Promise<LeadNovoResumo[]>;
+}

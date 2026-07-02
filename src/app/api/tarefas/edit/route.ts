@@ -12,7 +12,7 @@ const payloadSchema = z.object({
   patch: z.object({
     feita: z.boolean().optional(),
     titulo: z.string().min(1).max(300).optional(),
-    prazo: z.string().nullable().optional(),
+    prazo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
     prazoHora: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
     notas: z.string().max(1000).nullable().optional(),
     ordem: z.number().int().optional(),
@@ -38,6 +38,13 @@ export async function POST(request: Request) {
       { error: "Invalid payload", issues: parsed.error.issues },
       { status: 400 }
     );
+  }
+
+  // Limpar a data tem de limpar também a hora — senão a prazoHora antiga fica
+  // órfã e "ressuscita" quando se define uma data nova (aparece no calendário
+  // a uma hora que o utilizador nunca escolheu para essa data).
+  if (parsed.data.patch.prazo === null) {
+    parsed.data.patch.prazoHora = null;
   }
 
   // Lê o projetoId antes do patch para revalidar a página do projeto (o patch

@@ -22,7 +22,6 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t("description"),
     alternates: {
       canonical: `${base}/portfolio`,
-      languages: { pt: `${base}/portfolio`, en: `${base}/portfolio` },
     },
     openGraph: {
       title: t("title"),

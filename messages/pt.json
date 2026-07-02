@@ -17,6 +17,19 @@
         "faq": "FAQ",
         "contact": "Contactar"
     },
+    "A11y": {
+        "mainNav": "Navegação principal",
+        "homeLink": "Reddune Solutions — Início",
+        "openMenu": "Abrir menu",
+        "closeMenu": "Fechar menu",
+        "prevImage": "Imagem anterior",
+        "nextImage": "Próxima imagem",
+        "imageIndex": "Imagem {index}",
+        "trustSection": "Para quem trabalhamos",
+        "mapTitle": "Localização — Fuseta, Algarve",
+        "switchToPt": "Mudar para Português",
+        "switchToEn": "Switch to English"
+    },
     "HomePage": {
         "Hero": {
             "eyebrow": "Reddune Solutions · Fuseta, Algarve",
@@ -403,14 +416,17 @@
             "title": "Compras com <accent>tranquilidade</accent>.",
             "statNew": {
                 "label": "Garantia",
+                "unit": "anos",
                 "sub": "produtos novos · DL 84/2021"
             },
             "statRefurb": {
                 "label": "Garantia",
+                "unit": "meses",
                 "sub": "produtos recondicionados"
             },
             "statReturn": {
                 "label": "Devolução",
+                "unit": "dias",
                 "sub": "compras à distância"
             },
             "policiesNote": "Lê os detalhes nas nossas <em>políticas oficiais</em>.",
@@ -422,7 +438,8 @@
             "pc": "PCs",
             "componente": "Componentes",
             "acessorio": "Acessórios",
-            "outro": "Outros"
+            "outro": "Outros",
+            "filterLabel": "Filtrar por categoria"
         },
         "featuredBadge": "Destaque",
         "contactPrice": "Consultar preço",

@@ -54,10 +54,6 @@ export async function generateMetadata({
     description: content.lead,
     alternates: {
       canonical: `${base}/servicos/${slug}`,
-      languages: {
-        pt: `${base}/servicos/${slug}`,
-        en: `${base}/servicos/${slug}`,
-      },
     },
     openGraph: {
       title: fullTitle,

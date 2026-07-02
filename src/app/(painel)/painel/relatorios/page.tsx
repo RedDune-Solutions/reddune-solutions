@@ -178,7 +178,14 @@ export default async function RelatoriosPage() {
 
   // KPIs
   const fechados = projetos.filter((p: Projeto) => p.status === "terminado" || p.status === "fechado").length;
-  const ticketMedio = fechados > 0 ? Math.round(receita6m / fechados) : 0;
+  // Ticket médio coerente com o rótulo "últimos 6 meses": receita6m é a soma dos
+  // pagamentos da janela dos 6 meses, por isso dividimos pelo nº de pagamentos
+  // dessa MESMA janela (não por `fechados`, que é all-time e subestima o ticket).
+  const monthsKeySet = new Set(monthsKeys.map((m) => m.key));
+  const pagamentos6m = (pagamentos as Pagamento[]).filter(
+    (pg) => pg.data && monthsKeySet.has(monthKey(pg.data))
+  ).length;
+  const ticketMedio = pagamentos6m > 0 ? Math.round(receita6m / pagamentos6m) : 0;
 
   return (
     <>
@@ -200,7 +207,7 @@ export default async function RelatoriosPage() {
             delta={receitaDelta != null ? { text: `${receitaDelta >= 0 ? "+" : ""}${receitaDelta}%`, dir: receitaDelta >= 0 ? "up" : "down" } : undefined}
           />
           <KpiCard label="Projectos fechados" value={fechados} icon={FolderKanban} hint="terminados + fechados" />
-          <KpiCard tone="accent" label="Ticket médio" value={ticketMedio.toLocaleString("pt-PT")} unit="€" icon={Receipt} hint="receita / fechados" />
+          <KpiCard tone="accent" label="Ticket médio" value={ticketMedio.toLocaleString("pt-PT")} unit="€" icon={Receipt} hint="receita / pagamentos · 6 meses" />
           <KpiCard tone="amber" label="Clientes" value={clientes.length} icon={Users} hint="total na base" />
         </div>
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { deleteTarefaTemplate } from "@/lib/mongodb/tarefa-templates";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,14 @@ export async function DELETE(
     if (!ok) {
       return NextResponse.json({ error: "Template não encontrado" }, { status: 404 });
     }
+
+    await logMutation({
+      collection: "tarefa_templates",
+      entityId: id,
+      op: "delete",
+      userEmail: session.user.email ?? null,
+    });
+
     revalidatePath("/painel/definicoes");
     return NextResponse.json({ ok: true });
   } catch (e) {

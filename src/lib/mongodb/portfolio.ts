@@ -1,5 +1,5 @@
 import "server-only";
-import clientPromise from "./client";
+import { getClient } from "./client";
 import type { PortfolioCategoria, PortfolioItem } from "@/types/portfolio";
 import { SERVICO_SLUG } from "@/types/servico";
 import { WithId, Document, ObjectId } from "mongodb";
@@ -35,7 +35,7 @@ function mapDoc(doc: WithId<Document>): PortfolioItem | null {
 }
 
 async function getCollection() {
-  const client = await clientPromise;
+  const client = await getClient();
   return client.db(DB_NAME).collection(COLLECTION);
 }
 

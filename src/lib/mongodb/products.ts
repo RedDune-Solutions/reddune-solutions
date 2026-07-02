@@ -1,5 +1,5 @@
 import "server-only";
-import clientPromise from "./client";
+import { getClient } from "./client";
 import type { Product, ProductCategory, ProductCondition } from "@/types/product";
 import { WithId, Document, ObjectId } from "mongodb";
 
@@ -45,7 +45,7 @@ function mapDoc(doc: WithId<Document>): Product | null {
 }
 
 async function getCollection() {
-  const client = await clientPromise;
+  const client = await getClient();
   return client.db(DB_NAME).collection(COLLECTION);
 }
 
@@ -125,7 +125,12 @@ export async function upsertProduct(input: ProductInput): Promise<string> {
   };
 
   if (input.id && ObjectId.isValid(input.id)) {
-    await col.updateOne({ _id: new ObjectId(input.id) }, { $set: doc });
+    // NÃO reescrever createdAt em updates — senão qualquer edição (preço, typo)
+    // fazia o produto saltar para o topo da /loja (ordenação por createdAt desc)
+    // e perdia a data de criação real. Só se define no insert.
+    const { createdAt: _createdAt, ...updateDoc } = doc;
+    void _createdAt;
+    await col.updateOne({ _id: new ObjectId(input.id) }, { $set: updateDoc });
     return input.id;
   }
   const result = await col.insertOne({ ...doc, createdAt: new Date() });

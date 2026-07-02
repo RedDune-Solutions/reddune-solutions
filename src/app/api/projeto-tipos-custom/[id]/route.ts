@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { deleteProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,14 @@ export async function DELETE(_req: Request, { params }: { params: Params }) {
     const { id } = await params;
     const deleted = await deleteProjetoTipoCustom(id);
     if (!deleted) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    await logMutation({
+      collection: "projeto_tipos_custom",
+      entityId: id,
+      op: "delete",
+      userEmail: session.user.email ?? null,
+    });
+
     revalidatePath("/painel/definicoes");
     return NextResponse.json({ ok: true });
   } catch (e) {

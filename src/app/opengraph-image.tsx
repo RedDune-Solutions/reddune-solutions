@@ -145,7 +145,7 @@ export default async function OpenGraphImage() {
           }}
         >
           <div style={{ display: "flex" }}>Fuseta · Algarve</div>
-          <div style={{ display: "flex", color: DUNE }}>reddune.solutions</div>
+          <div style={{ display: "flex", color: DUNE }}>www.reddunesolutions.pt</div>
         </div>
       </div>
     ),

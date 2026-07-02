@@ -28,6 +28,7 @@ import {
 } from "@/types/lead";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const ESTADO_STYLE: Record<LeadEstado, { bg: string; color: string }> = {
   novo: { bg: "rgba(214, 66, 42, 0.12)", color: "var(--dune)" },
@@ -77,6 +78,7 @@ function EstadoBadge({ estado }: { estado: LeadEstado }) {
 export function LeadsTable({ leads }: { leads: Lead[] }) {
   const router = useRouter();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState<"delete" | "convert" | null>(null);
   // Override otimista do estado por id — UI reage já, servidor sincroniza depois.
@@ -95,7 +97,10 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
       body: JSON.stringify({ estado }),
     });
     if (!res.ok) {
+      // Revert só se o override ainda for o valor que ESTE pedido escreveu
+      // (evita sobrepor uma mudança posterior concorrente).
       setOverrides((o) => {
+        if (o[id] !== estado) return o;
         const n = { ...o };
         if (previous) n[id] = previous;
         else delete n[id];
@@ -104,11 +109,25 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
       toast({ title: "Erro a mudar estado", description: res.error, variant: "destructive" });
       return;
     }
+    // Sucesso: limpa o override (só se ainda for este valor) para o servidor
+    // voltar a mandar após o refresh; não sobrepõe mudanças posteriores.
+    setOverrides((o) => {
+      if (o[id] !== estado) return o;
+      const n = { ...o };
+      delete n[id];
+      return n;
+    });
     startTransition(() => router.refresh()); // sincroniza KPIs/ordem em background
   }
 
   async function remove(id: string) {
-    if (!window.confirm("Eliminar este lead? Não há como recuperar.")) return;
+    const ok = await confirm({
+      title: "Eliminar este lead?",
+      description: "Não há como recuperar.",
+      confirmLabel: "Eliminar",
+      tone: "destructive",
+    });
+    if (!ok) return;
     setBusy("delete");
     const res = await safeFetch(`/api/leads/${id}`, { method: "DELETE" });
     setBusy(null);

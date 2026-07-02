@@ -21,7 +21,7 @@ import { KpiCard } from "@/components/painel/KpiCard";
 import { TarefaCard } from "@/components/painel/TarefaCard";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
-import { isOverdue, isToday, parseIsoDate } from "@/lib/dates";
+import { isOverdue, isToday, parseIsoDate, todayLisbonDate, todayLisbonMonth } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +79,9 @@ export default async function PainelOverviewPage() {
   ]);
 
   const now = new Date();
+  // "Hoje" no fuso de Portugal para comparações de dia/mês (o servidor Vercel
+  // corre em UTC). `now` mantém-se como instante real p/ saudação e rótulos.
+  const hojeLisboa = todayLisbonDate(now);
 
   const pagoPorProjeto = new Map<string, number>();
   for (const p of pagamentos) {
@@ -117,7 +120,7 @@ export default async function PainelOverviewPage() {
       STATUS_GROUPS.aguarda.includes(p.status)
   );
   const hojeItems = active
-    .filter((p) => p.prazo && (isOverdue(p.prazo, now) || isToday(p.prazo, now)))
+    .filter((p) => p.prazo && (isOverdue(p.prazo, hojeLisboa) || isToday(p.prazo, hojeLisboa)))
     .sort((a, b) => {
       const ad = parseIsoDate(a.prazo ?? null);
       const bd = parseIsoDate(b.prazo ?? null);
@@ -133,12 +136,12 @@ export default async function PainelOverviewPage() {
     .filter((p) => p.proximaAccao && p.proximaAccao.length > 0)
     .slice(0, 6);
 
-  const mesActual = now.toISOString().slice(0, 7);
+  const mesActual = todayLisbonMonth(now);
   const ganhosMes = pagamentos
     .filter((p) => p.data?.startsWith(mesActual))
     .reduce((s, p) => s + p.valor, 0);
 
-  const dataLabel = now.toLocaleDateString("pt-PT", {
+  const dataLabel = hojeLisboa.toLocaleDateString("pt-PT", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -177,7 +180,7 @@ export default async function PainelOverviewPage() {
         <div className="ov-top">
           <div className="kpi ink" style={{ minHeight: 0 }}>
             <div className="row between">
-              <div className="label">Hoje · {fmtDay(now.toISOString())}</div>
+              <div className="label">Hoje · {hojeLisboa.toLocaleDateString("pt-PT", { day: "2-digit", month: "short" })}</div>
               <Sun size={20} style={{ color: "var(--apricot)" }} aria-hidden="true" />
             </div>
             <div className="v" style={{ fontSize: 30, lineHeight: 1.05 }}>
@@ -311,7 +314,7 @@ export default async function PainelOverviewPage() {
           </div>
 
           <MonthSummary
-            mesLabel={now.toLocaleDateString("pt-PT", { month: "long" })}
+            mesLabel={hojeLisboa.toLocaleDateString("pt-PT", { month: "long" })}
             recebido={ganhosMes}
             concluidos={projetos.filter((p) => p.dataFechado?.startsWith(mesActual)).length}
             novosClientes={clientes.filter((c) => c.criadoEm?.startsWith(mesActual)).length}

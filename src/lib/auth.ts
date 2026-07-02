@@ -1,8 +1,26 @@
 import "server-only";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { headers } from "next/headers";
+import bcrypt from "bcryptjs";
 import { logAuthEvent } from "@/lib/mongodb/audit";
+import { rateLimitDistributed } from "@/lib/rate-limit";
 import { authConfig as edgeAuthConfig } from "@/lib/auth.config";
+
+const LOGIN_LIMIT = 10;
+const LOGIN_WINDOW_MS = 60 * 1000;
+
+/** IP do pedido a partir dos headers (Node runtime). Fail-open para "unknown". */
+async function requestIp(): Promise<string> {
+  try {
+    const h = await headers();
+    const fwd = h.get("x-forwarded-for");
+    if (fwd) return fwd.split(",")[0]!.trim();
+    return h.get("x-real-ip")?.trim() || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
 
 function getAllowedEmails(): Set<string> {
   const raw = process.env.AUTH_ALLOWED_EMAILS ?? "";
@@ -45,6 +63,24 @@ const authConfig: NextAuthConfig = {
 
         if (!email || !password) return null;
 
+        // Anti brute-force no PRÓPRIO authorize — cobre tanto o server action
+        // (POST a /entrar, fora do matcher do middleware) como o callback REST.
+        // Usa o limiter partilhado (Upstash -> Mongo -> memória), 10/min por IP.
+        const ip = await requestIp();
+        const rl = await rateLimitDistributed(
+          `login:${ip}`,
+          LOGIN_LIMIT,
+          LOGIN_WINDOW_MS
+        );
+        if (!rl.allowed) {
+          await logAuthEvent({
+            email,
+            type: "signin-rejected",
+            details: { reason: "rate-limited" },
+          });
+          return null;
+        }
+
         const allowed = getAllowedEmails();
         if (!allowed.has(email)) {
           await logAuthEvent({
@@ -55,13 +91,26 @@ const authConfig: NextAuthConfig = {
           return null;
         }
 
+        // Preferir hash bcrypt (AUTH_PASSWORD_HASH); fallback a texto simples
+        // (AUTH_PASSWORD) para não quebrar deploys existentes — com aviso.
+        const hash = process.env.AUTH_PASSWORD_HASH;
         const expected = process.env.AUTH_PASSWORD;
-        if (!expected) {
-          console.error("AUTH_PASSWORD não definido");
+        if (!hash && !expected) {
+          console.error("Nem AUTH_PASSWORD_HASH nem AUTH_PASSWORD definidos");
           return null;
         }
 
-        if (!timingSafeEqual(password, expected)) {
+        let valid = false;
+        if (hash) {
+          valid = await bcrypt.compare(password, hash);
+        } else {
+          console.warn(
+            "AUTH_PASSWORD em texto simples — define AUTH_PASSWORD_HASH (bcrypt) para maior segurança."
+          );
+          valid = timingSafeEqual(password, expected!);
+        }
+
+        if (!valid) {
           await logAuthEvent({
             email,
             type: "signin-rejected",

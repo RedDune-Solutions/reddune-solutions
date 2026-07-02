@@ -31,7 +31,6 @@ export async function generateMetadata(): Promise<Metadata> {
       : ["contact RedDune Solutions", "technical support", "IT quote", "Fuseta", "Algarve"],
     alternates: {
       canonical: `${base}/contacto`,
-      languages: { pt: `${base}/contacto`, en: `${base}/contacto` },
     },
     openGraph: {
       title,

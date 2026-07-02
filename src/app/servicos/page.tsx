@@ -35,7 +35,6 @@ export async function generateMetadata(): Promise<Metadata> {
       : ["IT services", "technical support", "web development", "data recovery", "Algarve", "Fuseta"],
     alternates: {
       canonical: `${base}/servicos`,
-      languages: { pt: `${base}/servicos`, en: `${base}/servicos` },
     },
     openGraph: {
       title,

@@ -48,6 +48,8 @@ export async function POST(request: Request) {
     data: input.data,
     metodo: input.metodo ?? null,
     notas: input.notas ?? null,
+    // Só é aplicado no insert (upsertPagamento usa $setOnInsert); em updates o
+    // `criadoEm` existente é preservado.
     criadoEm: new Date().toISOString(),
   };
 

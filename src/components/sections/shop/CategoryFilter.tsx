@@ -30,7 +30,7 @@ export function CategoryFilter({
   return (
     <div
       role="group"
-      aria-label="Filter by category"
+      aria-label={t("filterLabel")}
       className="flex flex-wrap justify-center gap-2"
     >
       {options.map((option) => (

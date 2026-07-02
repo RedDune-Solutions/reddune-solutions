@@ -62,8 +62,12 @@ export default async function TarefasPage({
   })();
 
   const pendentes = allTarefas.filter((t) => !t.feita).length;
+  // As tabs contam sobre o MESMO conjunto que a lista mostra (feitas escondidas
+  // por defeito) — senão "Vencidas 5" abria uma lista quase vazia e "Todas"
+  // contradizia o título "N abertas".
+  const base = showFeitas ? allTarefas : allTarefas.filter((t) => !t.feita);
   const counts: Record<TarefaFilter, number> = {
-    todas: allTarefas.length,
+    todas: base.length,
     hoje: 0,
     semana: 0,
     vencidas: 0,
@@ -73,7 +77,7 @@ export default async function TarefasPage({
     start.setHours(0, 0, 0, 0);
     const weekEnd = new Date(start);
     weekEnd.setDate(weekEnd.getDate() + 7);
-    for (const t of allTarefas) {
+    for (const t of base) {
       if (!t.prazo) continue;
       const d = new Date(t.prazo);
       d.setHours(0, 0, 0, 0);

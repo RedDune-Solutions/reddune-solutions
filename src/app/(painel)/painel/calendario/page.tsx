@@ -8,8 +8,8 @@ import { WeekCalendar } from "@/components/painel/WeekCalendar";
 import { DayCalendar } from "@/components/painel/DayCalendar";
 import { CalendarViewToggle } from "@/components/painel/CalendarViewToggle";
 import { Button } from "@/components/ui/button";
-import { monthKey, parseMonthKey, parseIsoDate, isToday, isWithinNextDays } from "@/lib/dates";
-import type { Projeto } from "@/types/projeto";
+import { monthKey, parseMonthKey, parseIsoDate, isToday, isWithinNextDays, todayLisbonDate } from "@/lib/dates";
+import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
 import type { Tarefa } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
@@ -70,7 +70,8 @@ export default async function CalendarioPage({
   const view: View =
     params.view === "semana" || params.view === "dia" ? params.view : "mes";
 
-  const today = new Date();
+  // "Hoje" no fuso de Portugal (o servidor Vercel corre em UTC).
+  const today = todayLisbonDate();
   const requested = params.m ? parseMonthKey(params.m) : null;
   const target = requested ?? { year: today.getFullYear(), monthIndex: today.getMonth() };
   const focusDate = parseDate(params.date) ?? today;
@@ -167,24 +168,33 @@ export default async function CalendarioPage({
   );
 }
 
-type AgendaEntry = { id: string; href: string; label: string; sub: string | null; date: Date };
+// `accionavel`: entrada em estado accionável (tarefa não-feita / projecto não
+// fechado nem cancelado). O cartão "Hoje" da agenda mostra só accionáveis, para
+// alinhar com o widget "Hoje" do dashboard (páginel/page.tsx), que só conta
+// projectos activos. A grelha mensal (MonthCalendar) mantém tudo, de propósito,
+// porque o color-coding de estados fechados aí é intencional.
+type AgendaEntry = { id: string; href: string; label: string; sub: string | null; date: Date; accionavel: boolean };
 
 function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
-  const now = new Date();
+  // "Hoje" no fuso de Portugal (o servidor Vercel corre em UTC).
+  const now = todayLisbonDate();
   const entries: AgendaEntry[] = [];
   for (const p of projetos) {
     const d = parseIsoDate(p.prazo ?? null);
     if (!d) continue;
-    entries.push({ id: `p-${p.id}`, href: `/painel/projetos/${p.id}`, label: p.titulo, sub: p.clienteNome ?? null, date: d });
+    const accionavel = !STATUS_GROUPS.arquivo.includes(p.status);
+    entries.push({ id: `p-${p.id}`, href: `/painel/projetos/${p.id}`, label: p.titulo, sub: p.clienteNome ?? null, date: d, accionavel });
   }
   for (const t of tarefas) {
     const d = parseIsoDate(t.prazo ?? null);
     if (!d) continue;
-    entries.push({ id: `t-${t.id}`, href: `/painel/projetos/${t.projetoId}`, label: t.titulo, sub: "Tarefa", date: d });
+    entries.push({ id: `t-${t.id}`, href: `/painel/projetos/${t.projetoId}`, label: t.titulo, sub: "Tarefa", date: d, accionavel: !t.feita });
   }
-  const hoje = entries.filter((e) => isToday(e.date.toISOString(), now)).sort((a, b) => a.date.getTime() - b.date.getTime());
+  const hoje = entries
+    .filter((e) => e.accionavel && isToday(e.date.toISOString(), now))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
   const proximos = entries
-    .filter((e) => !isToday(e.date.toISOString(), now) && isWithinNextDays(e.date.toISOString(), 7, now))
+    .filter((e) => e.accionavel && !isToday(e.date.toISOString(), now) && isWithinNextDays(e.date.toISOString(), 7, now))
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 8);
   return { hoje, proximos };
@@ -201,7 +211,7 @@ function AgendaSide({ projetos, tarefas }: { projetos: Projeto[]; tarefas: Taref
         <div className="ch">
           <div>
             <div className="t">Hoje</div>
-            <div className="sub">{new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" })}</div>
+            <div className="sub">{todayLisbonDate().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" })}</div>
           </div>
         </div>
         <div className="cb">

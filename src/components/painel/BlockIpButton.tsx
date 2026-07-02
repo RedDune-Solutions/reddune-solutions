@@ -4,21 +4,24 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ban, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 /** Bloqueia um IP (spam). Submissões desse IP passam a ser ignoradas em silêncio. */
 export function BlockIpButton({ ip }: { ip: string }) {
   const [busy, setBusy] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   const block = async () => {
     if (!ip || ip === "unknown") return;
-    if (
-      !window.confirm(
-        `Bloquear o IP ${ip}?\nSubmissões deste IP passam a ser ignoradas.`
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Bloquear o IP ${ip}?`,
+      description: "Submissões deste IP passam a ser ignoradas.",
+      confirmLabel: "Bloquear",
+      tone: "destructive",
+    });
+    if (!ok) return;
     setBusy(true);
     try {
       const res = await fetch("/api/blocked-ips", {

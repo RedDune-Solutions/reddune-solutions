@@ -22,11 +22,9 @@ const routes: Array<{
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = publicEnv.baseUrl;
-  const lastModified = new Date();
 
   return routes.map(({ path, changeFrequency, priority }) => ({
     url: `${base}${path === "/" ? "" : path}`,
-    lastModified,
     changeFrequency,
     priority,
   }));

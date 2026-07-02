@@ -17,7 +17,11 @@ export default async function PortfolioDetailPage({ params }: { params: Params }
 
   return (
     <>
-      <Topbar title={item.title.pt} description="Trabalho do portfólio" />
+      <Topbar
+        crumbs={["Painel", "Conteúdo", "Portfólio", item.title.pt]}
+        title={item.title.pt}
+        description="Trabalho do portfólio"
+      />
 
       <div className="content max-w-3xl">
         <Button asChild variant="ghost" size="sm" className="-ml-3">

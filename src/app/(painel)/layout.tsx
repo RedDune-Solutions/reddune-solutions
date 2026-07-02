@@ -5,9 +5,10 @@ import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/painel/Sidebar";
 import { BottomNav } from "@/components/painel/BottomNav";
 import { ensureIndexes } from "@/lib/mongodb/init-indexes";
-import { getAllProjetos } from "@/lib/mongodb/projetos";
+import { getProjetosResumo } from "@/lib/mongodb/projetos";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
+import { isProjetoAtivo, TAREFAS_VISIVEIS_STATUSES } from "@/types/projeto";
 import "./painel.css";
 
 // Painel usa Poppins (display) + Inter (body) — igual ao mockup Oasis v5.
@@ -37,7 +38,7 @@ export const metadata = {
 const getSidebarCounts = unstable_cache(
   async (): Promise<Record<string, number>> => {
     const [projetos, tarefas, pagamentos] = await Promise.all([
-      getAllProjetos(),
+      getProjetosResumo(),
       getAllTarefas(),
       getAllPagamentos(),
     ]);
@@ -52,13 +53,15 @@ const getSidebarCounts = unstable_cache(
         (pagoPorProjeto.get(p.id) ?? 0) < p.valorEstimado
     ).length;
 
-    // Tarefas pendentes só de projetos EM ABERTO (em curso / próximo).
+    // Tarefas pendentes dos projetos VISÍVEIS em /painel/tarefas — mesmo conjunto
+    // que a página lista, para o badge bater certo com o título "N abertas".
     const projetoStatus = new Map(projetos.map((p) => [p.id, p.status]));
-    const emAberto = new Set(["em-curso", "proximo"]);
+    const visiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
     const tarefasPendentes = tarefas.filter(
-      (t) => !t.feita && emAberto.has(projetoStatus.get(t.projetoId) ?? "")
+      (t) => !t.feita && visiveis.has(projetoStatus.get(t.projetoId) ?? "")
     ).length;
-    const projetosActivos = projetos.filter((p) => emAberto.has(p.status)).length;
+    // "Activo" = fonte única isProjetoAtivo (igual ao título de /painel/projetos).
+    const projetosActivos = projetos.filter((p) => isProjetoAtivo(p.status)).length;
 
     return {
       "/painel/tarefas": tarefasPendentes,

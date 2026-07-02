@@ -1,5 +1,5 @@
 import "server-only";
-import clientPromise from "./mongodb/client";
+import { getClient } from "./mongodb/client";
 import type { RateLimitResult } from "./rate-limit";
 
 // Distributed fixed-window rate limiter backed by the app's existing MongoDB.
@@ -13,7 +13,7 @@ const COLLECTION = "rate_limits";
 let indexEnsured: Promise<void> | null = null;
 
 async function getCollection() {
-  const client = await clientPromise;
+  const client = await getClient();
   const col = client
     .db(process.env.MONGODB_DB_NAME)
     .collection<{ _id: string; count: number; resetAt: Date }>(COLLECTION);

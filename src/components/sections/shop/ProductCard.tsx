@@ -22,6 +22,7 @@ type Props = {
  */
 export function ProductCard({ product, locale }: Props) {
   const t = useTranslations("ShopPage");
+  const a11y = useTranslations("A11y");
   const [currentIndex, setCurrentIndex] = useState(0);
   const name = product.name[locale];
   const description = product.description[locale];
@@ -70,7 +71,6 @@ export function ProductCard({ product, locale }: Props) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-contain p-4"
-            priority={currentIndex === 0}
           />
         )}
 
@@ -79,7 +79,7 @@ export function ProductCard({ product, locale }: Props) {
             <button
               type="button"
               onClick={prev}
-              aria-label="Imagem anterior"
+              aria-label={a11y("prevImage")}
               className={cn(
                 "absolute left-2 top-1/2 -translate-y-1/2 z-10",
                 "inline-flex h-8 w-8 items-center justify-center",
@@ -92,7 +92,7 @@ export function ProductCard({ product, locale }: Props) {
             <button
               type="button"
               onClick={next}
-              aria-label="Próxima imagem"
+              aria-label={a11y("nextImage")}
               className={cn(
                 "absolute right-2 top-1/2 -translate-y-1/2 z-10",
                 "inline-flex h-8 w-8 items-center justify-center",
@@ -111,7 +111,7 @@ export function ProductCard({ product, locale }: Props) {
                     e.preventDefault();
                     setCurrentIndex(i);
                   }}
-                  aria-label={`Imagem ${i + 1}`}
+                  aria-label={a11y("imageIndex", { index: i + 1 })}
                   className={cn(
                     "h-1.5 w-4 rounded-full transition-colors",
                     i === currentIndex ? "bg-ink" : "bg-ink/30",

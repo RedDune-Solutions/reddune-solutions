@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { ProjetoArquivo } from "@/types/projeto";
 
 type Props = {
@@ -53,6 +54,7 @@ function iconFor(tipo: string): LucideIcon {
 
 export function ArquivosUploadZone({ projetoId, value, onChange, disabled }: Props) {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [pending, setPending] = useState<Pending[]>([]);
@@ -127,6 +129,12 @@ export function ArquivosUploadZone({ projetoId, value, onChange, disabled }: Pro
   }
 
   async function removeArquivo(arquivo: ProjetoArquivo) {
+    const ok = await confirm({
+      title: "Remover ficheiro?",
+      description: "Esta ação apaga o ficheiro permanentemente.",
+      tone: "destructive",
+    });
+    if (!ok) return;
     setRemovingId(arquivo.id);
     const res = await safeFetch(arquivo.url, { method: "DELETE" });
     setRemovingId(null);

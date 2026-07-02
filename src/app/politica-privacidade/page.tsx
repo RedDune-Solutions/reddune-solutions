@@ -35,10 +35,6 @@ export async function generateMetadata(): Promise<Metadata> {
         ],
     alternates: {
       canonical: `${base}/politica-privacidade`,
-      languages: {
-        pt: `${base}/politica-privacidade`,
-        en: `${base}/politica-privacidade`,
-      },
     },
     openGraph: {
       title: t("metaTitle"),

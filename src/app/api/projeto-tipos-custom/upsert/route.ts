@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { upsertProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { SERVICO_SLUG } from "@/types/servico";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,15 @@ export async function POST(req: Request) {
     const { id, ...rest } = parsed.data;
     const tipo = { id: id ?? `tipo_${Date.now()}`, criadoEm: new Date().toISOString(), ...rest };
     await upsertProjetoTipoCustom(tipo);
+
+    await logMutation({
+      collection: "projeto_tipos_custom",
+      entityId: tipo.id,
+      op: id ? "update" : "create",
+      userEmail: session.user.email ?? null,
+      after: tipo,
+    });
+
     revalidatePath("/painel/definicoes");
     return NextResponse.json(tipo);
   } catch (e) {

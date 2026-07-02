@@ -259,7 +259,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
                       onClick={() => deleteTarefa(t.id)}
                       disabled={isBusy}
                       aria-label="Apagar tarefa"
-                      className="opacity-0 group-hover/item:opacity-100 transition-opacity text-ink-mute hover:text-destructive p-1 rounded"
+                      className="opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 focus-visible:opacity-100 transition-opacity text-ink-mute hover:text-destructive p-1 rounded"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>

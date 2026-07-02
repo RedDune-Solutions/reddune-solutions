@@ -17,7 +17,11 @@ export default async function ProdutoDetailPage({ params }: { params: Params }) 
 
   return (
     <>
-      <Topbar title={product.name.pt} description="Produto da loja" />
+      <Topbar
+        crumbs={["Painel", "Conteúdo", "Loja", product.name.pt]}
+        title={product.name.pt}
+        description="Produto da loja"
+      />
 
       <div className="content max-w-4xl">
         <Button asChild variant="ghost" size="sm" className="-ml-3">

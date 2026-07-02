@@ -33,7 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
       : ["computer repair", "IT support", "Fuseta", "Algarve", "web services", "data recovery", "RedDune Solutions", "PC assembly"],
     alternates: {
       canonical: `${base}/`,
-      languages: { pt: `${base}/`, en: `${base}/` },
     },
     openGraph: {
       title,

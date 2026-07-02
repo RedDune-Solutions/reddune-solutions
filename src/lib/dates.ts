@@ -1,3 +1,32 @@
+// "Hoje" no fuso de Portugal (Europe/Lisbon), independente do fuso do servidor
+// (a Vercel corre em UTC). en-CA dá o formato ISO YYYY-MM-DD directamente.
+// Usar isto em server components em vez de new Date()/toISOString() cru, que
+// desloca o dia quando o servidor está em UTC.
+const LISBON_YMD = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Lisbon",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+// Ex.: "2026-07-02"
+export function todayLisbonYmd(now: Date = new Date()): string {
+  return LISBON_YMD.format(now);
+}
+
+// Ex.: "2026-07"
+export function todayLisbonMonth(now: Date = new Date()): string {
+  return todayLisbonYmd(now).slice(0, 7);
+}
+
+// Constrói um Date local (meia-noite no fuso do runtime) a partir do dia de
+// Lisboa. As comparações de "hoje" neste ficheiro são por componentes Y-M-D
+// locais (via startOfDay), por isso este Date alinha com parseDate/isToday.
+export function todayLisbonDate(now: Date = new Date()): Date {
+  const [y, m, d] = todayLisbonYmd(now).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 export function startOfDay(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);

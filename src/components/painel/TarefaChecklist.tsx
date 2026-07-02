@@ -307,7 +307,7 @@ function TarefaItem({
         <button
           type="button"
           onClick={() => setEditingPrazo(true)}
-          className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition-opacity"
+          className="text-xs text-muted-foreground opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100 hover:text-foreground transition-opacity"
         >
           + Data
         </button>
@@ -316,7 +316,7 @@ function TarefaItem({
       <Button
         variant="ghost"
         size="sm"
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+        className="h-6 w-6 p-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
         onClick={onDelete}
         disabled={disabled}
         aria-label="Apagar tarefa"

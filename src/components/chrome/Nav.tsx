@@ -19,6 +19,7 @@ export type NavProps = {
 
 export function Nav({ pillHidden = false }: NavProps) {
   const t = useTranslations("Navigation");
+  const a11y = useTranslations("A11y");
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
 
@@ -68,7 +69,7 @@ export function Nav({ pillHidden = false }: NavProps) {
     <>
       <nav
         role="navigation"
-        aria-label="Navegação principal"
+        aria-label={a11y("mainNav")}
         className={cn(
           "top",
           "fixed top-[18px] left-1/2 z-[100]",
@@ -85,7 +86,7 @@ export function Nav({ pillHidden = false }: NavProps) {
         <Link
           href="/"
           className="logo inline-flex shrink-0 items-center"
-          aria-label="Reddune Solutions — Início"
+          aria-label={a11y("homeLink")}
           onClick={() => setOpen(false)}
         >
           <Image
@@ -172,7 +173,7 @@ export function Nav({ pillHidden = false }: NavProps) {
           <button
             type="button"
             className="nav-toggle"
-            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            aria-label={open ? a11y("closeMenu") : a11y("openMenu")}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >

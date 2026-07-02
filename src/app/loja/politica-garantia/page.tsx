@@ -21,10 +21,6 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     alternates: {
       canonical: `${base}/loja/politica-garantia`,
-      languages: {
-        pt: `${base}/loja/politica-garantia`,
-        en: `${base}/loja/politica-garantia`,
-      },
     },
     openGraph: {
       title,

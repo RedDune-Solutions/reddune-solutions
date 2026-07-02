@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
  */
 export function TrustStrip() {
   const t = useTranslations("HomePage.TrustStrip");
+  const a11y = useTranslations("A11y");
   const audiencesRaw = t.raw("audiences");
   const audiences = Array.isArray(audiencesRaw)
     ? (audiencesRaw as string[])
@@ -20,7 +21,7 @@ export function TrustStrip() {
 
   return (
     <section
-      aria-label="Para quem trabalhamos"
+      aria-label={a11y("trustSection")}
       className="trusted relative z-[5] px-8 pt-6 pb-[60px] text-center"
     >
       <div

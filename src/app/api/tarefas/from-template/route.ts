@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
 import { getTarefaTemplateById } from "@/lib/mongodb/tarefa-templates";
 import { upsertTarefa, getTarefasByProjeto } from "@/lib/mongodb/tarefas";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import type { Tarefa } from "@/types/tarefa";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,14 @@ export async function POST(request: Request) {
       await upsertTarefa(tarefa);
       created += 1;
     }
+
+    await logMutation({
+      collection: "tarefas",
+      entityId: projetoId,
+      op: "create",
+      userEmail: session.user.email ?? null,
+      after: { criadas: created, templateId },
+    });
 
     revalidatePath("/painel/tarefas");
     revalidatePath("/painel/calendario");

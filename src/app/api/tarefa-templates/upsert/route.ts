@@ -6,6 +6,7 @@ import {
   getTarefaTemplateById,
   upsertTarefaTemplate,
 } from "@/lib/mongodb/tarefa-templates";
+import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { tarefaTemplateInputSchema } from "@/lib/validation-tarefa-template";
 import type { TarefaTemplate } from "@/types/tarefa-template";
 
@@ -48,6 +49,15 @@ export async function POST(request: Request) {
     };
 
     await upsertTarefaTemplate(template);
+
+    await logMutation({
+      collection: "tarefa_templates",
+      entityId: id,
+      op: input.id ? "update" : "create",
+      userEmail: session.user.email ?? null,
+      after: template,
+    });
+
     revalidatePath("/painel/definicoes");
     return NextResponse.json({ ok: true, id });
   } catch (e) {

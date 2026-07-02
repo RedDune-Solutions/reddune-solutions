@@ -4,6 +4,7 @@ import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
 import { Topbar } from "@/components/painel/Topbar";
+import { GlobalSearch } from "@/components/painel/GlobalSearch";
 import { StatusBadge } from "@/components/painel/StatusBadge";
 import { PROJETO_TIPO_LABEL, type ProjetoTipo, type Projeto } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
@@ -56,8 +57,12 @@ export default async function ProcurarPage({ searchParams }: { searchParams: Sea
           crumbs={["Painel", "Procurar"]}
           titleHtml={`Pesquisa <em>global</em>`}
           description="Projectos, clientes e tarefas num só sítio."
+          searchDefault={raw}
         />
         <div className="content">
+          <div className="gsearch-page">
+            <GlobalSearch defaultValue={raw} />
+          </div>
           <div className="empty">
             <div className="ic"><Search aria-hidden="true" /></div>
             <div className="t">Escreve para procurar</div>
@@ -89,9 +94,13 @@ export default async function ProcurarPage({ searchParams }: { searchParams: Sea
         crumbs={["Painel", "Procurar"]}
         titleHtml={`Resultados · <em>${total}</em>`}
         description={`Para “${raw}” — projectos, clientes e tarefas.`}
+        searchDefault={raw}
       />
 
       <div className="content">
+        <div className="gsearch-page">
+          <GlobalSearch defaultValue={raw} />
+        </div>
         {total === 0 ? (
           <div className="empty">
             <div className="ic"><Search aria-hidden="true" /></div>

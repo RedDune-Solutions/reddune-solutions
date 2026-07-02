@@ -7,7 +7,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { getAllProjetos } from "@/lib/mongodb/projetos";
+import { getProjetosByCliente } from "@/lib/mongodb/projetos";
 import { getClienteById } from "@/lib/mongodb/clientes";
 import { getPagamentosByCliente } from "@/lib/mongodb/pagamentos";
 import { METODO_LABEL } from "@/types/pagamento";
@@ -25,15 +25,13 @@ type Params = Promise<{ id: string }>;
 
 export default async function ClienteDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const [cliente, allProjetos, pagamentos] = await Promise.all([
+  const [cliente, projetos, pagamentos] = await Promise.all([
     getClienteById(id),
-    getAllProjetos(),
+    getProjetosByCliente(id),
     getPagamentosByCliente(id),
   ]);
 
   if (!cliente) notFound();
-
-  const projetos = allProjetos.filter((p) => p.clienteId === id);
 
   const active = projetos.filter(
     (p) =>

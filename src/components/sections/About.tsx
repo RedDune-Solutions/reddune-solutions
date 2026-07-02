@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
  */
 export function About() {
   const t = useTranslations("HomePage.AboutUsSection");
+  const a11y = useTranslations("A11y");
 
   return (
     <section
@@ -60,7 +61,7 @@ export function About() {
               src="https://www.google.com/maps?q=Fuseta,+Algarve,+Portugal&t=&z=14&ie=UTF8&iwloc=&output=embed"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Localização — Fuseta, Algarve"
+              title={a11y("mapTitle")}
               className="absolute inset-0 h-full w-full"
               style={{
                 border: 0,

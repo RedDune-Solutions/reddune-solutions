@@ -1,11 +1,11 @@
 import "server-only";
-import clientPromise from "./client";
+import { getClient } from "./client";
 
 let initialised = false;
 let inFlight: Promise<void> | null = null;
 
 async function doInit(): Promise<void> {
-  const client = await clientPromise;
+  const client = await getClient();
   const db = client.db(process.env.MONGODB_DB_NAME);
 
   await Promise.all([
@@ -44,6 +44,12 @@ async function doInit(): Promise<void> {
     db.collection("audit_log").createIndex({ at: -1 }),
     db.collection("audit_log").createIndex({ collection: 1, entityId: 1, at: -1 }),
     db.collection("audit_log").createIndex({ userEmail: 1, at: -1 }),
+    // Retenção do audit_log: 2 anos (RGPD — limitação da conservação). Purga
+    // automática de entradas antigas; snapshots já são enxutos (ver mutation-audit).
+    db.collection("audit_log").createIndex(
+      { at: 1 },
+      { expireAfterSeconds: 2 * 365 * 24 * 60 * 60, name: "audit_ttl" }
+    ),
 
     db.collection("leads").createIndex({ id: 1 }, { unique: true }),
     db.collection("leads").createIndex({ estado: 1, criadoEm: -1 }),

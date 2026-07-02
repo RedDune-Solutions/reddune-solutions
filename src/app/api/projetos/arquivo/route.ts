@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
-import { getProjetoById, patchProjeto } from "@/lib/mongodb/projetos";
+import { getProjetoById, pushArquivo } from "@/lib/mongodb/projetos";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { sanitizeArquivo, type ProjetoArquivo } from "@/types/projeto";
 
@@ -118,8 +118,10 @@ export async function POST(request: Request) {
     dataUpload: new Date().toISOString(),
   };
 
-  const arquivos = [...(projeto.arquivos ?? []), arquivo];
-  const ok = await patchProjeto(projetoId, { arquivos });
+  // Push atómico ($concatArrays) — evita lost update com uploads concorrentes
+  // (painel PWA/multi-dispositivo) que reescreveriam o array inteiro e deixariam
+  // blobs órfãos.
+  const ok = await pushArquivo(projetoId, arquivo);
   if (!ok) {
     return NextResponse.json({ error: "Falha ao guardar no projeto" }, { status: 500 });
   }

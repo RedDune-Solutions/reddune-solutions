@@ -55,10 +55,6 @@ export async function generateMetadata(): Promise<Metadata> {
         ],
     alternates: {
       canonical: `${base}/faq`,
-      languages: {
-        pt: `${base}/faq`,
-        en: `${base}/faq`,
-      },
     },
     openGraph: {
       title: t("metaTitle"),

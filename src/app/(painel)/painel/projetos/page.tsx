@@ -7,7 +7,7 @@ import { Topbar } from "@/components/painel/Topbar";
 import { KanbanBoard } from "@/components/painel/KanbanBoard";
 import { TarefasTable } from "@/components/painel/TarefasTable";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
-import { PROJETO_STATUS, PROJETO_TIPO, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
+import { PROJETO_STATUS, PROJETO_TIPO, isProjetoAtivo, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
 import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 
 export const dynamic = "force-dynamic";
@@ -73,7 +73,8 @@ export default async function ProjetosPage({ searchParams }: { searchParams: Sea
     q: params.q,
   };
 
-  const activos = allProjetos.filter((p) => !["fechado", "cancelado"].includes(p.status)).length;
+  // "Activo" = fonte única isProjetoAtivo (bate certo com o badge da sidebar).
+  const activos = allProjetos.filter((p) => isProjetoAtivo(p.status)).length;
 
   return (
     <>

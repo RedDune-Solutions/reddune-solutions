@@ -1016,9 +1016,6 @@
   .pnl .topbar .title { font-size: 21px; }
   .pnl .topbar .crumbs { font-size: 9.5px; }
   .pnl .topbar .desc { font-size: 12px; }
-  /* botões da topbar → só ícone (esconde label) */
-  .pnl .topbar .btn.primary span:not(.arr-circle):not(.ic) { display: none; }
-  .pnl .topbar .btn.primary { padding: 0 8px; }
 
   /* Tabs com scroll horizontal em vez de quebrar */
   .pnl .tabs { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }

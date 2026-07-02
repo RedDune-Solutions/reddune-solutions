@@ -34,7 +34,14 @@ export async function getAllPagamentos(): Promise<Pagamento[]> {
 export async function upsertPagamento(p: Pagamento): Promise<void> {
   const db = await getDb();
   const col = db.collection<Pagamento>(COLLECTION);
-  await col.updateOne({ id: p.id }, { $set: p }, { upsert: true });
+  // NÃO reescrever `criadoEm` em updates — senão qualquer edição (valor, notas)
+  // apagava a data de registo real. Só se define no insert via $setOnInsert.
+  const { criadoEm, ...updateDoc } = p;
+  await col.updateOne(
+    { id: p.id },
+    { $set: updateDoc, $setOnInsert: { criadoEm } },
+    { upsert: true }
+  );
 }
 
 export async function deletePagamento(id: string): Promise<boolean> {

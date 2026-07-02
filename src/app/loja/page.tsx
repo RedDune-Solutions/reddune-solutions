@@ -33,7 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
       : ["computer shop", "buy computer", "PC components", "second hand", "refurbished", "Algarve", "Fuseta"],
     alternates: {
       canonical: `${base}/loja`,
-      languages: { pt: `${base}/loja`, en: `${base}/loja` },
     },
     openGraph: {
       title,
@@ -113,9 +112,9 @@ function WarrantyStrip() {
             }}
           />
           {[
-            { v: "3", unit: "anos", label: t("statNew.label"), sub: t("statNew.sub") },
-            { v: "6", unit: "meses", label: t("statRefurb.label"), sub: t("statRefurb.sub") },
-            { v: "14", unit: "dias", label: t("statReturn.label"), sub: t("statReturn.sub") },
+            { v: "3", unit: t("statNew.unit"), label: t("statNew.label"), sub: t("statNew.sub") },
+            { v: "6", unit: t("statRefurb.unit"), label: t("statRefurb.label"), sub: t("statRefurb.sub") },
+            { v: "14", unit: t("statReturn.unit"), label: t("statReturn.label"), sub: t("statReturn.sub") },
           ].map((cell, i) => (
             <div key={`${cell.label}-${i}`} className="relative z-[1] text-center md:text-left">
               <div

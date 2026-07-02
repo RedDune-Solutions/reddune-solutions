@@ -17,6 +17,7 @@ import { SocialIcons } from "@/components/chrome/SocialIcons";
 export function Footer() {
   const t = useTranslations("Footer");
   const tNav = useTranslations("Navigation");
+  const a11y = useTranslations("A11y");
   const pathname = usePathname() ?? "/";
 
   const origin = pathname.startsWith("/loja")
@@ -55,7 +56,7 @@ export function Footer() {
           <div className="max-w-[340px]">
             <Link
               href="/"
-              aria-label="Reddune Solutions — Início"
+              aria-label={a11y("homeLink")}
               className="inline-flex items-center"
             >
               <Image

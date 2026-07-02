@@ -5,6 +5,7 @@ import {
   firstWeekdayOfMonth,
   isToday,
   parseIsoDate,
+  todayLisbonDate,
 } from "@/lib/dates";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
 import type { Tarefa } from "@/types/tarefa";
@@ -36,6 +37,8 @@ const STATUS_EV: Record<ProjetoStatus, string> = {
 };
 
 export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Props) {
+  // "Hoje" no fuso de Portugal (não no do servidor Vercel, que corre em UTC).
+  const hojeLisboa = todayLisbonDate();
   const totalDays = daysInMonth(year, monthIndex);
   const firstWeekday = firstWeekdayOfMonth(year, monthIndex);
   const totalCells = Math.ceil((firstWeekday + totalDays) / 7) * 7;
@@ -85,7 +88,7 @@ export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Prop
           return <div key={`empty-${idx}`} className="dy faded" aria-hidden="true" />;
         }
         const dateForDay = new Date(year, monthIndex, cell.day);
-        const todayCell = isToday(dateForDay.toISOString());
+        const todayCell = isToday(dateForDay.toISOString(), hojeLisboa);
         const visible = cell.entries.slice(0, 3);
         const overflow = cell.entries.length - visible.length;
 

@@ -51,12 +51,21 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   };
 }
 
-/** Upsert do doc id:"company" com updatedAt. Não toca noutras colecções. */
-export async function saveCompanySettings(data: CompanySettings): Promise<void> {
+/**
+ * Upsert do doc id:"company" com updatedAt. Não toca noutras colecções.
+ * Grava APENAS as chaves presentes (undefined é filtrado) — um body parcial
+ * não apaga silenciosamente os outros campos. Defaults na leitura cobrem
+ * campos ainda ausentes.
+ */
+export async function saveCompanySettings(
+  data: Partial<CompanySettings>
+): Promise<void> {
   const db = await getDb();
-  await db.collection<CompanyDoc>(COLLECTION).updateOne(
-    { id: COMPANY_ID },
-    { $set: { ...data, id: COMPANY_ID, updatedAt: new Date().toISOString() } },
-    { upsert: true }
-  );
+  const set: Record<string, unknown> = { id: COMPANY_ID, updatedAt: new Date().toISOString() };
+  for (const [k, v] of Object.entries(data)) {
+    if (v !== undefined) set[k] = v;
+  }
+  await db
+    .collection<CompanyDoc>(COLLECTION)
+    .updateOne({ id: COMPANY_ID }, { $set: set }, { upsert: true });
 }
