@@ -24,6 +24,7 @@ import { TarefaForm } from "@/components/painel/TarefaForm";
 import { ArquivosCard } from "@/components/painel/ArquivosCard";
 import { PortalSection } from "@/components/painel/PortalSection";
 import { getComentariosByProjeto } from "@/lib/mongodb/portal";
+import { getSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
 import { HardwareSection } from "@/components/painel/HardwareSection";
 import { sanitizeArquivo } from "@/types/projeto";
 import { StatusBadge } from "@/components/painel/StatusBadge";
@@ -48,12 +49,13 @@ function formatDate(iso: string | null): string {
 
 export default async function ProjetoDetalhePage({ params }: { params: Params }) {
   const { id } = await params;
-  const [projeto, tarefas, clientes, pagamentos, comentarios] = await Promise.all([
+  const [projeto, tarefas, clientes, pagamentos, comentarios, sandboxes] = await Promise.all([
     getProjetoById(id),
     getTarefasByProjeto(id),
     getAllClientes(),
     getPagamentosByProjeto(id),
     getComentariosByProjeto(id),
+    getSandboxesByProjeto(id),
   ]);
 
   if (!projeto) notFound();
@@ -108,6 +110,12 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
               portalAtivo={!!projeto.portal && !projeto.portal.revogadoEm}
               links={projeto.links ?? []}
               comentarios={comentarios}
+              sandboxes={sandboxes.map((s) => ({
+                id: s.id,
+                nome: s.nome,
+                entry: s.entry,
+                totalFicheiros: s.ficheiros.length,
+              }))}
             />
 
             {/* Checklist de tarefas */}

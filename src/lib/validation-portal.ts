@@ -4,6 +4,7 @@ export const comentarioSchema = z.object({
   texto: z.string().trim().min(1).max(2000),
   arquivoId: z.string().max(128).nullish(),
   linkId: z.string().max(128).nullish(),
+  sandboxId: z.string().max(128).nullish(),
   autorNome: z.string().trim().max(120).nullish(),
 });
 

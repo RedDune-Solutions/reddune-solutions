@@ -21,6 +21,9 @@ async function doInit(): Promise<void> {
     db.collection("portal_comentarios").createIndex({ id: 1 }, { unique: true }),
     db.collection("portal_comentarios").createIndex({ projetoId: 1, criadoEm: -1 }),
 
+    db.collection("portal_sandboxes").createIndex({ id: 1 }, { unique: true }),
+    db.collection("portal_sandboxes").createIndex({ projetoId: 1, criadoEm: -1 }),
+
     db.collection("tarefas").createIndex({ id: 1 }, { unique: true }),
     db.collection("tarefas").createIndex({ projetoId: 1 }),
 

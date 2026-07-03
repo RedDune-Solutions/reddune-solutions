@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Link2, MessageSquare, Plus, RefreshCw, Trash2, Globe } from "lucide-react";
+import { Copy, Link2, MessageSquare, Plus, RefreshCw, Trash2, Globe, FolderUp, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { safeJsonPost } from "@/lib/safe-fetch";
+import { safeJsonPost, safeFetch } from "@/lib/safe-fetch";
 import type { ProjetoLink } from "@/types/projeto";
 import type { PortalComentario } from "@/types/portal";
+
+export type SandboxResumo = { id: string; nome: string; entry: string; totalFicheiros: number };
 
 type Props = {
   projetoId: string;
   portalAtivo: boolean;
   links: ProjetoLink[];
   comentarios: PortalComentario[];
+  sandboxes: SandboxResumo[];
 };
 
-export function PortalSection({ projetoId, portalAtivo, links, comentarios }: Props) {
+export function PortalSection({ projetoId, portalAtivo, links, comentarios, sandboxes }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -26,6 +29,8 @@ export function PortalSection({ projetoId, portalAtivo, links, comentarios }: Pr
   const [tokenGerado, setTokenGerado] = useState<string | null>(null);
   const [novoLabel, setNovoLabel] = useState("");
   const [novoUrl, setNovoUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const zipRef = useRef<HTMLInputElement>(null);
 
   const naoLidos = comentarios.filter((c) => !c.lidoEm).length;
   const linkCompleto = tokenGerado ? `${window.location.origin}/p/${tokenGerado}` : null;
@@ -101,6 +106,47 @@ export function PortalSection({ projetoId, portalAtivo, links, comentarios }: Pr
     const res = await safeJsonPost("/api/projetos/links", { projetoId, action: "remove", linkId });
     if (!res.ok) {
       toast({ title: "Erro", description: res.error, variant: "destructive" });
+      return;
+    }
+    router.refresh();
+  }
+
+  async function uploadZip(file: File) {
+    if (!file.name.toLowerCase().endsWith(".zip")) {
+      toast({ title: "Tem de ser um .zip", description: "Comprime a pasta do projeto num ZIP.", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("projetoId", projetoId);
+    fd.append("nome", file.name.replace(/\.zip$/i, ""));
+    try {
+      const res = await fetch("/api/projetos/sandbox", { method: "POST", body: fd });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        toast({ title: "Erro ao carregar projeto", description: data.error ?? `HTTP ${res.status}`, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Projeto carregado ✓" });
+      router.refresh();
+    } catch {
+      toast({ title: "Erro de rede ao carregar", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeSandbox(s: SandboxResumo) {
+    const ok = await confirm({
+      title: "Remover projeto do sandbox?",
+      description: `"${s.nome}" (${s.totalFicheiros} ficheiros) deixa de estar acessível ao cliente.`,
+      tone: "destructive",
+    });
+    if (!ok) return;
+    const res = await safeFetch(`/api/projetos/sandbox/${s.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast({ title: "Erro ao remover", description: res.error, variant: "destructive" });
       return;
     }
     router.refresh();
@@ -209,6 +255,59 @@ export function PortalSection({ projetoId, portalAtivo, links, comentarios }: Pr
             Adicionar
           </Button>
         </form>
+      </div>
+
+      {/* Projetos hospedados (sandbox multi-ficheiro) */}
+      <div className="space-y-2 border-t pt-3">
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+          <FolderUp className="h-3.5 w-3.5" aria-hidden="true" />
+          Projetos hospedados (ZIP → aberto no site)
+        </p>
+        {sandboxes.map((s) => (
+          <div key={s.id} className="flex items-center gap-2 text-sm">
+            <Globe className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="font-medium">{s.nome}</span>
+            <span className="text-xs text-muted-foreground">
+              {s.totalFicheiros} fich. · {s.entry}
+            </span>
+            <a
+              href={`/api/portal/sandbox/${s.id}/${s.entry}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-ink"
+              aria-label={`Abrir ${s.nome}`}
+            >
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+            <Button size="sm" variant="ghost" onClick={() => removeSandbox(s)} aria-label={`Remover ${s.nome}`}>
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          </div>
+        ))}
+        <div>
+          <input
+            ref={zipRef}
+            type="file"
+            accept=".zip,application/zip,application/x-zip-compressed"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadZip(f);
+              e.target.value = "";
+            }}
+          />
+          <Button size="sm" variant="outline" onClick={() => zipRef.current?.click()} disabled={uploading}>
+            {uploading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <FolderUp className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+            {uploading ? "A carregar…" : "Carregar projeto (.zip)"}
+          </Button>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Comprime a pasta do projeto (index.html + assets) num ZIP. Abre no site sem GitHub. Até 30MB.
+          </p>
+        </div>
       </div>
 
       {/* Comentários do cliente */}

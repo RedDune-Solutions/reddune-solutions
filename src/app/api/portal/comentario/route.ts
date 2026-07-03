@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { resolvePortalToken } from "@/lib/portal-auth";
 import { comentarioSchema } from "@/lib/validation-portal";
 import { insertComentario, countComentariosRecentes } from "@/lib/mongodb/portal";
+import { getSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
 import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 import { sendPushToAll } from "@/lib/push";
 import type { PortalComentario } from "@/types/portal";
@@ -48,12 +49,18 @@ export async function POST(request: Request) {
     parsed.data.linkId && projeto.links?.some((k) => k.id === parsed.data.linkId)
       ? parsed.data.linkId
       : null;
+  let sandboxId: string | null = null;
+  if (parsed.data.sandboxId) {
+    const sandboxes = await getSandboxesByProjeto(projeto.id);
+    if (sandboxes.some((s) => s.id === parsed.data.sandboxId)) sandboxId = parsed.data.sandboxId;
+  }
 
   const comentario: PortalComentario = {
     id: randomUUID(),
     projetoId: projeto.id,
     arquivoId,
     linkId,
+    sandboxId,
     autorNome: parsed.data.autorNome?.trim() || projeto.clienteNome || null,
     texto: parsed.data.texto,
     criadoEm: new Date().toISOString(),

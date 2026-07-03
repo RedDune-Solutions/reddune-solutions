@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Props = { token: string; arquivoId?: string; linkId?: string; compact?: boolean };
+type Props = { token: string; arquivoId?: string; linkId?: string; sandboxId?: string; compact?: boolean };
 
-export function ComentarioForm({ token, arquivoId, linkId, compact }: Props) {
+export function ComentarioForm({ token, arquivoId, linkId, sandboxId, compact }: Props) {
   const router = useRouter();
   const [texto, setTexto] = useState("");
   // Honeypot controlado: humanos deixam-no vazio (está escondido); bots que
@@ -24,7 +24,7 @@ export function ComentarioForm({ token, arquivoId, linkId, compact }: Props) {
       const res = await fetch("/api/portal/comentario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ t: token, texto, arquivoId, linkId, website }),
+        body: JSON.stringify({ t: token, texto, arquivoId, linkId, sandboxId, website }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {

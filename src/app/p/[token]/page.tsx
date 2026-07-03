@@ -4,8 +4,10 @@ import { resolvePortalToken } from "@/lib/portal-auth";
 import { getClienteById } from "@/lib/mongodb/clientes";
 import { getPagamentosByProjeto } from "@/lib/mongodb/pagamentos";
 import { getComentariosByProjeto } from "@/lib/mongodb/portal";
+import { getSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
 import { toPortalProjeto, toPortalCliente } from "@/lib/portal-dto";
 import { PreviewFrame } from "@/components/portal/PreviewFrame";
+import { SandboxFrame } from "@/components/portal/SandboxFrame";
 import { ComentarioForm } from "@/components/portal/ComentarioForm";
 import { FichaClienteForm } from "@/components/portal/FichaClienteForm";
 
@@ -29,13 +31,17 @@ export default async function PortalPage({ params }: { params: Params }) {
   const projeto = await resolvePortalToken(token);
   if (!projeto) notFound();
 
-  const [cliente, pagamentos, comentarios] = await Promise.all([
+  const [cliente, pagamentos, comentarios, sandboxes] = await Promise.all([
     projeto.clienteId ? getClienteById(projeto.clienteId) : Promise.resolve(null),
     getPagamentosByProjeto(projeto.id),
     getComentariosByProjeto(projeto.id),
+    getSandboxesByProjeto(projeto.id),
   ]);
   const dto = toPortalProjeto(projeto, pagamentos);
   const arquivoSrc = (id: string) => `/api/portal/arquivo/${id}?t=${encodeURIComponent(token)}`;
+  // Sandbox: capability própria no URL (não o token). entry codificado por segmento.
+  const sandboxSrc = (s: { id: string; entry: string }) =>
+    `/api/portal/sandbox/${s.id}/${s.entry.split("/").map(encodeURIComponent).join("/")}`;
 
   return (
     <main className="min-h-screen bg-[#faf6f1] px-4 py-10">
@@ -108,11 +114,21 @@ export default async function PortalPage({ params }: { params: Params }) {
         )}
 
         {/* Entregáveis */}
-        {(dto.arquivos.length > 0 || dto.links.length > 0) && (
+        {(dto.arquivos.length > 0 || dto.links.length > 0 || sandboxes.length > 0) && (
           <section className="space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Entregáveis
             </h2>
+            {sandboxes.map((s) => (
+              <article key={s.id} className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="font-semibold">{s.nome}</p>
+                  <p className="shrink-0 text-xs text-muted-foreground">projeto web</p>
+                </div>
+                <SandboxFrame src={sandboxSrc(s)} title={s.nome} />
+                <ComentarioForm token={token} sandboxId={s.id} compact />
+              </article>
+            ))}
             {dto.links.map((k) => (
               <article key={k.id} className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
                 <p className="font-semibold">{k.label}</p>
