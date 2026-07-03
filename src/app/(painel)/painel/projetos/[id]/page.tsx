@@ -22,6 +22,8 @@ import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
 import { TarefaChecklist } from "@/components/painel/TarefaChecklist";
 import { TarefaForm } from "@/components/painel/TarefaForm";
 import { ArquivosCard } from "@/components/painel/ArquivosCard";
+import { PortalSection } from "@/components/painel/PortalSection";
+import { getComentariosByProjeto } from "@/lib/mongodb/portal";
 import { HardwareSection } from "@/components/painel/HardwareSection";
 import { sanitizeArquivo } from "@/types/projeto";
 import { StatusBadge } from "@/components/painel/StatusBadge";
@@ -46,11 +48,12 @@ function formatDate(iso: string | null): string {
 
 export default async function ProjetoDetalhePage({ params }: { params: Params }) {
   const { id } = await params;
-  const [projeto, tarefas, clientes, pagamentos] = await Promise.all([
+  const [projeto, tarefas, clientes, pagamentos, comentarios] = await Promise.all([
     getProjetoById(id),
     getTarefasByProjeto(id),
     getAllClientes(),
     getPagamentosByProjeto(id),
+    getComentariosByProjeto(id),
   ]);
 
   if (!projeto) notFound();
@@ -97,6 +100,14 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
             <ArquivosCard
               projetoId={projeto.id}
               arquivos={(projeto.arquivos ?? []).map(sanitizeArquivo)}
+            />
+
+            {/* Portal do cliente */}
+            <PortalSection
+              projetoId={projeto.id}
+              portalAtivo={!!projeto.portal && !projeto.portal.revogadoEm}
+              links={projeto.links ?? []}
+              comentarios={comentarios}
             />
 
             {/* Checklist de tarefas */}
