@@ -108,6 +108,9 @@ export async function POST(request: Request) {
     garantiaAte: pick("garantiaAte", null),
     hardware: pick("hardware", null),
     arquivos: pick("arquivos", null),
+    // Geridos por rotas próprias (nunca vêm no payload do upsert) — preservar.
+    links: existing?.links ?? null,
+    portal: existing?.portal ?? null,
   };
 
   try {

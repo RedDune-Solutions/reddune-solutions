@@ -183,6 +183,18 @@ export function sanitizeArquivo(a: ProjetoArquivo): ProjetoArquivo {
   return rest;
 }
 
+export interface ProjetoLink {
+  id: string;
+  label: string;
+  url: string; // https:// (validado na API)
+}
+
+export interface ProjetoPortal {
+  tokenHash: string; // SHA-256 hex do token; o token em claro nunca é guardado
+  criadoEm: string; // ISO
+  revogadoEm: string | null;
+}
+
 export interface Projeto {
   id: string;
   titulo: string;
@@ -207,6 +219,8 @@ export interface Projeto {
   garantiaAte: string | null;
   hardware: ProjetoHardware | null;
   arquivos: ProjetoArquivo[] | null;
+  links: ProjetoLink[] | null;
+  portal: ProjetoPortal | null;
 }
 
 export function deriveCategoriasFromTipos(tipos: ProjetoTipo[] | null): ServicoSlug[] {
