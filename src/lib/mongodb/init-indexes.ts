@@ -13,6 +13,14 @@ async function doInit(): Promise<void> {
     db.collection("projetos").createIndex({ clienteId: 1 }),
     db.collection("projetos").createIndex({ status: 1 }),
 
+    db.collection("projetos").createIndex(
+      { "portal.tokenHash": 1 },
+      { unique: true, partialFilterExpression: { "portal.tokenHash": { $type: "string" } } }
+    ),
+
+    db.collection("portal_comentarios").createIndex({ id: 1 }, { unique: true }),
+    db.collection("portal_comentarios").createIndex({ projetoId: 1, criadoEm: -1 }),
+
     db.collection("tarefas").createIndex({ id: 1 }, { unique: true }),
     db.collection("tarefas").createIndex({ projetoId: 1 }),
 

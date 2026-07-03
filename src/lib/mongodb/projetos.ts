@@ -1,6 +1,6 @@
 import "server-only";
 import { getDb } from "./client";
-import type { Projeto, ProjetoArquivo } from "@/types/projeto";
+import type { Projeto, ProjetoArquivo, ProjetoLink } from "@/types/projeto";
 
 const COLLECTION = "projetos";
 
@@ -96,6 +96,34 @@ export async function pushArquivo(
       $set: {
         arquivos: {
           $concatArrays: [{ $ifNull: ["$arquivos", []] }, [arquivo]],
+        },
+      },
+    },
+  ]);
+  return result.matchedCount > 0;
+}
+
+/** Acrescenta um link de preview atomicamente (ver pushArquivo). */
+export async function pushLink(projetoId: string, link: ProjetoLink): Promise<boolean> {
+  const db = await getDb();
+  const result = await db.collection<Projeto>(COLLECTION).updateOne({ id: projetoId }, [
+    { $set: { links: { $concatArrays: [{ $ifNull: ["$links", []] }, [link]] } } },
+  ]);
+  return result.matchedCount > 0;
+}
+
+/** Remove um link pelo id, atomicamente. */
+export async function pullLink(projetoId: string, linkId: string): Promise<boolean> {
+  const db = await getDb();
+  const result = await db.collection<Projeto>(COLLECTION).updateOne({ id: projetoId }, [
+    {
+      $set: {
+        links: {
+          $filter: {
+            input: { $ifNull: ["$links", []] },
+            as: "k",
+            cond: { $ne: ["$$k.id", linkId] },
+          },
         },
       },
     },
