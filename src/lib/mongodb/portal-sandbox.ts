@@ -29,3 +29,9 @@ export async function deleteSandbox(id: string): Promise<boolean> {
   const r = await db.collection<PortalSandbox>(COLLECTION).deleteOne({ id });
   return r.deletedCount > 0;
 }
+
+/** Apaga TODOS os sandboxes de um projeto (usado ao apagar o projeto). */
+export async function deleteSandboxesByProjeto(projetoId: string): Promise<void> {
+  const db = await getDb();
+  await db.collection<PortalSandbox>(COLLECTION).deleteMany({ projetoId });
+}

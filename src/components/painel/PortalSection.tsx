@@ -271,7 +271,7 @@ export function PortalSection({ projetoId, portalAtivo, links, comentarios, sand
               {s.totalFicheiros} fich. · {s.entry}
             </span>
             <a
-              href={`/api/portal/sandbox/${s.id}/${s.entry}`}
+              href={`/api/portal/sandbox/${s.id}/${s.entry.split("/").map(encodeURIComponent).join("/")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="ml-auto p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-ink"

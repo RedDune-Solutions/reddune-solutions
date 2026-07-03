@@ -54,6 +54,12 @@ export async function marcarComentarioLido(id: string): Promise<boolean> {
   return r.matchedCount > 0;
 }
 
+/** Apaga todos os comentários de um projeto (usado ao apagar o projeto). */
+export async function deleteComentariosByProjeto(projetoId: string): Promise<void> {
+  const db = await getDb();
+  await db.collection<PortalComentario>(COMENTARIOS).deleteMany({ projetoId });
+}
+
 /** Nº de comentários nas últimas 24h por projecto (tecto anti-flood). */
 export async function countComentariosRecentes(projetoId: string): Promise<number> {
   const db = await getDb();

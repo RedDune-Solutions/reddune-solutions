@@ -62,6 +62,21 @@ describe("extractSandbox", () => {
     expect(() => extractSandbox(zip, { maxTotalBytes: 1000 })).toThrow(SandboxError);
   });
 
+  it("rejeita paths duplicados após normalizar backslash (a/b.js + a\\b.js)", () => {
+    const zip = makeZip({
+      "site/index.html": "<h1>x</h1>",
+      "site/app.js": "real",
+      "site\\app.js": "evil",
+    });
+    expect(() => extractSandbox(zip)).toThrow(SandboxError);
+  });
+
+  it("rejeita antes de descomprimir quando o tamanho declarado excede o limite", () => {
+    // 5KB reais mas limite de 1KB → o filtro rejeita pelo originalSize declarado.
+    const zip = makeZip({ "index.html": "x", "big.txt": "a".repeat(5000) });
+    expect(() => extractSandbox(zip, { maxTotalBytes: 1000 })).toThrow(SandboxError);
+  });
+
   it("ignora entradas de diretório e ficheiros de sistema (__MACOSX, .DS_Store)", () => {
     const zip = makeZip({
       "index.html": "<h1>x</h1>",

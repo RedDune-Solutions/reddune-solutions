@@ -73,6 +73,9 @@ export async function POST(request: Request) {
 
   const sandboxId = generatePortalToken(); // capability própria (não o token do portal)
   const uploaded: SandboxFile[] = [];
+  // Regista CADA blob assim que sobe (não por lote) — se um put falhar a meio de
+  // um lote, os que já subiram nesse lote têm de ser limpos na mesma.
+  const allBlobUrls: string[] = [];
 
   // Uploads em lotes para não abrir centenas de ligações de uma vez.
   try {
@@ -85,6 +88,7 @@ export async function POST(request: Request) {
             contentType: f.mime,
             addRandomSuffix: true,
           });
+          allBlobUrls.push(blob.url);
           return { path: f.path, blobUrl: blob.url, mime: f.mime, tamanho: f.bytes.length };
         })
       );
@@ -92,8 +96,7 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     console.error("sandbox put falhou:", err);
-    // Limpa blobs órfãos do que já subiu.
-    await deleteManagedBlobs(uploaded.map((u) => u.blobUrl));
+    await deleteManagedBlobs(allBlobUrls);
     return NextResponse.json({ error: "Falha ao guardar os ficheiros." }, { status: 500 });
   }
 

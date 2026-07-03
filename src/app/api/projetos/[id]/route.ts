@@ -5,6 +5,8 @@ import { deleteProjeto, getProjetoById } from "@/lib/mongodb/projetos";
 import { deleteTarefasByProjeto } from "@/lib/mongodb/tarefas";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { deleteManagedBlobs } from "@/lib/blob";
+import { getSandboxesByProjeto, deleteSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
+import { deleteComentariosByProjeto } from "@/lib/mongodb/portal";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +27,19 @@ export async function DELETE(
 
     const existing = await getProjetoById(id);
 
-    // Limpa os blobs dos arquivos ANTES do delete — senão ficam órfãos e pagos,
-    // irrecuperáveis. Best-effort: uma falha de cleanup não pode quebrar o delete.
+    // Limpa os blobs dos arquivos + dos sandboxes ANTES do delete — senão ficam
+    // órfãos e pagos. Best-effort: uma falha de cleanup não pode quebrar o delete.
     try {
-      await deleteManagedBlobs(
-        (existing?.arquivos ?? []).map((a) => a.blobUrl).filter((u): u is string => Boolean(u))
-      );
+      const sandboxes = await getSandboxesByProjeto(id);
+      const arquivoUrls = (existing?.arquivos ?? [])
+        .map((a) => a.blobUrl)
+        .filter((u): u is string => Boolean(u));
+      const sandboxUrls = sandboxes.flatMap((s) => s.ficheiros.map((f) => f.blobUrl));
+      await deleteManagedBlobs([...arquivoUrls, ...sandboxUrls]);
+      await deleteSandboxesByProjeto(id);
+      await deleteComentariosByProjeto(id);
     } catch (err) {
-      console.error("Falha a limpar blobs do projeto (delete continua):", err);
+      console.error("Falha a limpar blobs/sandboxes do projeto (delete continua):", err);
     }
 
     await deleteTarefasByProjeto(id);

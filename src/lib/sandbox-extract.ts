@@ -61,10 +61,31 @@ function stripCommonRoot(paths: string[]): (p: string) => string {
 export function extractSandbox(zip: Uint8Array, limits?: ExtractLimits): ExtractResult {
   const { maxFiles, maxTotalBytes, maxFileBytes } = { ...DEFAULTS, ...limits };
 
+  // Guarda ANTI-ZIP-BOMB: o `filter` da fflate corre por entrada com o tamanho
+  // descomprimido DECLARADO no directório do zip, ANTES de descomprimir. Rejeita
+  // já aqui — senão unzipSync materializava dezenas de GB em memória (OOM) antes
+  // de qualquer limite. (Um zip que MINTA no tamanho ainda é apanhado a jusante
+  // pelas verificações sobre bytes reais.)
+  let declaredTotal = 0;
+  let declaredCount = 0;
   let unzipped: Record<string, Uint8Array>;
   try {
-    unzipped = unzipSync(zip);
-  } catch {
+    unzipped = unzipSync(zip, {
+      filter(f) {
+        declaredCount++;
+        if (declaredCount > maxFiles) throw new SandboxError(`Demasiados ficheiros (máx ${maxFiles}).`);
+        if (f.originalSize > maxFileBytes) {
+          throw new SandboxError(`Ficheiro demasiado grande: ${f.name} (máx ${maxFileBytes / 1024 / 1024}MB).`);
+        }
+        declaredTotal += f.originalSize;
+        if (declaredTotal > maxTotalBytes) {
+          throw new SandboxError(`Projeto demasiado grande (máx ${maxTotalBytes / 1024 / 1024}MB descomprimido).`);
+        }
+        return true;
+      },
+    });
+  } catch (e) {
+    if (e instanceof SandboxError) throw e;
     throw new SandboxError("Não foi possível ler o ZIP (ficheiro corrompido ou inválido).");
   }
 
@@ -80,12 +101,19 @@ export function extractSandbox(zip: Uint8Array, limits?: ExtractLimits): Extract
   // 2) descasca pasta-raiz comum
   const strip = stripCommonRoot(raw.map((r) => r.path));
 
-  // 3) aplica limites + constrói a lista
+  // 3) aplica limites (bytes REAIS) + de-dup por path lógico
   let total = 0;
+  const seen = new Set<string>();
   const files: ExtractedFile[] = [];
   for (const { path: rawPath, bytes } of raw) {
     const path = strip(rawPath);
     if (!path) continue;
+    // Duas entradas normalizadas para o mesmo path (ex.: "a/b.js" e "a\b.js")
+    // seriam ambíguas e deixariam um blob órfão — rejeita.
+    if (seen.has(path)) {
+      throw new SandboxError(`Caminho duplicado no ZIP: ${path}`);
+    }
+    seen.add(path);
     if (bytes.length > maxFileBytes) {
       throw new SandboxError(`Ficheiro demasiado grande: ${path} (máx ${maxFileBytes / 1024 / 1024}MB).`);
     }
