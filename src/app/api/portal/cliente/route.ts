@@ -6,6 +6,7 @@ import { getClienteById, upsertCliente } from "@/lib/mongodb/clientes";
 import { toPortalCliente } from "@/lib/portal-dto";
 import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
+import { sendPushToAll } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
 
@@ -43,10 +44,13 @@ export async function PATCH(request: Request) {
   try {
     await upsertCliente(atualizado);
   } catch (e: unknown) {
-    // Índices únicos de email/nif → 11000 duplicate key.
     const code = e && typeof e === "object" && "code" in e ? (e as { code?: number }).code : undefined;
     if (code === 11000) {
-      return NextResponse.json({ error: "Email ou NIF já registado noutro cliente" }, { status: 409 });
+      // Colisão nos índices únicos de email/nif (valor pertence a OUTRO cliente).
+      // Devolver 200 com o registo inalterado — NÃO uma mensagem distinta — para
+      // não criar um oráculo que confirme a existência de email/NIF de terceiros
+      // (RGPD). O campo simplesmente não é gravado.
+      return NextResponse.json({ cliente: toPortalCliente(cliente) });
     }
     throw e;
   }
@@ -59,6 +63,18 @@ export async function PATCH(request: Request) {
     before: toPortalCliente(cliente),
     after: toPortalCliente(atualizado),
   });
+
+  // Notificar o admin: alterar a ficha pelo portal é uma escrita a PII/facturação
+  // por quem tem o link. O comentário já notifica; a ficha não pode ser silenciosa.
+  try {
+    await sendPushToAll({
+      title: "✏️ Ficha de cliente atualizada",
+      body: `${atualizado.nome} atualizou os dados via portal — ${projeto.titulo}`,
+      url: `/painel/clientes/${cliente.id}`,
+    });
+  } catch (e) {
+    console.error("push ficha cliente falhou:", e);
+  }
 
   revalidatePath(`/painel/clientes/${cliente.id}`);
   return NextResponse.json({ cliente: toPortalCliente(atualizado) });

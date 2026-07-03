@@ -55,9 +55,17 @@ export async function rateLimitDistributed(
 }
 
 export function getClientIp(request: Request): string {
-  const fwd = request.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
+  // x-real-ip PRIMEIRO: na Vercel é posto pela plataforma com o IP real e não é
+  // falsificável pelo cliente. O x-forwarded-for é APPENDED (o token mais à
+  // esquerda é controlado pelo atacante) — usá-lo dava bypass de rate-limit por
+  // rotação de header. Só recorremos ao XFF (último token, o mais fidedigno) se
+  // x-real-ip faltar.
   const real = request.headers.get("x-real-ip");
   if (real) return real.trim();
+  const fwd = request.headers.get("x-forwarded-for");
+  if (fwd) {
+    const parts = fwd.split(",");
+    return parts[parts.length - 1]!.trim();
+  }
   return "unknown";
 }

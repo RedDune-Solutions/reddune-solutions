@@ -39,8 +39,10 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "connect-src 'self'",
-      // Mapas Google embed + widget Turnstile (ver nota em script-src).
-      "frame-src https://www.google.com https://challenges.cloudflare.com",
+      // Mapas Google embed + widget Turnstile (ver nota em script-src) +
+      // 'self'/blob: (iframes do portal: srcdoc de mockups, proxy de PDF) +
+      // https: (links de preview externos que o admin adiciona ao projecto).
+      "frame-src 'self' blob: https: https://www.google.com https://challenges.cloudflare.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",

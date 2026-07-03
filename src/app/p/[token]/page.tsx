@@ -136,7 +136,7 @@ export default async function PortalPage({ params }: { params: Params }) {
                     className="max-h-[70vh] w-auto rounded-lg border"
                   />
                 ) : a.tipo === "text/html" ? (
-                  <PreviewFrame src={arquivoSrc(a.id)} title={a.nome} sandbox />
+                  <PreviewFrame src={arquivoSrc(a.id)} title={a.nome} html />
                 ) : a.tipo === "application/pdf" ? (
                   <PreviewFrame src={arquivoSrc(a.id)} title={a.nome} />
                 ) : (

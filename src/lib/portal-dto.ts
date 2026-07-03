@@ -45,21 +45,29 @@ export type PortalClienteDTO = {
 };
 
 export function toPortalProjeto(projeto: Projeto, pagamentos: Pagamento[]): PortalProjetoDTO {
-  const orcado = projeto.valorEstimado ?? null;
+  const linhas = projeto.linhas ?? [];
+  const linhasTotal = linhas.reduce((s, l) => s + l.quantidade * l.precoUnit, 0);
+  // Com linhas, o Total vem da SOMA das linhas (bate sempre com os subtotais por
+  // categoria mostrados — evita "Total 400" vs "subtotais 550"). Sem linhas, cai
+  // no valorEstimado guardado.
+  const orcado = linhas.length ? linhasTotal : projeto.valorEstimado ?? null;
   const pago = pagamentos.reduce((s, p) => s + p.valor, 0);
 
   let valores: PortalValoresDTO | null = null;
-  if (orcado != null) {
+  // Mostrar valores se há orçamento OU se já houve pagamentos (ex.: sinal pago
+  // antes de fechar o orçamento — o cliente deve ver que o sinal foi registado).
+  if (orcado != null || pago > 0) {
+    const total = orcado ?? pago;
     // Subtotais por categoria (Peça / Mão-de-obra / Outro) — sem quantidades,
     // preços unitários nem descrições (as linhas revelam margens).
     const porCategoria = new Map<LinhaCategoria, number>();
-    for (const l of projeto.linhas ?? []) {
+    for (const l of linhas) {
       porCategoria.set(l.categoria, (porCategoria.get(l.categoria) ?? 0) + l.quantidade * l.precoUnit);
     }
     valores = {
-      orcado,
+      orcado: total,
       pago,
-      emFalta: Math.max(0, orcado - pago),
+      emFalta: Math.max(0, total - pago),
       categorias: [...porCategoria.entries()].map(([c, total]) => ({
         label: LINHA_CATEGORIA_LABEL[c] ?? c,
         total,

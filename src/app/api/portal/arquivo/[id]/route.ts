@@ -38,16 +38,23 @@ export async function GET(request: Request, { params }: { params: Params }) {
   const disposition = isInline(arquivo.tipo) ? "inline" : "attachment";
   const headers = new Headers();
   headers.set("Content-Type", arquivo.tipo || "application/octet-stream");
+  // filename simples (ASCII, fallback) + filename* (RFC 5987) para nomes com
+  // acentos/espaços comuns em PT não saírem percent-encoded no download.
+  const asciiName = arquivo.nome.replace(/[^\x20-\x7E]/g, "_").replace(/"/g, "");
   headers.set(
     "Content-Disposition",
-    `${disposition}; filename="${encodeURIComponent(arquivo.nome)}"`
+    `${disposition}; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(arquivo.nome)}`
   );
   headers.set("Cache-Control", "private, no-store");
   headers.set("X-Robots-Tag", "noindex, nofollow");
   if (arquivo.tipo === "text/html") {
-    // Mockups HTML correm em origem opaca: sem cookies/storage/fetch same-origin.
-    // Cinto duplo com o atributo sandbox do iframe no portal.
-    headers.set("Content-Security-Policy", "sandbox allow-scripts");
+    // Defesa em profundidade: o HTML é embebido no portal via `srcdoc` (o token
+    // nunca entra no URL do iframe). Ainda assim bloqueamos egress — sem
+    // connect-src/img-src externos, um fetch/beacon do mockup não sai.
+    headers.set(
+      "Content-Security-Policy",
+      "sandbox allow-scripts; default-src 'none'; style-src 'unsafe-inline' data:; img-src data:; font-src data:; media-src data:"
+    );
     headers.set("X-Content-Type-Options", "nosniff");
   }
 

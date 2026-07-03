@@ -91,16 +91,23 @@ export async function POST(request: Request) {
   }
 
   const arquivoId = randomUUID();
-  const pathname = `projetos/${projetoId}/${arquivoId}.${ext}`;
+  // addRandomSuffix: TRUE — sem sufixo o URL público do blob é totalmente
+  // adivinhável (projetos/<projetoId>/<arquivoId>.<ext>) e o cliente do portal
+  // conhece projetoId+arquivoId+tipo pelo DTO, contornando o proxy/revogação.
+  // Com sufixo aleatório, o URL directo é imprevisível e o blobUrl nunca sai do
+  // servidor → revogar o token corta mesmo o acesso.
+  const basePath = `projetos/${projetoId}/${arquivoId}.${ext}`;
 
   let blobUrl: string;
+  let pathname: string;
   try {
-    const blob = await put(pathname, file, {
+    const blob = await put(basePath, file, {
       access: "public",
       contentType: file.type,
-      addRandomSuffix: false,
+      addRandomSuffix: true,
     });
     blobUrl = blob.url;
+    pathname = blob.pathname;
   } catch (err) {
     console.error("Blob put failed:", err);
     return NextResponse.json(

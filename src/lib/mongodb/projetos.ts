@@ -61,7 +61,16 @@ export async function getProjetosResumo(): Promise<ProjetoResumo[]> {
 export async function upsertProjeto(projeto: Projeto): Promise<void> {
   const db = await getDb();
   const col = db.collection<Projeto>(COLLECTION);
-  await col.updateOne({ id: projeto.id }, { $set: projeto }, { upsert: true });
+  // `portal` e `links` são geridos por rotas próprias (atómicas). Não os pôr no
+  // $set do documento inteiro, senão um upsert que leu um `existing` obsoleto
+  // reverte silenciosamente um "Gerar link"/pushLink concorrente (lost update,
+  // painel PWA/multi-dispositivo). Só entram no insert inicial, com $setOnInsert.
+  const { portal, links, ...rest } = projeto;
+  await col.updateOne(
+    { id: projeto.id },
+    { $set: rest, $setOnInsert: { portal: portal ?? null, links: links ?? null } },
+    { upsert: true }
+  );
 }
 
 export async function patchProjeto(

@@ -45,10 +45,16 @@ async function limit(key: string, max: number, windowMs: number) {
 }
 
 function getClientIp(req: Request): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
+  // x-real-ip primeiro (posto pela Vercel, não falsificável). O x-forwarded-for
+  // é appended: o token mais à esquerda é do cliente, logo rotável para furar
+  // rate-limits — usar o último token só como fallback. Ver lib/rate-limit.ts.
   const real = req.headers.get("x-real-ip");
   if (real) return real.trim();
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) {
+    const parts = fwd.split(",");
+    return parts[parts.length - 1]!.trim();
+  }
   return "unknown";
 }
 

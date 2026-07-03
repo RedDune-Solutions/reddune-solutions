@@ -82,9 +82,28 @@ describe("toPortalProjeto", () => {
     });
   });
 
-  it("valores null quando não há orçamento", () => {
+  it("valores null quando não há orçamento nem pagamentos", () => {
     const p = { ...makeProjeto(), valorEstimado: null, linhas: null };
     expect(toPortalProjeto(p, []).valores).toBeNull();
+  });
+
+  it("mostra pago mesmo sem orçamento (sinal registado)", () => {
+    const p = { ...makeProjeto(), valorEstimado: null, linhas: null };
+    const so1: Pagamento = { id: "s1", projetoId: "p1", clienteId: "c1", valor: 100, data: "2026-07-02", metodo: "mbway", notas: null, criadoEm: "2026-07-02" };
+    expect(toPortalProjeto(p, [so1]).valores).toEqual({
+      orcado: 100,
+      pago: 100,
+      emFalta: 0,
+      categorias: [],
+    });
+  });
+
+  it("Total bate com a soma dos subtotais quando há linhas (ignora valorEstimado dessincronizado)", () => {
+    const p = { ...makeProjeto(), valorEstimado: 999 }; // linhas somam 400
+    const v = toPortalProjeto(p, []).valores!;
+    const somaCategorias = v.categorias.reduce((s, c) => s + c.total, 0);
+    expect(v.orcado).toBe(somaCategorias);
+    expect(v.orcado).toBe(400);
   });
 
   it("labels de status e tipos amigáveis; tipos custom passam crus", () => {

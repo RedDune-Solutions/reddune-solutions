@@ -8,6 +8,10 @@ type Props = { token: string; arquivoId?: string; linkId?: string; compact?: boo
 export function ComentarioForm({ token, arquivoId, linkId, compact }: Props) {
   const router = useRouter();
   const [texto, setTexto] = useState("");
+  // Honeypot controlado: humanos deixam-no vazio (está escondido); bots que
+  // preenchem o campo no DOM são apanhados no servidor. Antes ia "" hardcoded
+  // no payload, pelo que o honeypot nunca disparava.
+  const [website, setWebsite] = useState("");
   const [estado, setEstado] = useState<"idle" | "sending" | "ok" | "erro">("idle");
   const [erro, setErro] = useState<string | null>(null);
 
@@ -20,7 +24,7 @@ export function ComentarioForm({ token, arquivoId, linkId, compact }: Props) {
       const res = await fetch("/api/portal/comentario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ t: token, texto, arquivoId, linkId, website: "" }),
+        body: JSON.stringify({ t: token, texto, arquivoId, linkId, website }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -47,10 +51,12 @@ export function ComentarioForm({ token, arquivoId, linkId, compact }: Props) {
         placeholder="Deixa aqui a tua opinião ou sugestão…"
         className="w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#d6422a]/40"
       />
-      {/* honeypot invisível */}
+      {/* honeypot invisível — humanos não o veem; bots preenchem-no */}
       <input
         type="text"
         name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
         tabIndex={-1}
         autoComplete="off"
         className="hidden"
