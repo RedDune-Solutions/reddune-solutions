@@ -12,8 +12,10 @@ export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB (PDFs/orçamentos)
 
-// Imagens + documentos comuns (orçamentos, recibos).
+// Imagens + documentos comuns (orçamentos, recibos) + mockups HTML de ficheiro
+// único (Claude Design) — servidos ao cliente só via proxy do portal com CSP sandbox.
 const EXT_BY_MIME: Record<string, string> = {
+  "text/html": "html",
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
