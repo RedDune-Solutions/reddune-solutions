@@ -58,6 +58,17 @@ export async function getProjetosResumo(): Promise<ProjetoResumo[]> {
     .toArray() as Promise<ProjetoResumo[]>;
 }
 
+/** Títulos de vários projectos por id (para o feed do sino não puxar docs inteiros). */
+export async function getProjetoTitulosByIds(ids: string[]): Promise<Record<string, string>> {
+  if (ids.length === 0) return {};
+  const db = await getDb();
+  const docs = await db
+    .collection<Projeto>(COLLECTION)
+    .find({ id: { $in: ids } }, { projection: { _id: 0, id: 1, titulo: 1 } })
+    .toArray();
+  return Object.fromEntries(docs.map((d) => [d.id, d.titulo]));
+}
+
 export async function upsertProjeto(projeto: Projeto): Promise<void> {
   const db = await getDb();
   const col = db.collection<Projeto>(COLLECTION);

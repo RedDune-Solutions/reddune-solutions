@@ -1,5 +1,10 @@
 import { getLeadsNovosRecentes, countLeadsNovos } from "@/lib/mongodb/leads";
 import { getRecentAuditEntries } from "@/lib/mongodb/mutation-audit";
+import {
+  countComentariosNaoLidos,
+  getComentariosNaoLidosRecentes,
+} from "@/lib/mongodb/portal";
+import { getProjetoTitulosByIds } from "@/lib/mongodb/projetos";
 import { SUBJECT_LABELS } from "@/lib/validation";
 import { apiOk, apiError, withAuth } from "@/lib/api";
 
@@ -21,6 +26,7 @@ export const dynamic = "force-dynamic";
 
 const MAX_LEADS = 8;
 const MAX_AUDIT = 8;
+const MAX_COMENTARIOS = 8;
 const MAX_ITEMS = 12;
 
 const OP_VERB: Record<string, string> = {
@@ -42,7 +48,7 @@ const COLL_LABEL: Record<string, string> = {
 
 type NotificationItem = {
   id: string;
-  type: "lead" | "audit";
+  type: "lead" | "audit" | "comment";
   title: string;
   description: string;
   href: string;
@@ -73,10 +79,18 @@ function pickLabel(obj: unknown): string | undefined {
 
 export const GET = withAuth(async () => {
   try {
-    const [unread, leads, audit] = await Promise.all([
+    const [leadsNovos, comentariosNaoLidos, leads, audit, comentarios] = await Promise.all([
       countLeadsNovos(),
+      countComentariosNaoLidos(),
       getLeadsNovosRecentes(MAX_LEADS),
       getRecentAuditEntries(MAX_AUDIT),
+      getComentariosNaoLidosRecentes(MAX_COMENTARIOS),
+    ]);
+    // Badge = tudo o que está por tratar: leads novos + comentários por ler.
+    const unread = leadsNovos + comentariosNaoLidos;
+
+    const titulos = await getProjetoTitulosByIds([
+      ...new Set(comentarios.map((c) => c.projetoId)),
     ]);
 
     const leadItems: NotificationItem[] = leads
@@ -109,7 +123,18 @@ export const GET = withAuth(async () => {
       };
     });
 
-    const items = [...leadItems, ...auditItems]
+    const comentarioItems: NotificationItem[] = comentarios.map((c) => ({
+      id: `comentario-${c.id}`,
+      type: "comment" as const,
+      title: `💬 Comentário · ${c.autorNome ?? "Cliente"}`,
+      description: titulos[c.projetoId]
+        ? `${titulos[c.projetoId]} — ${c.texto}`
+        : c.texto,
+      href: `/painel/projetos/${c.projetoId}`,
+      timestamp: c.criadoEm,
+    }));
+
+    const items = [...leadItems, ...auditItems, ...comentarioItems]
       .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
       .slice(0, MAX_ITEMS);
 

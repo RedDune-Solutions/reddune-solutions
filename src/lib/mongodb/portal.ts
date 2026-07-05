@@ -60,6 +60,31 @@ export async function deleteComentariosByProjeto(projetoId: string): Promise<voi
   await db.collection<PortalComentario>(COMENTARIOS).deleteMany({ projetoId });
 }
 
+/** Total de comentários por ler (badge do sino). */
+export async function countComentariosNaoLidos(): Promise<number> {
+  const db = await getDb();
+  return db.collection<PortalComentario>(COMENTARIOS).countDocuments({ lidoEm: null });
+}
+
+export type ComentarioFeed = Pick<
+  PortalComentario,
+  "id" | "projetoId" | "autorNome" | "texto" | "criadoEm"
+>;
+
+/** Comentários por ler mais recentes — só os campos do feed do sino. */
+export async function getComentariosNaoLidosRecentes(limit = 8): Promise<ComentarioFeed[]> {
+  const db = await getDb();
+  return db
+    .collection<PortalComentario>(COMENTARIOS)
+    .find(
+      { lidoEm: null },
+      { projection: { _id: 0, id: 1, projetoId: 1, autorNome: 1, texto: 1, criadoEm: 1 } }
+    )
+    .sort({ criadoEm: -1 })
+    .limit(limit)
+    .toArray() as Promise<ComentarioFeed[]>;
+}
+
 /** Nº de comentários nas últimas 24h por projecto (tecto anti-flood). */
 export async function countComentariosRecentes(projetoId: string): Promise<number> {
   const db = await getDb();

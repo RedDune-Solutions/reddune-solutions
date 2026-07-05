@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Bell, FileText, UserPlus } from "lucide-react";
+import { Bell, FileText, UserPlus, MessageSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,7 +12,7 @@ import { safeFetch } from "@/lib/safe-fetch";
 
 type NotificationItem = {
   id: string;
-  type: "lead" | "audit";
+  type: "lead" | "audit" | "comment";
   title: string;
   description: string;
   href: string;
@@ -68,7 +68,7 @@ export function NotificationsBell() {
   const badgeLabel = unread > 9 ? "9+" : String(unread);
 
   const ariaLabel = hasBadge
-    ? `Notificações, ${unread} ${unread === 1 ? "lead novo" : "leads novos"}`
+    ? `Notificações, ${unread} por tratar`
     : "Notificações";
 
   return (
@@ -139,17 +139,19 @@ export function NotificationsBell() {
                     className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                     style={{
                       background:
-                        item.type === "lead"
+                        item.type === "lead" || item.type === "comment"
                           ? "rgba(214, 66, 42, 0.12)"
                           : "var(--cream-deep, #efe3cd)",
                       color:
-                        item.type === "lead"
+                        item.type === "lead" || item.type === "comment"
                           ? "var(--ember, #d6422a)"
                           : "var(--ink-mute, #8a7a63)",
                     }}
                   >
                     {item.type === "lead" ? (
                       <UserPlus size={14} />
+                    ) : item.type === "comment" ? (
+                      <MessageSquare size={14} />
                     ) : (
                       <FileText size={14} />
                     )}
