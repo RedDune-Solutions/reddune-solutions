@@ -5,12 +5,14 @@ import type { PortalClienteDTO } from "@/lib/portal-dto";
 
 type Props = { token: string; cliente: PortalClienteDTO };
 
+// Ordem = layout da grelha (≥600px, 3 colunas): Nome · Email · Telemóvel /
+// NIF · Morada (span 2) / botão (span total).
 const CAMPOS: { key: keyof PortalClienteDTO; label: string; type?: string; placeholder: string }[] = [
-  { key: "nome", label: "Nome", placeholder: "O teu nome" },
+  { key: "nome", label: "Nome", placeholder: "O seu nome" },
   { key: "email", label: "Email", type: "email", placeholder: "email@exemplo.pt" },
   { key: "telefone", label: "Telemóvel", type: "tel", placeholder: "9xx xxx xxx" },
+  { key: "nif", label: "NIF", placeholder: "Para fatura (9 dígitos)" },
   { key: "morada", label: "Morada", placeholder: "Rua, nº, código postal, localidade" },
-  { key: "nif", label: "NIF", placeholder: "Para factura (9 dígitos)" },
 ];
 
 export function FichaClienteForm({ token, cliente }: Props) {
@@ -60,13 +62,13 @@ export function FichaClienteForm({ token, cliente }: Props) {
   }
 
   return (
-    <form onSubmit={guardar} className="grid gap-3 sm:grid-cols-2">
+    <form onSubmit={guardar} className="grid gap-3 min-[600px]:grid-cols-3">
       {CAMPOS.map(({ key, label, type, placeholder }) => (
-        <label key={key} className={key === "morada" ? "sm:col-span-2" : ""}>
-          <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <label key={key} className={key === "morada" ? "min-[600px]:col-span-2" : ""}>
+          <span className="mb-[5px] block font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-mute">
             {label}
             {!(dados[key] ?? "").toString().trim() && (
-              <span className="ml-2 font-normal normal-case tracking-normal text-[#d6422a]">
+              <span className="ml-2 font-serif text-[12.5px] font-medium normal-case italic tracking-normal text-ember">
                 por preencher
               </span>
             )}
@@ -76,20 +78,20 @@ export function FichaClienteForm({ token, cliente }: Props) {
             value={dados[key] ?? ""}
             onChange={(e) => setDados((d) => ({ ...d, [key]: e.target.value }))}
             placeholder={placeholder}
-            className="w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#d6422a]/40"
+            className="w-full rounded-[12px] border border-[rgba(90,14,14,0.12)] bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-[border-color,box-shadow] duration-300 ease-oasis placeholder:text-ink-mute focus:border-ember focus:shadow-[0_0_0_3px_rgba(214,66,42,0.14)]"
           />
         </label>
       ))}
-      <div className="flex items-center gap-3 sm:col-span-2">
+      <div className="flex items-center gap-3.5 min-[600px]:col-span-3">
         <button
           type="submit"
           disabled={estado === "saving"}
-          className="rounded-lg border border-[#d6422a] px-4 py-2 text-sm font-semibold text-[#d6422a] hover:bg-[#d6422a]/5 disabled:opacity-50"
+          className="rounded-full border border-ember bg-transparent px-[26px] py-3 text-sm font-semibold leading-[1.2] text-ember transition duration-[350ms] ease-oasis hover:-translate-y-0.5 hover:bg-[rgba(214,66,42,0.06)] disabled:cursor-default disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-transparent"
         >
           {estado === "saving" ? "A guardar…" : "Guardar os meus dados"}
         </button>
-        {estado === "ok" && <span className="text-sm text-emerald-700">Guardado ✓</span>}
-        {erro && <span className="text-sm text-rose-700">{erro}</span>}
+        {estado === "ok" && <span className="text-sm font-semibold text-ember">Guardado ✓</span>}
+        {erro && <span className="text-sm text-dune">{erro}</span>}
       </div>
     </form>
   );

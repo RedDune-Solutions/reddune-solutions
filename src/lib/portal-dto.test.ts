@@ -64,7 +64,7 @@ describe("toPortalProjeto", () => {
 
   it("não expõe chaves proibidas", () => {
     const dto = toPortalProjeto(makeProjeto(), pagamentos) as unknown as Record<string, unknown>;
-    for (const k of ["bodyMd", "notasResumo", "proximaAccao", "linhas", "portal", "metodoPagamento", "valorPago"]) {
+    for (const k of ["bodyMd", "notasResumo", "proximaAccao", "linhas", "portal", "metodoPagamento", "valorPago", "garantiaAte"]) {
       expect(dto).not.toHaveProperty(k);
     }
   });

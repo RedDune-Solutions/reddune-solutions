@@ -29,7 +29,7 @@ export type PortalProjetoDTO = {
   statusLabel: string;
   prazo: string | null;
   tipoLabels: string[];
-  garantiaAte: string | null;
+  // garantiaAte fica FORA de propósito: o portal não mostra garantia (redesign 2026-07).
   hardware: { marca: string | null; modelo: string | null } | null;
   arquivos: PortalArquivoDTO[];
   links: PortalLinkDTO[];
@@ -83,7 +83,6 @@ export function toPortalProjeto(projeto: Projeto, pagamentos: Pagamento[]): Port
     tipoLabels: (projeto.tipos ?? (projeto.tipo ? [projeto.tipo] : [])).map(
       (t) => PROJETO_TIPO_LABEL[t as ProjetoTipo] ?? t
     ),
-    garantiaAte: projeto.garantiaAte ?? null,
     hardware: projeto.hardware
       ? { marca: projeto.hardware.marca ?? null, modelo: projeto.hardware.modelo ?? null }
       : null,

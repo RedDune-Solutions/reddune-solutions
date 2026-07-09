@@ -14,11 +14,11 @@ export function SandboxFrame({ src, title }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3.5">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-sm font-semibold text-[#d6422a] hover:underline"
+          className="text-sm font-semibold text-ember transition-colors hover:text-dune hover:underline"
         >
           {open ? "Fechar" : "Abrir projeto"}
         </button>
@@ -26,7 +26,7 @@ export function SandboxFrame({ src, title }: Props) {
           href={src}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-muted-foreground hover:underline"
+          className="text-[13.5px] text-ink-mute transition-colors hover:text-ink-soft hover:underline"
         >
           Ecrã inteiro ↗
         </a>
@@ -36,8 +36,8 @@ export function SandboxFrame({ src, title }: Props) {
           src={src}
           title={title}
           sandbox="allow-scripts allow-forms allow-modals"
-          className="mt-3 w-full rounded-lg border bg-white"
-          style={{ height: "75vh" }}
+          className="mt-3.5 w-full rounded-[20px] border border-dashed border-[rgba(90,14,14,0.20)] bg-white/55"
+          style={{ height: "68vh" }}
         />
       )}
     </div>

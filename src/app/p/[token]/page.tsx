@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { resolvePortalToken } from "@/lib/portal-auth";
 import { getClienteById } from "@/lib/mongodb/clientes";
@@ -6,6 +8,8 @@ import { getPagamentosByProjeto } from "@/lib/mongodb/pagamentos";
 import { getComentariosByProjeto } from "@/lib/mongodb/portal";
 import { getSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
 import { toPortalProjeto, toPortalCliente } from "@/lib/portal-dto";
+import { Reveal } from "@/components/motion/Reveal";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PreviewFrame } from "@/components/portal/PreviewFrame";
 import { SandboxFrame } from "@/components/portal/SandboxFrame";
 import { ComentarioForm } from "@/components/portal/ComentarioForm";
@@ -14,7 +18,7 @@ import { FichaClienteForm } from "@/components/portal/FichaClienteForm";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "O teu projecto · RedDune Solutions",
+  title: "O seu projeto · RedDune Solutions",
   robots: { index: false, follow: false },
 };
 
@@ -25,6 +29,9 @@ const dataPt = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" })
     : null;
+
+const cardCls = "rounded-card border border-[rgba(90,14,14,0.10)] bg-sand-warm shadow-warm";
+const labelCls = "font-mono text-[11.5px] font-medium uppercase tracking-[0.18em] text-ember";
 
 export default async function PortalPage({ params }: { params: Params }) {
   const { token } = await params;
@@ -44,103 +51,113 @@ export default async function PortalPage({ params }: { params: Params }) {
     `/api/portal/sandbox/${s.id}/${s.entry.split("/").map(encodeURIComponent).join("/")}`;
 
   return (
-    <main className="min-h-screen bg-[#faf6f1] px-4 py-10">
-      <div className="mx-auto max-w-3xl space-y-8">
+    <main className="flex min-h-screen flex-col px-5 pt-11">
+      <div className="mx-auto flex w-full max-w-[720px] flex-1 flex-col gap-7">
         {/* Marca */}
-        <header className="flex items-center justify-between">
-          <p
-            className="text-lg font-bold tracking-tight"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            RedDune <span className="text-[#d6422a]">Solutions</span>
-          </p>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        <header className="flex items-center justify-between gap-4">
+          <Link href="/" title="Ir para o site RedDune Solutions" className="inline-flex">
+            <Image
+              src="/logo.png"
+              alt="RedDune Solutions"
+              width={160}
+              height={44}
+              className="h-[34px] w-auto object-contain"
+            />
+          </Link>
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-ink-mute">
             Portal do cliente
           </p>
         </header>
 
-        {/* Projecto */}
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            O teu projecto
-          </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
-            {dto.titulo}
-          </h1>
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
-            <span className="rounded-full bg-[#d6422a]/10 px-3 py-1 font-semibold text-[#d6422a]">
-              {dto.statusLabel}
-            </span>
-            {dto.tipoLabels.map((t) => (
-              <span key={t} className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-                {t}
-              </span>
-            ))}
-          </div>
-          <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-            {dto.prazo && <Info label="Prazo previsto" value={dataPt(dto.prazo)!} />}
-            {dto.garantiaAte && <Info label="Garantia até" value={dataPt(dto.garantiaAte)!} />}
-            {dto.hardware?.marca && (
-              <Info
-                label="Equipamento"
-                value={[dto.hardware.marca, dto.hardware.modelo].filter(Boolean).join(" ")}
-              />
-            )}
-          </dl>
-        </section>
-
-        {/* Valores */}
-        {dto.valores && (
-          <section className="rounded-2xl border bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-              Valores
-            </h2>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-              <Kpi label="Total" value={eur(dto.valores.orcado)} />
-              <Kpi label="Pago" value={eur(dto.valores.pago)} />
-              <Kpi label="Em falta" value={eur(dto.valores.emFalta)} accent={dto.valores.emFalta > 0} />
-            </div>
-            {dto.valores.categorias.length > 0 && (
-              <ul className="mt-4 space-y-1 border-t pt-3 text-sm">
-                {dto.valores.categorias.map((c) => (
-                  <li key={c.label} className="flex justify-between">
-                    <span className="text-muted-foreground">{c.label}</span>
-                    <span className="font-medium">{eur(c.total)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
+        {/* Cartão principal: Projeto / Os seus dados */}
+        <Reveal as="section" className={`${cardCls} p-7`}>
+          <PortalTabs
+            projeto={
+              <>
+                <p className="mb-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ember">
+                  O seu projeto
+                </p>
+                <h1
+                  className="font-display text-[clamp(28px,5.4vw,38px)] font-bold leading-[1.06] tracking-[-0.035em] text-ink [text-wrap:balance]"
+                  style={{ fontVariationSettings: '"opsz" 88' }}
+                >
+                  <TituloComEnfase titulo={dto.titulo} />
+                </h1>
+                <div className="mt-3.5 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-[rgba(214,66,42,0.10)] px-3.5 py-[5px] text-[13px] font-semibold text-ember">
+                    {dto.statusLabel}
+                  </span>
+                  {dto.tipoLabels.map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-full bg-[rgba(90,14,14,0.07)] px-3.5 py-[5px] text-[13px] font-medium text-ink-soft"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                {(dto.prazo || dto.hardware?.marca) && (
+                  <dl className="mt-5 grid gap-3 border-t border-dashed border-[rgba(90,14,14,0.16)] pt-4 min-[600px]:grid-cols-2">
+                    {dto.prazo && <Info label="Prazo previsto" value={dataPt(dto.prazo)!} />}
+                    {dto.hardware?.marca && (
+                      <Info
+                        label="Equipamento"
+                        value={[dto.hardware.marca, dto.hardware.modelo].filter(Boolean).join(" ")}
+                      />
+                    )}
+                  </dl>
+                )}
+              </>
+            }
+            dados={
+              cliente ? (
+                <>
+                  <p className="mb-4 text-sm text-ink-soft">
+                    Confirme ou complete os seus dados — ajudam-nos a faturar e a contactá-lo.
+                  </p>
+                  <FichaClienteForm token={token} cliente={toPortalCliente(cliente)} />
+                </>
+              ) : undefined
+            }
+          />
+        </Reveal>
 
         {/* Entregáveis */}
         {(dto.arquivos.length > 0 || dto.links.length > 0 || sandboxes.length > 0) && (
-          <section className="space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          <section className="flex flex-col gap-4">
+            <Reveal as="h2" className={labelCls}>
               Entregáveis
-            </h2>
+            </Reveal>
             {sandboxes.map((s) => (
-              <article key={s.id} className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
+              <Reveal as="article" key={s.id} className={`${cardCls} flex flex-col gap-3.5 p-6`}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <p className="font-semibold">{s.nome}</p>
-                  <p className="shrink-0 text-xs text-muted-foreground">projeto web</p>
+                  <p className="font-display text-[17px] font-semibold tracking-[-0.01em] text-ink [overflow-wrap:anywhere]">
+                    {s.nome}
+                  </p>
+                  <p className="shrink-0 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-mute">
+                    Projeto web
+                  </p>
                 </div>
                 <SandboxFrame src={sandboxSrc(s)} title={s.nome} />
                 <ComentarioForm token={token} sandboxId={s.id} compact />
-              </article>
+              </Reveal>
             ))}
             {dto.links.map((k) => (
-              <article key={k.id} className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
-                <p className="font-semibold">{k.label}</p>
+              <Reveal as="article" key={k.id} className={`${cardCls} flex flex-col gap-3.5 p-6`}>
+                <p className="font-display text-[17px] font-semibold tracking-[-0.01em] text-ink [overflow-wrap:anywhere]">
+                  {k.label}
+                </p>
                 <PreviewFrame src={k.url} title={k.label} />
                 <ComentarioForm token={token} linkId={k.id} compact />
-              </article>
+              </Reveal>
             ))}
             {dto.arquivos.map((a) => (
-              <article key={a.id} className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
+              <Reveal as="article" key={a.id} className={`${cardCls} flex flex-col gap-3.5 p-6`}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <p className="break-all font-semibold">{a.nome}</p>
-                  <p className="shrink-0 text-xs text-muted-foreground">
+                  <p className="font-display text-[17px] font-semibold tracking-[-0.01em] text-ink [overflow-wrap:anywhere]">
+                    {a.nome}
+                  </p>
+                  <p className="shrink-0 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-mute">
                     {Math.max(1, Math.round(a.tamanho / 1024))} KB
                   </p>
                 </div>
@@ -149,7 +166,7 @@ export default async function PortalPage({ params }: { params: Params }) {
                   <img
                     src={arquivoSrc(a.id)}
                     alt={a.nome}
-                    className="max-h-[70vh] w-auto rounded-lg border"
+                    className="max-h-[70vh] w-auto rounded-[20px] border border-[rgba(90,14,14,0.12)]"
                   />
                 ) : a.tipo === "text/html" ? (
                   <PreviewFrame src={arquivoSrc(a.id)} title={a.nome} html />
@@ -158,80 +175,117 @@ export default async function PortalPage({ params }: { params: Params }) {
                 ) : (
                   <a
                     href={arquivoSrc(a.id)}
-                    className="text-sm font-semibold text-[#d6422a] hover:underline"
+                    className="text-sm font-semibold text-ember transition-colors hover:text-dune hover:underline"
                   >
                     Descarregar ↓
                   </a>
                 )}
                 <ComentarioForm token={token} arquivoId={a.id} compact />
-              </article>
+              </Reveal>
             ))}
           </section>
         )}
 
-        {/* Comentários */}
-        <section className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Opiniões e sugestões
-          </h2>
+        {/* Observações gerais */}
+        <Reveal as="section" className={`${cardCls} p-7`}>
+          <h2 className={`${labelCls} mb-4`}>Observações gerais</h2>
           <ComentarioForm token={token} />
           {comentarios.length > 0 && (
-            <ul className="space-y-3 border-t pt-4">
+            <ul className="mt-1 flex flex-col gap-3.5 border-t border-dashed border-[rgba(90,14,14,0.16)] pt-[18px] text-sm">
               {comentarios.map((c) => (
-                <li key={c.id} className="text-sm">
-                  <p className="text-muted-foreground">
-                    <span className="font-semibold text-foreground">{c.autorNome ?? "Cliente"}</span>
+                <li key={c.id}>
+                  <p className="text-ink-mute">
+                    <span className="font-semibold text-ink">{c.autorNome ?? "Cliente"}</span>
                     {" · "}
                     {dataPt(c.criadoEm)}
                   </p>
-                  <p className="whitespace-pre-wrap">{c.texto}</p>
+                  <p className="whitespace-pre-wrap text-ink-soft">{c.texto}</p>
                 </li>
               ))}
             </ul>
           )}
-        </section>
+        </Reveal>
 
-        {/* Ficha */}
-        {cliente && (
-          <section className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Os teus dados
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Confirma ou completa os teus dados — ajudam-nos a facturar e a contactar-te.
-              </p>
+        {/* Valores — slab escuro no fim */}
+        {dto.valores && (
+          <Reveal
+            as="section"
+            className="rounded-card bg-ink p-7 text-cream shadow-brand"
+          >
+            <h2 className="font-mono text-[11.5px] font-medium uppercase tracking-[0.18em] text-apricot">
+              Valores
+            </h2>
+            <div className="mt-[18px] grid grid-cols-3 gap-3">
+              <Kpi label="Total" value={eur(dto.valores.orcado)} />
+              <Kpi label="Pago" value={eur(dto.valores.pago)} />
+              <Kpi label="Em falta" value={eur(dto.valores.emFalta)} accent />
             </div>
-            <FichaClienteForm token={token} cliente={toPortalCliente(cliente)} />
-          </section>
+            {dto.valores.categorias.length > 0 && (
+              <ul className="mt-5 flex flex-col gap-1.5 border-t border-dashed border-[rgba(247,238,219,0.20)] pt-4 text-sm">
+                {dto.valores.categorias.map((c) => (
+                  <li key={c.label} className="flex justify-between">
+                    <span className="text-[rgba(247,238,219,0.70)]">{c.label}</span>
+                    <span className="font-semibold text-cream">{eur(c.total)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Reveal>
         )}
-
-        <footer className="pb-6 text-center text-xs text-muted-foreground">
-          Dúvidas? Escreve-nos: reddunesolutions@gmail.com
-        </footer>
       </div>
+
+      <Reveal as="footer" className="px-3 py-[26px]">
+        <div className="flex items-center justify-center font-mono text-[11px] uppercase tracking-[0.15em] text-ink-mute">
+          <span>© 2026 RedDune Solutions</span>
+        </div>
+      </Reveal>
     </main>
+  );
+}
+
+/**
+ * Um único <em> no h1 (Newsreader itálico + gradiente ember→apricot): a parte
+ * após o último " — " do título, ou a última palavra quando não há separador.
+ */
+function TituloComEnfase({ titulo }: { titulo: string }) {
+  const sep = titulo.lastIndexOf(" — ");
+  const corte = sep > 0 ? sep + 3 : titulo.lastIndexOf(" ") + 1;
+  const antes = titulo.slice(0, corte);
+  const enfase = titulo.slice(corte);
+  return (
+    <>
+      {antes}
+      <em className="bg-[linear-gradient(120deg,var(--ember)_30%,var(--apricot)_80%)] bg-clip-text font-serif font-medium italic tracking-[-0.01em] text-transparent">
+        {enfase}
+      </em>
+    </>
   );
 }
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+      <dt className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-ink-mute">
         {label}
       </dt>
-      <dd className="font-medium">{value}</dd>
+      <dd className="mt-0.5 text-[15px] font-medium text-ink">{value}</dd>
     </div>
   );
 }
 
 function Kpi({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl bg-muted/40 px-2 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+    <div>
+      <p className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[rgba(247,238,219,0.55)]">
         {label}
       </p>
-      <p className="text-lg font-bold" style={accent ? { color: "#d6422a" } : undefined}>
+      <p
+        className={`mt-1 font-display text-[clamp(22px,4.4vw,30px)] font-bold tracking-[-0.02em] ${
+          accent
+            ? "bg-[linear-gradient(120deg,var(--ember)_20%,var(--flame)_85%)] bg-clip-text text-transparent"
+            : "text-cream"
+        }`}
+      >
         {value}
       </p>
     </div>
