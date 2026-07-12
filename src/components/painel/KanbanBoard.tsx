@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { readKanbanOrder } from "./KanbanOrderSettings";
 
 const COLLAPSE_KEY = "painel.kanban.collapsedColumns";
+const COLLAPSE_SECS_KEY = "painel.kanban.collapsedSections";
 
 /** Estados finais: sem acção rápida "Concluir". */
 const DONE_STATUSES: ProjetoStatus[] = ["terminado", "fechado", "cancelado"];
@@ -328,12 +329,16 @@ function KanbanExtraSection({
   section,
   items,
   dragActive,
+  isCollapsed,
+  onToggle,
   onConcluir,
   suppressClickRef,
 }: {
   section: ExtraSection;
   items: Projeto[];
   dragActive: boolean;
+  isCollapsed: boolean;
+  onToggle: (section: ExtraSection) => void;
   onConcluir: (projeto: Projeto) => void;
   suppressClickRef: React.MutableRefObject<boolean>;
 }) {
@@ -345,28 +350,48 @@ function KanbanExtraSection({
   // Só aparece com itens OU durante um drag (para se poder largar aqui).
   if (items.length === 0 && !dragActive) return null;
 
+  // Recolhida esconde os cards — mas durante um drag expande à força,
+  // senão não havia onde largar.
+  const showRow = !isCollapsed || dragActive;
+
   return (
     <div ref={setNodeRef} className="ksec" aria-label={section.label}>
       <div className="ksec-head">
         <span className="dot" style={{ background: section.dot }} />
         {section.label}
+        <span style={{ marginLeft: "auto" }}>{items.length}</span>
+        <button
+          type="button"
+          onClick={() => onToggle(section)}
+          aria-label={isCollapsed ? `Expandir ${section.label}` : `Recolher ${section.label}`}
+          aria-expanded={!isCollapsed}
+          className="text-ink-mute hover:text-ink"
+        >
+          {showRow ? (
+            <ChevronDown className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5" />
+          )}
+        </button>
       </div>
-      <div className={cn("ksec-row", isOver && "drop-over")}>
-        {items.length === 0 ? (
-          <span className="font-mono text-[10.5px] text-ink-mute self-center">
-            Larga aqui
-          </span>
-        ) : (
-          items.map((projeto) => (
-            <KanbanCard
-              key={projeto.id}
-              projeto={projeto}
-              onConcluir={onConcluir}
-              suppressClickRef={suppressClickRef}
-            />
-          ))
-        )}
-      </div>
+      {showRow && (
+        <div className={cn("ksec-row", isOver && "drop-over")}>
+          {items.length === 0 ? (
+            <span className="font-mono text-[10.5px] text-ink-mute self-center">
+              Larga aqui
+            </span>
+          ) : (
+            items.map((projeto) => (
+              <KanbanCard
+                key={projeto.id}
+                projeto={projeto}
+                onConcluir={onConcluir}
+                suppressClickRef={suppressClickRef}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -382,6 +407,7 @@ export function KanbanBoard({ projetos, className }: Props) {
   const [, startTransition] = useTransition();
 
   const [collapsed, setCollapsed] = useState<Set<ProjetoStatus>>(new Set());
+  const [collapsedSecs, setCollapsedSecs] = useState<Set<string>>(new Set());
   const [mainColumns, setMainColumns] = useState<KanbanColumnDef[]>(MAIN_COLUMNS);
   // UI optimista: overrides de estado por projecto enquanto o servidor confirma.
   const [overrides, setOverrides] = useState<Record<string, ProjetoStatus>>({});
@@ -398,6 +424,12 @@ export function KanbanBoard({ projetos, className }: Props) {
     try {
       const raw = localStorage.getItem(COLLAPSE_KEY);
       if (raw) setCollapsed(new Set(JSON.parse(raw) as ProjetoStatus[]));
+    } catch {
+      // ignore
+    }
+    try {
+      const raw = localStorage.getItem(COLLAPSE_SECS_KEY);
+      if (raw) setCollapsedSecs(new Set(JSON.parse(raw) as string[]));
     } catch {
       // ignore
     }
@@ -434,6 +466,20 @@ export function KanbanBoard({ projetos, className }: Props) {
       else next.add(column.dropStatus);
       try {
         localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...next]));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
+
+  function toggleSection(section: ExtraSection) {
+    setCollapsedSecs((prev) => {
+      const next = new Set(prev);
+      if (next.has(section.id)) next.delete(section.id);
+      else next.add(section.id);
+      try {
+        localStorage.setItem(COLLAPSE_SECS_KEY, JSON.stringify([...next]));
       } catch {
         // ignore
       }
@@ -579,6 +625,8 @@ export function KanbanBoard({ projetos, className }: Props) {
                 section={sec}
                 items={itemsOf(sec.statuses)}
                 dragActive={dragActive}
+                isCollapsed={collapsedSecs.has(sec.id)}
+                onToggle={toggleSection}
                 onConcluir={handleConcluir}
                 suppressClickRef={suppressClickRef}
               />

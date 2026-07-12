@@ -53,10 +53,13 @@
 .pnl .side-user .logout:disabled { opacity: 0.4; cursor: default; }
 
 /* ===================== CONTEÚDO ===================== */
-.pnl .content { overflow-y: auto; max-height: 100vh; background:
+/* O scroll é da JANELA (uma só scrollbar) — o protótipo scrollava no .content,
+   mas isso criava scrollbar dupla no browser real. A sidebar fica sticky. */
+.pnl .content { background:
   radial-gradient(ellipse 60% 32% at 12% -8%, rgba(243, 199, 155, 0.30), transparent 60%),
   radial-gradient(ellipse 70% 38% at 110% 12%, rgba(232, 153, 104, 0.16), transparent 65%),
   var(--cream); }
+.pnl .side { position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .pnl .main { padding: 26px 32px 40px; max-width: 1200px; margin-inline: auto; }
 
 .pnl .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
