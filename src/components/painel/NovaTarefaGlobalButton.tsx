@@ -26,6 +26,11 @@ import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projetos: Projeto[];
+  /** Controlo externo do sheet (ex.: NovoMenu). Sem esta prop gere o próprio estado. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Esconde o botão trigger — o sheet passa a abrir apenas via `open` controlado. */
+  hideTrigger?: boolean;
 };
 
 // Mostra no selector apenas projetos cujas tarefas são visíveis em
@@ -33,11 +38,17 @@ type Props = {
 // para que nenhuma tarefa criada fique invisível.
 const ACTIVE_STATUSES = TAREFAS_VISIVEIS_STATUSES;
 
-export function NovaTarefaGlobalButton({ projetos }: Props) {
+export function NovaTarefaGlobalButton({
+  projetos,
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
+}: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
   const [projetoId, setProjetoId] = useState("");
   const [titulo, setTitulo] = useState("");
   const [prazo, setPrazo] = useState("");
@@ -57,6 +68,12 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
     setPrazoHora("");
     setNotas("");
     setError(null);
+  }
+
+  function setOpen(o: boolean) {
+    onOpenChange?.(o);
+    if (openProp === undefined) setInternalOpen(o);
+    if (!o) reset();
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -82,25 +99,20 @@ export function NovaTarefaGlobalButton({ projetos }: Props) {
       toast({ title: "Erro a criar tarefa", description: res.error, variant: "destructive" });
       return;
     }
-    reset();
     setOpen(false);
     startTransition(() => router.refresh());
   }
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (!o) reset();
-      }}
-    >
-      <SheetTrigger asChild>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-          Nova tarefa
-        </Button>
-      </SheetTrigger>
+    <Sheet open={open} onOpenChange={setOpen}>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <button type="button" className="btn-primary">
+            <Plus className="ic" aria-hidden="true" />
+            Nova tarefa
+          </button>
+        </SheetTrigger>
+      )}
       <SheetContent side="right" className="w-full sm:max-w-md p-6">
         <SheetHeader className="px-0">
           <SheetTitle>Nova tarefa</SheetTitle>

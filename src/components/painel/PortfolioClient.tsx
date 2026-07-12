@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Eye, Trash, Briefcase, Star, Loader2 } from "lucide-react";
+import { Plus, Eye, Trash2, Briefcase, Globe, Loader2 } from "lucide-react";
 import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import { SERVICO_SLUG } from "@/types/servico";
 import {
@@ -14,9 +14,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Topbar } from "@/components/painel/Topbar";
 import { PortfolioForm } from "./PortfolioForm";
 import type { PortfolioItem, PortfolioCategoria } from "@/types/portfolio";
-import { cn } from "@/lib/utils";
 import { safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -77,76 +77,114 @@ export function PortfolioClient({ items }: Props) {
     startTransition(() => router.refresh());
   }
 
+  const tab = (f: Filter, label: string, count: number) => (
+    <button type="button" className={filter === f ? "on" : undefined} onClick={() => setFilter(f)}>
+      {label}
+      {count > 0 && <span className="num">{count}</span>}
+    </button>
+  );
+
   return (
     <>
-      <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
-        <div className="tabs">
-          <button type="button" onClick={() => setFilter("all")} className={filter === "all" ? "active" : undefined}>
-            Todos <span className="num">{counts.all}</span>
+      <Topbar
+        crumbs={["Portfólio"]}
+        title="Portfólio"
+        actions={
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <button type="button" className="btn-primary">
+                <Plus className="ic" aria-hidden="true" /> Novo trabalho
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
+              <SheetHeader className="px-6 pt-6">
+                <SheetTitle>Novo trabalho</SheetTitle>
+              </SheetHeader>
+              <PortfolioForm item={null} onSaved={handleSaved} onCancel={() => setOpen(false)} />
+            </SheetContent>
+          </Sheet>
+        }
+      />
+
+      <div className="note-strip">
+        <Globe className="ic" aria-hidden="true" /> Controla a landing e a página /portfólio do site
+      </div>
+
+      <div className="view-tabs" style={{ marginBottom: 18 }}>
+        {tab("all", "Todos", counts.all)}
+        {SERVICO_SLUG.map((s) => (
+          <button key={s} type="button" className={filter === s ? "on" : undefined} onClick={() => setFilter(s)}>
+            {PORTFOLIO_CATEGORIA_LABEL[s]}
+            {(counts[s] ?? 0) > 0 && <span className="num">{counts[s]}</span>}
           </button>
-          {SERVICO_SLUG.map((s) => (
-            <button key={s} type="button" onClick={() => setFilter(s)} className={filter === s ? "active" : undefined}>
-              {PORTFOLIO_CATEGORIA_LABEL[s]} <span className="num">{counts[s] ?? 0}</span>
-            </button>
-          ))}
-          <button type="button" onClick={() => setFilter("destaque")} className={filter === "destaque" ? "active" : undefined}>
-            Destaques <span className="num">{counts.destaque}</span>
-          </button>
-        </div>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <button type="button" className="btn primary">
-              <span>Adicionar trabalho</span>
-              <span className="arr-circle"><Plus className="ic" aria-hidden="true" /></span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
-            <SheetHeader className="px-6 pt-6">
-              <SheetTitle>Novo trabalho</SheetTitle>
-            </SheetHeader>
-            <PortfolioForm item={null} onSaved={handleSaved} onCancel={() => setOpen(false)} />
-          </SheetContent>
-        </Sheet>
+        ))}
+        {tab("destaque", "Destaques", counts.destaque)}
       </div>
 
       {filtered.length === 0 ? (
         <div className="empty">
-          <div className="ic"><Briefcase aria-hidden="true" /></div>
+          <Briefcase aria-hidden="true" style={{ width: 22, height: 22, margin: "0 auto 8px" }} />
           <div className="t">{items.length === 0 ? "Sem trabalhos publicados" : "Sem resultados"}</div>
           <div className="desc">{items.length === 0 ? "Cria o primeiro." : "Ajusta o filtro."}</div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }} className="tile-grid">
+        <div className="port-grid">
           {filtered.map((item) => (
-            <div key={item.id} className="tile">
-              <div className="img" style={{ aspectRatio: "1/1" }}>
-                {item.imageUrl ? (
-                  <Image src={item.imageUrl} alt={item.title.pt} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" style={{ position: "absolute", inset: 0 }} />
-                ) : (
-                  <span className="ph">sem capa</span>
-                )}
-                {item.destaqueLanding && (
-                  <span className="pill feat">
-                    <Star className="h-2.5 w-2.5" style={{ marginRight: 3 }} aria-hidden="true" /> Destaque
-                  </span>
-                )}
-              </div>
-              <div className="body">
-                <div className="meta">{item.categoria ? PORTFOLIO_CATEGORIA_LABEL[item.categoria] : "Sem categoria"}</div>
-                <div className="t">{item.title.pt}</div>
-                <div className="row" style={{ gap: 6, marginTop: 8 }}>
-                  <Link href={`/painel/portfolio/${item.id}`} className="btn ghost tiny" style={{ flex: 1, justifyContent: "center" }}>
-                    Editar
-                  </Link>
-                  {item.url && (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn ghost tiny icon" aria-label="Ver no site">
-                      <Eye className="ic" aria-hidden="true" />
-                    </a>
+            <div key={item.id} className="port group" style={{ position: "relative" }}>
+              <Link href={`/painel/portfolio/${item.id}`} className="block">
+                <div className="ph">
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.title.pt}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  ) : (
+                    "[ imagem trabalho ]"
                   )}
-                  <button type="button" onClick={(e) => handleDelete(item.id, e)} disabled={busyId === item.id} className="btn ghost tiny icon" aria-label="Apagar">
-                    {busyId === item.id ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <Trash className="ic" aria-hidden="true" />}
-                  </button>
+                  {item.destaqueLanding && (
+                    <span className="pill warm" style={{ position: "absolute", top: 8, left: 8 }}>
+                      Destaque
+                    </span>
+                  )}
                 </div>
+                <div className="pb">
+                  <div className="pt">{item.categoria ? PORTFOLIO_CATEGORIA_LABEL[item.categoria] : "Sem categoria"}</div>
+                  <div className="pn">{item.title.pt}</div>
+                </div>
+              </Link>
+              <div
+                className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}
+              >
+                {item.url && (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="icon-btn"
+                    style={{ background: "var(--cream)" }}
+                    aria-label={`Ver ${item.title.pt} no site`}
+                  >
+                    <Eye className="ic" aria-hidden="true" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => handleDelete(item.id, e)}
+                  disabled={busyId === item.id}
+                  className="icon-btn"
+                  style={{ background: "var(--cream)" }}
+                  aria-label={`Apagar ${item.title.pt}`}
+                >
+                  {busyId === item.id ? (
+                    <Loader2 className="ic animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Trash2 className="ic" aria-hidden="true" />
+                  )}
+                </button>
               </div>
             </div>
           ))}

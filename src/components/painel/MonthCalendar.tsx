@@ -7,7 +7,7 @@ import {
   parseIsoDate,
   todayLisbonDate,
 } from "@/lib/dates";
-import type { Projeto, ProjetoStatus } from "@/types/projeto";
+import type { Projeto } from "@/types/projeto";
 import type { Tarefa } from "@/types/tarefa";
 
 type CalendarEntry =
@@ -23,18 +23,9 @@ type Props = {
 
 const DAYS_HEADER = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
-// Map status → design .ev tone (painel.css): default(ember) | amber | green | ink
-const STATUS_EV: Record<ProjetoStatus, string> = {
-  "ideia-interna": "ink",
-  "ideia-cliente": "ink",
-  proximo: "",
-  "em-curso": "",
-  "aguardando-cliente": "amber",
-  "aguardando-encomenda": "amber",
-  terminado: "green",
-  fechado: "green",
-  cancelado: "ink",
-};
+function isoDate(year: number, monthIndex: number, day: number): string {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
 
 export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Props) {
   // "Hoje" no fuso de Portugal (não no do servidor Vercel, que corre em UTC).
@@ -42,6 +33,8 @@ export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Prop
   const totalDays = daysInMonth(year, monthIndex);
   const firstWeekday = firstWeekdayOfMonth(year, monthIndex);
   const totalCells = Math.ceil((firstWeekday + totalDays) / 7) * 7;
+  // Dias do mês anterior para preencher as células .out (o protótipo mostra o número).
+  const prevMonthDays = new Date(year, monthIndex, 0).getDate();
 
   const byDay = new Map<number, CalendarEntry[]>();
 
@@ -66,69 +59,84 @@ export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Prop
     addToDay(d.getDate(), { kind: "tarefa", item: t });
   }
 
-  const cells: Array<{ day: number | null; entries: CalendarEntry[] }> = [];
+  // day: dia do mês corrente; outDay: dia do mês adjacente (célula .out)
+  const cells: Array<{ day: number | null; outDay: number; entries: CalendarEntry[] }> = [];
   for (let i = 0; i < totalCells; i++) {
     const dayNum = i - firstWeekday + 1;
-    if (dayNum < 1 || dayNum > totalDays) {
-      cells.push({ day: null, entries: [] });
+    if (dayNum < 1) {
+      cells.push({ day: null, outDay: prevMonthDays + dayNum, entries: [] });
+    } else if (dayNum > totalDays) {
+      cells.push({ day: null, outDay: dayNum - totalDays, entries: [] });
     } else {
-      cells.push({ day: dayNum, entries: byDay.get(dayNum) ?? [] });
+      cells.push({ day: dayNum, outDay: 0, entries: byDay.get(dayNum) ?? [] });
     }
   }
 
   return (
     <div className="cal">
-      {DAYS_HEADER.map((d) => (
-        <div key={`dow-${d}`} className="dow">
-          {d}
-        </div>
-      ))}
-      {cells.map((cell, idx) => {
-        if (cell.day === null) {
-          return <div key={`empty-${idx}`} className="dy faded" aria-hidden="true" />;
-        }
-        const dateForDay = new Date(year, monthIndex, cell.day);
-        const todayCell = isToday(dateForDay.toISOString(), hojeLisboa);
-        const visible = cell.entries.slice(0, 3);
-        const overflow = cell.entries.length - visible.length;
+      <div className="cal-grid" style={{ marginBottom: 6 }}>
+        {DAYS_HEADER.map((d) => (
+          <div key={`dow-${d}`} className="cal-dow">
+            {d}
+          </div>
+        ))}
+      </div>
+      <div className="cal-grid">
+        {cells.map((cell, idx) => {
+          if (cell.day === null) {
+            return (
+              <div key={`out-${idx}`} className="cal-cell out">
+                <div className="d">{cell.outDay}</div>
+              </div>
+            );
+          }
+          const dateForDay = new Date(year, monthIndex, cell.day);
+          const todayCell = isToday(dateForDay.toISOString(), hojeLisboa);
+          const visible = cell.entries.slice(0, 3);
+          const overflow = cell.entries.length - visible.length;
 
-        return (
-          <div key={`day-${cell.day}`} className={cn("dy", todayCell && "today")}>
-            <div className="row between">
-              <span className="num">{cell.day}</span>
-              {overflow > 0 && (
-                <span className="mono muted" style={{ fontSize: 10 }}>+{overflow}</span>
-              )}
-            </div>
-            {visible.map((entry, i) => {
-              if (entry.kind === "projeto") {
-                const p = entry.item;
+          return (
+            <div key={`day-${cell.day}`} className={cn("cal-cell", todayCell && "today")}>
+              <div className="d">{cell.day}</div>
+              {visible.map((entry, i) => {
+                if (entry.kind === "projeto") {
+                  const p = entry.item;
+                  return (
+                    <Link
+                      key={`p-${p.id}-${i}`}
+                      href={`/painel/projetos/${p.id}`}
+                      className="cal-ev"
+                      title={`${p.titulo}${p.clienteNome ? ` — ${p.clienteNome}` : ""}`}
+                    >
+                      {p.titulo}
+                    </Link>
+                  );
+                }
+                const t = entry.item;
                 return (
                   <Link
-                    key={`p-${p.id}-${i}`}
-                    href={`/painel/projetos/${p.id}`}
-                    className={cn("ev", STATUS_EV[p.status])}
-                    title={`${p.titulo}${p.clienteNome ? ` — ${p.clienteNome}` : ""}`}
+                    key={`t-${t.id}-${i}`}
+                    href={`/painel/projetos/${t.projetoId}`}
+                    className="cal-ev b"
+                    title={`Tarefa: ${t.titulo}`}
                   >
-                    {p.titulo}
+                    {t.prazoHora ? `${t.prazoHora} · ` : ""}{t.titulo}
                   </Link>
                 );
-              }
-              const t = entry.item;
-              return (
+              })}
+              {overflow > 0 && (
                 <Link
-                  key={`t-${t.id}-${i}`}
-                  href={`/painel/projetos/${t.projetoId}`}
-                  className={cn("ev", t.feita && "green")}
-                  title={`Tarefa: ${t.titulo}`}
+                  href={`/painel/calendario?view=dia&date=${isoDate(year, monthIndex, cell.day)}`}
+                  className="cal-ev b"
+                  title={`Ver dia ${cell.day} completo`}
                 >
-                  {t.prazoHora ? `${t.prazoHora} · ` : ""}{t.titulo}
+                  +{overflow}
                 </Link>
-              );
-            })}
-          </div>
-        );
-      })}
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

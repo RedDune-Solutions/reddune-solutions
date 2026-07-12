@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { MoreVertical, Trash2, Loader2 } from "lucide-react";
+import { MoreVertical, MoreHorizontal, Trash2, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,9 +17,11 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   projeto: Projeto;
+  /** "icon-btn" = botão ⋯ do protótipo (ficha do projecto); default = ghost compacto (tabelas). */
+  variant?: "default" | "icon-btn";
 };
 
-export function TarefaRowMenu({ projeto }: Props) {
+export function TarefaRowMenu({ projeto, variant = "default" }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -55,21 +57,39 @@ export function TarefaRowMenu({ projeto }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0"
-          aria-label="Acções"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          disabled={isBusy}
-        >
-          {isBusy ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <MoreVertical className="h-4 w-4" aria-hidden="true" />
-          )}
-        </Button>
+        {variant === "icon-btn" ? (
+          <button
+            type="button"
+            className="icon-btn"
+            title="Mais ações"
+            aria-label="Acções"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            disabled={isBusy}
+          >
+            {isBusy ? (
+              <Loader2 className="ic animate-spin" aria-hidden="true" />
+            ) : (
+              <MoreHorizontal className="ic" aria-hidden="true" />
+            )}
+          </button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            aria-label="Acções"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            disabled={isBusy}
+          >
+            {isBusy ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <MoreVertical className="h-4 w-4" aria-hidden="true" />
+            )}
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem destructive onSelect={onDelete}>

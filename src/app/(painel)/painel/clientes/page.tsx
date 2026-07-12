@@ -1,31 +1,44 @@
 import Link from "next/link";
-import { Users, FolderKanban, AlertTriangle, RefreshCw, ChevronRight } from "lucide-react";
+import type { ReactNode } from "react";
+import { Users } from "lucide-react";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
 import { Topbar } from "@/components/painel/Topbar";
-import { KpiCard } from "@/components/painel/KpiCard";
 import { NovoClienteButton } from "@/components/painel/NovoClienteButton";
 import { STATUS_GROUPS } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
-const AV = ["a", "b", "c", "d"] as const;
-function avFor(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return AV[h % AV.length];
+const eur = (n: number) => Math.round(n).toLocaleString("pt-PT");
+
+type Agg = {
+  total: number;
+  ativos: number;
+  proximos: number;
+  espera: number;
+  prontos: number;
+  trabalhoAtivo: number;
+  divida: number;
+};
+
+/** Resumo de projectos por cliente, à maneira do protótipo ("1 activo", "1 próximo"…). */
+function projectosLabel(a: Agg | undefined): string | null {
+  if (!a || a.total === 0) return null;
+  if (a.ativos > 0) return `${a.ativos} activo${a.ativos === 1 ? "" : "s"}`;
+  if (a.proximos > 0) return `${a.proximos} próximo${a.proximos === 1 ? "" : "s"}`;
+  if (a.espera > 0) return `${a.espera} em espera`;
+  if (a.prontos > 0) return `${a.prontos} pronto${a.prontos === 1 ? "" : "s"}`;
+  return `${a.total} no arquivo`;
 }
-function initials(name: string): string {
-  return name.split(/\s+/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
-}
-function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return "—";
-  }
+
+/** Preenche a célula toda com o link — linha clicável sem JS (margens negativas anulam o padding do td). */
+function CellLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} style={{ display: "block", margin: "-13px -16px", padding: "13px 16px" }}>
+      {children}
+    </Link>
+  );
 }
 
 export default async function ClientesPage() {
@@ -40,117 +53,106 @@ export default async function ClientesPage() {
     pagoPorProjeto.set(p.projetoId, (pagoPorProjeto.get(p.projetoId) ?? 0) + p.valor);
   }
 
-  type Agg = { total: number; ativas: number; divida: number; ult: string | null };
   const agg = new Map<string, Agg>();
   for (const p of projetos) {
     if (!p.clienteId) continue;
-    const a = agg.get(p.clienteId) ?? { total: 0, ativas: 0, divida: 0, ult: null };
+    const a =
+      agg.get(p.clienteId) ??
+      { total: 0, ativos: 0, proximos: 0, espera: 0, prontos: 0, trabalhoAtivo: 0, divida: 0 };
     a.total += 1;
+    if (STATUS_GROUPS.ativo.includes(p.status)) a.ativos += 1;
+    if (STATUS_GROUPS.proximo.includes(p.status)) a.proximos += 1;
+    if (STATUS_GROUPS.aguarda.includes(p.status)) a.espera += 1;
+    if (STATUS_GROUPS.pronto.includes(p.status)) a.prontos += 1;
     if (
       STATUS_GROUPS.ativo.includes(p.status) ||
       STATUS_GROUPS.proximo.includes(p.status) ||
       STATUS_GROUPS.aguardaEncomenda.includes(p.status) ||
       STATUS_GROUPS.pronto.includes(p.status)
     ) {
-      a.ativas += 1;
+      a.trabalhoAtivo += 1;
     }
     if (p.status === "terminado" && p.valorEstimado != null) {
       const restante = p.valorEstimado - (pagoPorProjeto.get(p.id) ?? 0);
       if (restante > 0) a.divida += restante;
     }
-    if (p.dataCriado && (!a.ult || p.dataCriado > a.ult)) a.ult = p.dataCriado;
     agg.set(p.clienteId, a);
   }
 
   const sorted = [...clientes].sort((a, b) => String(a.nome).localeCompare(String(b.nome), "pt"));
 
-  const comProjecto = sorted.filter((c) => (agg.get(c.id)?.ativas ?? 0) > 0).length;
-  const comDividaList = sorted.filter((c) => (agg.get(c.id)?.divida ?? 0) > 0);
-  const dividaTotal = comDividaList.reduce((s, c) => s + (agg.get(c.id)?.divida ?? 0), 0);
-  const recorrentes = sorted.filter((c) => (agg.get(c.id)?.total ?? 0) >= 3).length;
+  const comTrabalho = sorted.filter((c) => (agg.get(c.id)?.trabalhoAtivo ?? 0) > 0).length;
+  const dividaTotal = sorted.reduce((s, c) => s + (agg.get(c.id)?.divida ?? 0), 0);
 
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Clientes"]}
-        titleHtml={`Clientes · <em>${clientes.length}</em>`}
-        description={`${comProjecto} com projectos activos.`}
+        crumbs={["Clientes"]}
+        titleHtml={`${clientes.length} <em>cliente${clientes.length === 1 ? "" : "s"}</em>`}
         actions={<NovoClienteButton />}
       />
 
-      <div className="content">
-        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-          <KpiCard label="Total" value={clientes.length} icon={Users} hint="fichas registadas" />
-          <KpiCard tone="accent" label="Com projecto activo" value={comProjecto} icon={FolderKanban} hint={clientes.length ? `${Math.round((comProjecto / clientes.length) * 100)}% da base` : "—"} />
-          <KpiCard tone="amber" label="Com dívida" value={comDividaList.length} icon={AlertTriangle} hint={dividaTotal > 0 ? `${Math.round(dividaTotal).toLocaleString("pt-PT")}€ por receber` : "—"} />
-          <KpiCard tone="green" label="Recorrentes" value={recorrentes} icon={RefreshCw} hint="≥ 3 projectos" />
+      <div className="mini-kpis">
+        <div className="k">
+          <div className="kpi-label">Total</div>
+          <div className="kpi-num">{clientes.length}</div>
         </div>
-
-        {sorted.length === 0 ? (
-          <div className="empty">
-            <div className="ic"><Users aria-hidden="true" /></div>
-            <div className="t">Sem clientes</div>
-            <div className="desc">Clica em “Novo cliente” para adicionar o primeiro.</div>
-          </div>
-        ) : (
-          <div className="card flat" style={{ padding: 0, overflow: "hidden" }}>
-            <div style={{ overflowX: "auto" }}>
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th className="col-hide-sm" style={{ width: 240 }}>Contacto</th>
-                    <th className="col-hide-sm" style={{ width: 160 }}>Local</th>
-                    <th style={{ width: 110 }}>Projectos</th>
-                    <th className="col-hide-sm" style={{ width: 120 }}>Última</th>
-                    <th className="right" style={{ width: 110 }}>Dívida</th>
-                    <th className="col-hide-sm" style={{ width: 44 }} />
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map((c) => {
-                    const a = agg.get(c.id);
-                    return (
-                      <tr key={c.id}>
-                        <td>
-                          <Link href={`/painel/clientes/${c.id}`} className="row" style={{ gap: 10 }}>
-                            <span className={`av-c sm ${avFor(c.nome)}`}>{initials(c.nome)}</span>
-                            <span className="ttl-cell">
-                              {c.nome}
-                              {c.nif && <span className="sub mono" style={{ fontSize: 10.5 }}>NIF {c.nif}</span>}
-                            </span>
-                          </Link>
-                        </td>
-                        <td className="col-hide-sm">
-                          {c.telefone && <div className="mono" style={{ fontSize: 12 }}>{c.telefone}</div>}
-                          {c.email && <div className="mono muted" style={{ fontSize: 11 }}>{c.email}</div>}
-                          {!c.telefone && !c.email && <span className="muted mono">—</span>}
-                        </td>
-                        <td className="col-hide-sm"><span className="muted" style={{ fontSize: 12 }}>{c.morada ?? "—"}</span></td>
-                        <td>
-                          <span className="badge" style={{ background: (a?.total ?? 0) > 0 ? "rgba(214, 66, 42, 0.10)" : "var(--cream-deep)", color: (a?.total ?? 0) > 0 ? "var(--dune)" : "var(--ink-mute)" }}>
-                            <span className="dot" /> {a?.total ?? 0}
-                            {(a?.ativas ?? 0) > 0 && <span style={{ marginLeft: 4, opacity: 0.7 }}>· {a!.ativas} act.</span>}
-                          </span>
-                        </td>
-                        <td className="col-hide-sm"><span className="muted" style={{ fontSize: 12 }}>{fmtDate(a?.ult ?? c.criadoEm)}</span></td>
-                        <td className="right">
-                          {(a?.divida ?? 0) > 0 ? <span className="num warn">{Math.round(a!.divida).toLocaleString("pt-PT")}€</span> : <span className="muted mono">—</span>}
-                        </td>
-                        <td className="col-hide-sm">
-                          <Link href={`/painel/clientes/${c.id}`} aria-label="Abrir ficha">
-                            <ChevronRight className="row-menu" aria-hidden="true" />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <div className="k">
+          <div className="kpi-label">Com trabalho activo</div>
+          <div className="kpi-num">{comTrabalho}</div>
+        </div>
+        <div className="k accent">
+          <div className="kpi-label">Em dívida</div>
+          <div className="kpi-num">{eur(dividaTotal)} €</div>
+        </div>
       </div>
+
+      {sorted.length === 0 ? (
+        <div className="empty">
+          <div className="ic"><Users aria-hidden="true" /></div>
+          <div className="t">Sem clientes</div>
+          <div className="desc">Clica em “Novo cliente” para adicionar o primeiro.</div>
+        </div>
+      ) : (
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th className="col-hide-sm">Contacto</th>
+              <th>Projectos</th>
+              <th>Em dívida</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((c) => {
+              const a = agg.get(c.id);
+              const label = projectosLabel(a);
+              const divida = a?.divida ?? 0;
+              const href = `/painel/clientes/${c.id}`;
+              return (
+                <tr key={c.id}>
+                  <td className="name"><CellLink href={href}>{c.nome}</CellLink></td>
+                  <td className="muted col-hide-sm">
+                    <CellLink href={href}>{c.telefone ?? c.email ?? "—"}</CellLink>
+                  </td>
+                  <td className={label ? undefined : "muted"}>
+                    <CellLink href={href}>{label ?? "—"}</CellLink>
+                  </td>
+                  {divida > 0 ? (
+                    <td className="num" style={{ color: "var(--ember)" }}>
+                      <CellLink href={href}>{eur(divida)} €</CellLink>
+                    </td>
+                  ) : (
+                    <td className="muted"><CellLink href={href}>—</CellLink></td>
+                  )}
+                  <td className="arr"><CellLink href={href}>→</CellLink></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </>
   );
 }

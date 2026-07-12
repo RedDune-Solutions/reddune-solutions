@@ -83,7 +83,7 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
 
   return (
     <>
-      <div className="rounded-card border border-dune-deep/10 bg-sand-warm/70 overflow-hidden shadow-warm">
+      <div className="cal" style={{ padding: 0, overflow: "hidden" }}>
         {/* Header */}
         <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-dune-deep/10 bg-cream-deep">
           <div className="px-2 py-2 text-[10px] font-mono uppercase tracking-[0.18em] text-ink-mute">
@@ -112,23 +112,23 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
             const ps = projetosFor(d);
             const tsNoHora = tarefasFor(d).filter((t) => !t.prazoHora);
             return (
-              <div key={i} className="border-l border-dune-deep/10 p-1 min-h-[36px] space-y-1">
+              <div key={i} className="border-l border-dune-deep/10 p-1 min-h-[36px]">
                 {ps.map((p) => (
                   <Link
                     key={`p-${p.id}`}
                     href={`/painel/projetos/${p.id}`}
-                    className="flex items-center gap-1 text-[10px] bg-white/70 hover:bg-white rounded px-1 py-0.5 truncate"
+                    className="cal-ev"
                     title={p.titulo}
                   >
-                    <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", STATUS_DOT[p.status])} />
-                    <span className="truncate">{p.titulo}</span>
+                    <span className={cn("inline-block h-1.5 w-1.5 rounded-full mr-1", STATUS_DOT[p.status])} />
+                    {p.titulo}
                   </Link>
                 ))}
                 {tsNoHora.map((t) => (
                   <Link
                     key={`t-${t.id}`}
                     href={`/painel/projetos/${t.projetoId}`}
-                    className="block text-[10px] italic bg-white/50 hover:bg-white/80 rounded px-1 py-0.5 truncate"
+                    className="cal-ev b"
                     title={t.titulo}
                   >
                     {t.titulo}
@@ -162,13 +162,13 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
                     onClick={() => openQuick(d, h)}
                     className="border-l border-dune-deep/10 p-1 min-h-[40px] text-left hover:bg-ember/5 transition-colors"
                   >
-                    <div className="space-y-0.5">
+                    <div>
                       {slotTarefas.map((t) => (
                         <Link
                           key={t.id}
                           href={`/painel/projetos/${t.projetoId}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="block text-[10px] bg-ember/15 hover:bg-ember/25 rounded px-1 py-0.5 truncate"
+                          className="cal-ev"
                           title={`${t.prazoHora} ${t.titulo}`}
                         >
                           <span className="font-mono tabular-nums">{t.prazoHora}</span> {t.titulo}

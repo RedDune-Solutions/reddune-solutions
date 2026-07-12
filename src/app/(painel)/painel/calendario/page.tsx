@@ -7,7 +7,6 @@ import { MonthCalendar } from "@/components/painel/MonthCalendar";
 import { WeekCalendar } from "@/components/painel/WeekCalendar";
 import { DayCalendar } from "@/components/painel/DayCalendar";
 import { CalendarViewToggle } from "@/components/painel/CalendarViewToggle";
-import { Button } from "@/components/ui/button";
 import { monthKey, parseMonthKey, parseIsoDate, isToday, isWithinNextDays, todayLisbonDate } from "@/lib/dates";
 import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
 import type { Tarefa } from "@/types/tarefa";
@@ -90,24 +89,27 @@ export default async function CalendarioPage({
   const dayNext = new Date(focusDate);
   dayNext.setDate(focusDate.getDate() + 1);
 
-  let title = "";
+  let titleHtml = "";
   let prevHref = "";
   let nextHref = "";
   let todayHref = "";
   if (view === "mes") {
-    title = `${MONTH_NAMES[target.monthIndex]} ${target.year}`;
+    titleHtml = `${MONTH_NAMES[target.monthIndex]} <em>${target.year}</em>`;
     prevHref = `/painel/calendario?view=mes&m=${monthKey(prev)}`;
     nextHref = `/painel/calendario?view=mes&m=${monthKey(next)}`;
     todayHref = `/painel/calendario?view=mes&m=${monthKey(today)}`;
   } else if (view === "semana") {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
-    title = `${weekStart.getDate()} ${MONTH_NAMES[weekStart.getMonth()]} – ${weekEnd.getDate()} ${MONTH_NAMES[weekEnd.getMonth()]}`;
+    titleHtml =
+      weekStart.getMonth() === weekEnd.getMonth()
+        ? `${weekStart.getDate()}–${weekEnd.getDate()} <em>${MONTH_NAMES[weekStart.getMonth()]}</em>`
+        : `${weekStart.getDate()} ${MONTH_NAMES[weekStart.getMonth()]} – ${weekEnd.getDate()} <em>${MONTH_NAMES[weekEnd.getMonth()]}</em>`;
     prevHref = `/painel/calendario?view=semana&date=${isoDate(weekPrev)}`;
     nextHref = `/painel/calendario?view=semana&date=${isoDate(weekNext)}`;
     todayHref = `/painel/calendario?view=semana&date=${isoDate(today)}`;
   } else {
-    title = `${focusDate.getDate()} ${MONTH_NAMES[focusDate.getMonth()]} ${focusDate.getFullYear()}`;
+    titleHtml = `${focusDate.getDate()} ${MONTH_NAMES[focusDate.getMonth()]} <em>${focusDate.getFullYear()}</em>`;
     prevHref = `/painel/calendario?view=dia&date=${isoDate(dayPrev)}`;
     nextHref = `/painel/calendario?view=dia&date=${isoDate(dayNext)}`;
     todayHref = `/painel/calendario?view=dia&date=${isoDate(today)}`;
@@ -116,54 +118,43 @@ export default async function CalendarioPage({
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Calendário"]}
-        title="Calendário"
-        description="Projectos e tarefas com prazo agendado."
+        crumbs={["Calendário"]}
+        titleHtml={titleHtml}
+        actions={
+          <>
+            <CalendarViewToggle current={view} />
+            <Link href={prevHref} className="btn-ghost" aria-label="Anterior">
+              <ChevronLeft style={{ width: 14, height: 14 }} aria-hidden="true" />
+            </Link>
+            <Link href={todayHref} className="btn-ghost">
+              Hoje
+            </Link>
+            <Link href={nextHref} className="btn-ghost" aria-label="Seguinte">
+              <ChevronRight style={{ width: 14, height: 14 }} aria-hidden="true" />
+            </Link>
+          </>
+        }
       />
 
-      <div className="content">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="h-9 bg-surface">
-              <Link href={prevHref}>
-                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <h2 className="font-headline text-xl md:text-2xl font-semibold tracking-tight">
-              {title}
-            </h2>
-            <Button asChild variant="outline" size="sm" className="h-9 bg-surface">
-              <Link href={nextHref}>
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <CalendarViewToggle current={view} />
-            <Button asChild variant="ghost" size="sm">
-              <Link href={todayHref}>Hoje</Link>
-            </Button>
-          </div>
-        </div>
-
-        {view === "mes" && (
-          <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: 18, alignItems: "start" }} className="cal-month-grid">
+      {view === "mes" && (
+        <div className="grid items-start gap-[18px] lg:grid-cols-[3fr_1fr]">
+          <div className="cal-month-scroll min-w-0">
             <MonthCalendar
               year={target.year}
               monthIndex={target.monthIndex}
               projetos={projetos}
               tarefas={tarefas}
             />
-            <AgendaSide projetos={projetos} tarefas={tarefas} />
           </div>
-        )}
-        {view === "semana" && (
-          <WeekCalendar projetos={projetos} tarefas={tarefas} weekStart={weekStart} />
-        )}
-        {view === "dia" && (
-          <DayCalendar projetos={projetos} tarefas={tarefas} day={focusDate} />
-        )}
-      </div>
+          <AgendaSide projetos={projetos} tarefas={tarefas} />
+        </div>
+      )}
+      {view === "semana" && (
+        <WeekCalendar projetos={projetos} tarefas={tarefas} weekStart={weekStart} />
+      )}
+      {view === "dia" && (
+        <DayCalendar projetos={projetos} tarefas={tarefas} day={focusDate} />
+      )}
     </>
   );
 }
@@ -172,7 +163,7 @@ export default async function CalendarioPage({
 // fechado nem cancelado). O cartão "Hoje" da agenda mostra só accionáveis, para
 // alinhar com o widget "Hoje" do dashboard (páginel/page.tsx), que só conta
 // projectos activos. A grelha mensal (MonthCalendar) mantém tudo, de propósito,
-// porque o color-coding de estados fechados aí é intencional.
+// porque mostra o mês completo tal como está na base de dados.
 type AgendaEntry = { id: string; href: string; label: string; sub: string | null; date: Date; accionavel: boolean };
 
 function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
@@ -208,38 +199,36 @@ function AgendaSide({ projetos, tarefas }: { projetos: Projeto[]; tarefas: Taref
   return (
     <div className="col" style={{ gap: 14 }}>
       <div className="card">
-        <div className="ch">
-          <div>
-            <div className="t">Hoje</div>
-            <div className="sub">{todayLisbonDate().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" })}</div>
-          </div>
+        <div className="card-label" style={{ marginBottom: 4 }}>Hoje</div>
+        <div className="muted" style={{ fontSize: 12 }}>
+          {todayLisbonDate().toLocaleDateString("pt-PT", { weekday: "long", day: "2-digit", month: "long" })}
         </div>
-        <div className="cb">
+        <div style={{ marginTop: 8 }}>
           {hoje.length === 0 ? (
-            <p className="muted" style={{ fontSize: 12.5 }}>Nada agendado hoje.</p>
+            <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>Nada agendado hoje.</p>
           ) : (
             hoje.map((e, i) => (
-              <a
+              <Link
                 key={e.id}
                 href={e.href}
                 style={{ display: "block", padding: "10px 0", borderBottom: i < hoje.length - 1 ? "1px dashed rgba(90, 14, 14, 0.10)" : "0" }}
               >
                 <div style={{ color: "var(--ink)", fontWeight: 500, fontSize: 13 }}>{e.label}</div>
                 {e.sub && <div className="muted" style={{ fontSize: 11.5, marginTop: 2 }}>{e.sub}</div>}
-              </a>
+              </Link>
             ))
           )}
         </div>
       </div>
 
       <div className="card">
-        <div className="ch"><div className="t">Próximos · esta semana</div></div>
-        <div className="cb">
+        <div className="card-label">Próximos · esta semana</div>
+        <div>
           {proximos.length === 0 ? (
-            <p className="muted" style={{ fontSize: 12.5 }}>Sem prazos nos próximos 7 dias.</p>
+            <p className="muted" style={{ fontSize: 12.5, margin: 0 }}>Sem prazos nos próximos 7 dias.</p>
           ) : (
             proximos.map((e, i) => (
-              <a
+              <Link
                 key={e.id}
                 href={e.href}
                 style={{ display: "block", padding: "10px 0", borderBottom: i < proximos.length - 1 ? "1px dashed rgba(90, 14, 14, 0.10)" : "0" }}
@@ -247,7 +236,7 @@ function AgendaSide({ projetos, tarefas }: { projetos: Projeto[]; tarefas: Taref
                 <div className="mono muted" style={{ fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 3 }}>{fmtDay(e.date)}</div>
                 <div style={{ color: "var(--ink)", fontWeight: 500, fontSize: 13 }}>{e.label}</div>
                 {e.sub && <div className="muted" style={{ fontSize: 11.5, marginTop: 1 }}>{e.sub}</div>}
-              </a>
+              </Link>
             ))
           )}
         </div>

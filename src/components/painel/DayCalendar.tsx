@@ -80,9 +80,11 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
                 <Link
                   key={`p-${p.id}`}
                   href={`/painel/projetos/${p.id}`}
-                  className="inline-flex items-center gap-1.5 bg-white/80 hover:bg-white rounded px-2 py-1 text-xs"
+                  className="cal-ev"
+                  style={{ marginTop: 0 }}
+                  title={p.titulo}
                 >
-                  <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[p.status])} />
+                  <span className={cn("inline-block h-1.5 w-1.5 rounded-full mr-1", STATUS_DOT[p.status])} />
                   {p.titulo}
                 </Link>
               ))}
@@ -90,7 +92,9 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
                 <Link
                   key={`t-${t.id}`}
                   href={`/painel/projetos/${t.projetoId}`}
-                  className="inline-flex items-center gap-1.5 bg-white/60 hover:bg-white/90 rounded px-2 py-1 text-xs italic"
+                  className="cal-ev b"
+                  style={{ marginTop: 0 }}
+                  title={t.titulo}
                 >
                   {t.titulo}
                 </Link>
@@ -99,7 +103,7 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
           </div>
         )}
 
-        <div className="rounded-card border border-dune-deep/10 bg-sand-warm/70 overflow-hidden shadow-warm">
+        <div className="cal" style={{ padding: 0, overflow: "hidden" }}>
           {slots.map(({ hour, minute }, idx) => {
             const slotTarefas = dayTarefas.filter((t) => {
               if (!t.prazoHora) return false;
@@ -116,13 +120,14 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
                 <div className="px-3 py-2 text-[11px] font-mono text-ink-mute tabular-nums">
                   {String(hour).padStart(2, "0")}:{String(minute).padStart(2, "0")}
                 </div>
-                <div className="px-2 py-2 min-h-[40px] space-y-1">
+                <div className="px-2 py-2 min-h-[40px]">
                   {slotTarefas.map((t) => (
                     <Link
                       key={t.id}
                       href={`/painel/projetos/${t.projetoId}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="block text-xs bg-ember/15 hover:bg-ember/25 rounded px-2 py-1"
+                      className="cal-ev"
+                      title={`${t.prazoHora} ${t.titulo}`}
                     >
                       <span className="font-mono tabular-nums">{t.prazoHora}</span> {t.titulo}
                     </Link>

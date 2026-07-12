@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Trash2, ArrowRight, AlertCircle, Check } from "lucide-react";
+import { Trash2, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "./StatusBadge";
 import type { Tarefa } from "@/types/tarefa";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
@@ -34,6 +33,8 @@ const STATUS_PRIORITY: Record<ProjetoStatus, number> = {
   "ideia-cliente": 5,
 };
 
+const WEEKDAYS_PT = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+
 function startOfDay(d: Date): Date {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -55,14 +56,21 @@ function applyTarefaFilter(t: Tarefa, filter: TarefaFilter): boolean {
   return true;
 }
 
-function formatPrazo(iso: string): string {
+// Prazo relativo à la protótipo: "hoje · 14:00" / "amanhã" / "quinta" / "12 jul" / "feito"
+function formatPrazoRel(t: Tarefa): string {
+  if (t.feita) return "feito";
+  if (!t.prazo) return "";
+  const prazo = startOfDay(new Date(t.prazo));
+  const today = startOfDay(new Date());
+  const diff = Math.round((prazo.getTime() - today.getTime()) / 86400000);
+  const hora = t.prazoHora ? ` · ${t.prazoHora}` : "";
+  if (diff === 0) return `hoje${hora}`;
+  if (diff === 1) return `amanhã${hora}`;
+  if (diff > 1 && diff < 7) return `${WEEKDAYS_PT[prazo.getDay()]}${hora}`;
   try {
-    return new Date(iso).toLocaleDateString("pt-PT", {
-      day: "2-digit",
-      month: "short",
-    });
+    return `${new Date(t.prazo).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}${hora}`;
   } catch {
-    return iso;
+    return t.prazo;
   }
 }
 
@@ -163,7 +171,9 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
   if (groups.length === 0) {
     return (
       <div className="empty">
-        <div className="ic"><AlertCircle aria-hidden="true" /></div>
+        <div className="ic" style={{ marginBottom: 6 }}>
+          <AlertCircle style={{ width: 20, height: 20, display: "inline-block" }} aria-hidden="true" />
+        </div>
         <div className="t">
           {filter === "todas" ? "Tudo em dia" : "Sem tarefas"}
         </div>
@@ -191,83 +201,54 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
   }
 
   return (
-    <div className="col" style={{ gap: 16 }}>
+    <div>
       {groups.map(({ projeto, tarefas: ts }) => {
         const sorted = sortTarefas(ts);
-        const pendentesCount = ts.filter((t) => !t.feita).length;
 
         return (
-          <details key={projeto.id} open className="group card flat" style={{ overflow: "hidden" }}>
-            <summary className="ch cursor-pointer list-none" style={{ gap: 12 }}>
-              <div className="row" style={{ gap: 10, minWidth: 0 }}>
-                <ChevronRight
-                  className="h-4 w-4 text-ink-mute group-open:rotate-90 transition-transform shrink-0"
-                  aria-hidden="true"
-                />
-                <Link
-                  href={`/painel/projetos/${projeto.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="t"
-                  style={{ textDecoration: "none" }}
-                >
-                  {projeto.titulo}
-                </Link>
-                {projeto.clienteNome && (
-                  <span className="muted hidden md:inline" style={{ fontSize: 12 }}>
-                    · {projeto.clienteNome}
-                  </span>
-                )}
-              </div>
-              <span className="row" style={{ gap: 8 }}>
-                <StatusBadge status={projeto.status} />
-                <span className="mono muted" style={{ fontSize: 11 }}>
-                  {pendentesCount}/{ts.length}
-                </span>
-              </span>
-            </summary>
-
-            <div className="cb checklist">
-              {sorted.map((t) => {
-                const ps = prazoStatus(t.prazo);
-                const isBusy = busy === t.id || pending;
-                return (
-                  <div key={t.id} className={cn("item group/item", t.feita && "done")}>
-                    <button
-                      type="button"
-                      onClick={() => toggleFeita(t)}
-                      disabled={isBusy}
-                      aria-label={t.feita ? "Marcar por fazer" : "Marcar feita"}
-                      className="box"
+          <div key={projeto.id} className="task-group">
+            <h3>
+              {projeto.titulo}
+              {projeto.clienteNome ? ` — ${projeto.clienteNome}` : ""}
+              <Link href={`/painel/projetos/${projeto.id}`}>ver projeto →</Link>
+            </h3>
+            {sorted.map((t) => {
+              const ps = prazoStatus(t.prazo);
+              const isBusy = busy === t.id || pending;
+              const time = formatPrazoRel(t);
+              return (
+                <div key={t.id} className={cn("trow group/item", t.feita && "done")}>
+                  <button
+                    type="button"
+                    onClick={() => toggleFeita(t)}
+                    disabled={isBusy}
+                    aria-label={t.feita ? "Marcar por fazer" : "Marcar feita"}
+                    className="check"
+                  >
+                    {t.feita && <Check aria-hidden="true" />}
+                  </button>
+                  <span className="t-title">{t.titulo}</span>
+                  {time && (
+                    <span
+                      className="t-time"
+                      style={!t.feita && ps === "vencida" ? { color: "var(--ember)" } : undefined}
                     >
-                      {t.feita && <Check className="h-2.5 w-2.5" style={{ color: "#faf4e3" }} aria-hidden="true" />}
-                    </button>
-                    <span className="lbl" style={{ flex: 1, minWidth: 0 }}>{t.titulo}</span>
-                    {t.prazo && (
-                      <span
-                        className={cn(
-                          "due",
-                          ps === "vencida" && "ember",
-                          ps === "hoje" && "ember"
-                        )}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-                      >
-                        {ps === "vencida" && <ArrowRight className="h-3 w-3" aria-hidden="true" />}
-                        {formatPrazo(t.prazo)}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => deleteTarefa(t.id)}
-                      disabled={isBusy}
-                      aria-label="Apagar tarefa"
-                      className="opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 focus-visible:opacity-100 transition-opacity text-ink-mute hover:text-destructive p-1 rounded"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </details>
+                      {time}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => deleteTarefa(t.id)}
+                    disabled={isBusy}
+                    aria-label="Apagar tarefa"
+                    className="icon-mini opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 focus-visible:opacity-100 transition-opacity"
+                  >
+                    <Trash2 aria-hidden="true" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         );
       })}
     </div>

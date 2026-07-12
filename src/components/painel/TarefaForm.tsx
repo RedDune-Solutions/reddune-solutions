@@ -3,7 +3,6 @@
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, UserPlus, Plus, X } from "lucide-react";
-import type { TarefaTemplate } from "@/types/tarefa-template";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,8 +67,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [garantiaAte, setGarantiaAte] = useState(projeto?.garantiaAte ?? "");
   const [proximaAccao, setProximaAccao] = useState(projeto?.proximaAccao ?? "");
   const [notasResumo, setNotasResumo] = useState(projeto?.notasResumo ?? "");
-  const [templates, setTemplates] = useState<TarefaTemplate[]>([]);
-  const [applyTemplateId, setApplyTemplateId] = useState<string>("");
   const [addingCat, setAddingCat] = useState<ServicoSlug | null>(null);
   const [newTipoLabel, setNewTipoLabel] = useState("");
   const [savingTipo, setSavingTipo] = useState(false);
@@ -77,12 +74,8 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      safeFetch<TarefaTemplate[]>("/api/tarefa-templates"),
-      safeFetch<ProjetoTipoCustom[]>("/api/projeto-tipos-custom"),
-    ]).then(([tmpl, custom]) => {
+    safeFetch<ProjetoTipoCustom[]>("/api/projeto-tipos-custom").then((custom) => {
       if (cancelled) return;
-      if (tmpl.ok && Array.isArray(tmpl.data)) setTemplates(tmpl.data);
       if (custom.ok && Array.isArray(custom.data)) setCustomTipos(custom.data);
     });
     return () => { cancelled = true; };
@@ -132,21 +125,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     setTipos((prev) => prev.filter((s) => s !== tipo.slug));
   }
 
-  function onApplyTemplate(id: string) {
-    setApplyTemplateId(id);
-    if (!id) return;
-    const t = templates.find((x) => x.id === id);
-    if (!t) return;
-    if (t.categoria) setCategoria(t.categoria);
-    if (t.tipos && t.tipos.length > 0) {
-      setTipos((prev) => {
-        const set = new Set(prev);
-        for (const tp of t.tipos) set.add(tp);
-        return Array.from(set);
-      });
-    }
-  }
-
   function handleClienteCreated(c: Cliente) {
     setClientesList((prev) => [...prev, c]);
     setClienteId(c.id);
@@ -184,17 +162,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
       return;
     }
 
-    if (applyTemplateId && res.data?.id) {
-      const tmplRes = await safeJsonPost("/api/tarefas/from-template", {
-        projetoId: res.data.id,
-        templateId: applyTemplateId,
-      });
-      if (!tmplRes.ok) {
-        toast({ title: "Projecto guardado, mas template falhou", description: tmplRes.error, variant: "destructive" });
-      }
-      setApplyTemplateId("");
-    }
-
     toast({ title: "Projecto guardado", variant: "success" });
     startTransition(() => router.refresh());
     onSaved?.(res.data.id);
@@ -204,30 +171,8 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
 
   return (
     <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-      {/* Título + Template picker inline */}
       <div className="space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <Label htmlFor="titulo">Título *</Label>
-          {templates.length > 0 && (
-            <Select
-              value={applyTemplateId || "__none"}
-              onValueChange={(v) => onApplyTemplate(v === "__none" ? "" : v)}
-              disabled={isBusy}
-            >
-              <SelectTrigger className="h-7 w-auto max-w-[200px] text-[11px] text-muted-foreground border-dashed">
-                <SelectValue placeholder="Aplicar template…" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none">— Sem template —</SelectItem>
-                {templates.map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="text-xs">
-                    {t.nome} ({t.itens?.length ?? 0})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        <Label htmlFor="titulo">Título *</Label>
         <Input
           id="titulo"
           value={titulo}
@@ -237,11 +182,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
           placeholder="Nome do projeto"
           disabled={isBusy}
         />
-        {applyTemplateId && (
-          <p className="text-[10px] text-muted-foreground">
-            Tarefas do template serão criadas ao guardar.
-          </p>
-        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

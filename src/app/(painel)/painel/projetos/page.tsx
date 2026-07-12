@@ -1,18 +1,24 @@
 import Link from "next/link";
-import { Search, Folder } from "lucide-react";
+import { FolderKanban, List } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { applyFilters } from "@/lib/filter-projetos";
 import { Topbar } from "@/components/painel/Topbar";
-import { KanbanBoard } from "@/components/painel/KanbanBoard";
-import { TarefasTable } from "@/components/painel/TarefasTable";
+import { KanbanBoard, ProjetosTable } from "@/components/painel/KanbanBoard";
 import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
 import { PROJETO_STATUS, PROJETO_TIPO, isProjetoAtivo, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
-import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
+import { SERVICO_SLUG, type ServicoSlug } from "@/types/servico";
 
 export const dynamic = "force-dynamic";
 
 type View = "kanban" | "lista";
+
+/** Labels curtos dos chips de categoria (protótipo: Assistência / Web & Digital / Software). */
+const CHIP_LABEL: Record<ServicoSlug, string> = {
+  "assistencia-tecnica": "Assistência",
+  "web-digital": "Web & Digital",
+  "software-recuperacao": "Software",
+};
 
 type SearchParams = Promise<{
   view?: string;
@@ -79,49 +85,48 @@ export default async function ProjetosPage({ searchParams }: { searchParams: Sea
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Projectos"]}
-        titleHtml={`Projectos · <em>${activos}</em> activos`}
-        description="Estado e organização do trabalho."
-        actions={<NovaTarefaButton clientes={clientes} />}
+        crumbs={["Projectos"]}
+        titleHtml={`Projectos · <em>${activos} activos</em>`}
+        actions={
+          <>
+            <div className="view-tabs">
+              <Link
+                href={buildHref(base, { view: undefined })}
+                className={view === "kanban" ? "on" : undefined}
+              >
+                <FolderKanban className="ic" aria-hidden="true" /> Kanban
+              </Link>
+              <Link
+                href={buildHref(base, { view: "lista" })}
+                className={view === "lista" ? "on" : undefined}
+              >
+                <List className="ic" aria-hidden="true" /> Lista
+              </Link>
+            </div>
+            <NovaTarefaButton clientes={clientes} />
+          </>
+        }
       />
 
-      <div className="content">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div className="tabs">
-            <Link href={buildHref(base, { view: undefined })} className={view === "kanban" ? "active" : undefined}>
-              Kanban
-            </Link>
-            <Link href={buildHref(base, { view: "lista" })} className={view === "lista" ? "active" : undefined}>
-              Lista <span className="num">{projetos.length}</span>
-            </Link>
-          </div>
-
-          <div className="filterbar" style={{ flex: 1, maxWidth: 720 }}>
-            <Link href={buildHref(base, { categoria: undefined })} className={"chip" + (!categoriaParam ? " active" : "")}>
-              <Folder className="ic" aria-hidden="true" /> Todas
-              {!categoriaParam && <span className="x">×</span>}
-            </Link>
-            {SERVICO_SLUG.map((slug) => (
-              <Link
-                key={slug}
-                href={buildHref(base, { categoria: categoriaParam === slug ? undefined : slug })}
-                className={"chip" + (categoriaParam === slug ? " active" : "")}
-              >
-                {SERVICO_SLUG_LABEL[slug]}
-                {categoriaParam === slug && <span className="x">×</span>}
-              </Link>
-            ))}
-            <form action="/painel/projetos" className="search-mini">
-              {params.view && <input type="hidden" name="view" value={params.view} />}
-              {categoriaParam && <input type="hidden" name="categoria" value={categoriaParam} />}
-              <Search className="ic" aria-hidden="true" />
-              <input name="q" defaultValue={params.q ?? ""} placeholder="Procurar projecto, cliente, ID…" />
-            </form>
-          </div>
-        </div>
-
-        {view === "kanban" ? <KanbanBoard projetos={projetos} /> : <TarefasTable projetos={projetos} />}
+      <div className="chips">
+        <Link
+          href={buildHref(base, { categoria: undefined })}
+          className={"chip" + (!categoriaParam ? " on" : "")}
+        >
+          Todas
+        </Link>
+        {SERVICO_SLUG.map((slug) => (
+          <Link
+            key={slug}
+            href={buildHref(base, { categoria: categoriaParam === slug ? undefined : slug })}
+            className={"chip" + (categoriaParam === slug ? " on" : "")}
+          >
+            {CHIP_LABEL[slug]}
+          </Link>
+        ))}
       </div>
+
+      {view === "kanban" ? <KanbanBoard projetos={projetos} /> : <ProjetosTable projetos={projetos} />}
     </>
   );
 }

@@ -3,9 +3,6 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Euro } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { LinhasEditor, computeTotal } from "./LinhasEditor";
 import type { Projeto, ProjetoLinha } from "@/types/projeto";
 import { parseMoney } from "@/lib/parse-number";
@@ -82,25 +79,39 @@ export function CustosCard({ projeto }: Props) {
   }
 
   return (
-    <section className="card p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          <Euro className="h-3.5 w-3.5" aria-hidden="true" />
+    <section className="card">
+      {/* Cabeçalho: label + hint + Guardar custos */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div className="card-label" style={{ margin: 0 }}>
+          <Euro className="ic" aria-hidden="true" />
           Custos
-        </p>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              color: "var(--ink-mute)",
+              letterSpacing: ".04em",
+              textTransform: "none",
+            }}
+          >
+            ✓ = gasto da empresa
+          </span>
+        </div>
         {dirty && (
-          <Button size="sm" onClick={save} disabled={saving}>
-            {saving && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" aria-hidden="true" />}
+          <button type="button" className="btn-ghost" onClick={save} disabled={saving}>
+            {saving && (
+              <Loader2 className="animate-spin" style={{ width: 13, height: 13 }} aria-hidden="true" />
+            )}
             Guardar custos
-          </Button>
+          </button>
         )}
       </div>
 
       {useLegacy ? (
-        <div className="space-y-2">
-          <Label htmlFor="vl">Valor estimado (€)</Label>
-          <div className="flex items-center gap-2">
-            <Input
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, flexWrap: "wrap" }}>
+          <div className="field" style={{ marginBottom: 0, width: 180 }}>
+            <label htmlFor="vl">Valor estimado (€)</label>
+            <input
               id="vl"
               type="number"
               inputMode="decimal"
@@ -109,27 +120,24 @@ export function CustosCard({ projeto }: Props) {
               value={valorLegacy}
               onChange={(e) => setValorLegacy(e.target.value)}
               disabled={saving}
-              className="max-w-[180px]"
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={convertLegacy}
-              disabled={saving}
-            >
-              Converter em linhas
-            </Button>
           </div>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={convertLegacy}
+            disabled={saving}
+            style={{ marginBottom: 4 }}
+          >
+            Converter em linhas
+          </button>
         </div>
       ) : (
         <LinhasEditor linhas={linhas} onChange={setLinhas} disabled={saving} />
       )}
 
       {error && (
-        <p className="text-xs text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded px-2 py-1">
-          {error}
-        </p>
+        <p style={{ fontSize: 12, color: "var(--ember)", margin: "10px 0 0" }}>{error}</p>
       )}
     </section>
   );

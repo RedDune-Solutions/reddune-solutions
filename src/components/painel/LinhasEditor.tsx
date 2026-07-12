@@ -2,19 +2,11 @@
 
 import { useRef } from "react";
 import { Plus, Trash2, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   LINHA_CATEGORIA,
   LINHA_CATEGORIA_LABEL,
+  computeGastoEmpresa,
   type LinhaCategoria,
   type ProjetoLinha,
 } from "@/types/projeto";
@@ -26,10 +18,18 @@ type Props = {
   disabled?: boolean;
 };
 
-const CATEGORIA_COLOR: Record<LinhaCategoria, string> = {
-  peca: "bg-orange-500/10 text-orange-700 border-orange-500/30",
-  "mao-obra": "bg-sky-500/10 text-sky-700 border-sky-500/30",
-  outro: "bg-slate-500/10 text-slate-700 border-slate-500/30",
+/** Classe .lcat.cat-* do protótipo por categoria. */
+const CAT_CLASS: Record<LinhaCategoria, string> = {
+  peca: "cat-peca",
+  "mao-obra": "cat-mao",
+  outro: "cat-outro",
+};
+
+/** Cores inline dos chips de total por categoria (protótipo, linha 647). */
+const CAT_CHIP_STYLE: Record<LinhaCategoria, React.CSSProperties> = {
+  peca: { background: "rgba(224,122,63,.10)", color: "#c2560e" },
+  "mao-obra": { background: "rgba(56,132,255,.08)", color: "#2563a8" },
+  outro: { background: "rgba(90,14,14,.05)", color: "var(--ink-soft)" },
 };
 
 function newLinhaId(): string {
@@ -90,92 +90,94 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
 
   const total = computeTotal(linhas);
   const totals = computeByCategoria(linhas);
+  const gasto = computeGastoEmpresa(linhas);
 
   return (
-    <div className="space-y-3">
+    <div>
       {linhas.length === 0 ? (
-        <p className="text-xs text-muted-foreground italic">
+        <p style={{ fontSize: 12, color: "var(--ink-mute)", fontStyle: "italic", margin: "0 0 8px" }}>
           Sem linhas. Adiciona peças, mão-de-obra ou outros custos para calcular o valor.
         </p>
       ) : (
-        <div ref={listRef} className="space-y-2">
+        <div ref={listRef}>
           {linhas.map((l) => {
             const subtotal = l.quantidade * l.precoUnit;
             return (
-              <div
-                key={l.id}
-                className="grid grid-cols-12 gap-2 items-center rounded-md border border-border bg-card p-2"
-              >
-                <Input
+              <div key={l.id} className="lrow">
+                <input
+                  className="in-sm"
                   placeholder="Descrição"
                   value={l.descricao}
                   onChange={(e) => updateLinha(l.id, { descricao: e.target.value })}
                   disabled={disabled}
                   maxLength={300}
-                  className="col-span-4 h-8 text-xs"
                 />
-                <Select
+                <select
+                  className={cn("lcat", CAT_CLASS[l.categoria])}
                   value={l.categoria}
-                  onValueChange={(v) => updateLinha(l.id, { categoria: v as LinhaCategoria })}
+                  onChange={(e) => updateLinha(l.id, { categoria: e.target.value as LinhaCategoria })}
                   disabled={disabled}
+                  aria-label="Categoria"
                 >
-                  <SelectTrigger className={cn("col-span-2 h-8 text-xs border", CATEGORIA_COLOR[l.categoria])}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LINHA_CATEGORIA.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {LINHA_CATEGORIA_LABEL[c]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
+                  {LINHA_CATEGORIA.map((c) => (
+                    <option key={c} value={c}>
+                      {LINHA_CATEGORIA_LABEL[c]}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="in-sm qtd"
                   type="number"
                   inputMode="numeric"
                   step="1"
                   min="0"
                   placeholder="Qtd"
                   value={l.quantidade}
-                  onChange={(e) =>
-                    updateLinha(l.id, { quantidade: parseQty(e.target.value) })
-                  }
+                  onChange={(e) => updateLinha(l.id, { quantidade: parseQty(e.target.value) })}
                   disabled={disabled}
-                  className="col-span-1 h-8 text-xs tabular-nums"
+                  aria-label="Quantidade"
                 />
-                <Input
+                <input
+                  className="in-sm"
                   type="number"
                   inputMode="decimal"
                   step="0.01"
                   min="0"
                   placeholder="€"
                   value={l.precoUnit}
-                  onChange={(e) => {
-                    updateLinha(l.id, { precoUnit: parseMoney(e.target.value) ?? 0 });
-                  }}
+                  onChange={(e) => updateLinha(l.id, { precoUnit: parseMoney(e.target.value) ?? 0 })}
                   disabled={disabled}
-                  className="col-span-2 h-8 text-xs tabular-nums"
+                  aria-label="Preço unitário"
                 />
-                <div className="col-span-1 text-right font-mono text-xs tabular-nums font-semibold">
-                  {subtotal.toFixed(2)}€
-                </div>
+                <span className="lsub">{subtotal.toFixed(2)}€</span>
+                <input
+                  type="checkbox"
+                  className="lchk"
+                  title="Gasto da empresa (dinheiro que saiu do teu bolso)"
+                  aria-label="Gasto da empresa"
+                  checked={!!l.gastoEmpresa}
+                  onChange={(e) => updateLinha(l.id, { gastoEmpresa: e.target.checked })}
+                  disabled={disabled}
+                />
                 <button
                   type="button"
+                  className="icon-mini"
                   onClick={() => duplicateLinha(l)}
                   disabled={disabled}
+                  title="Duplicar linha"
                   aria-label="Duplicar linha"
-                  className="col-span-1 justify-self-end text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
                 >
-                  <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                  <Copy aria-hidden="true" />
                 </button>
                 <button
                   type="button"
+                  className="icon-mini"
                   onClick={() => removeLinha(l.id)}
                   disabled={disabled}
+                  title="Remover linha"
                   aria-label="Remover linha"
-                  className="col-span-1 justify-self-end text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
                 >
-                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  <Trash2 aria-hidden="true" />
                 </button>
               </div>
             );
@@ -183,37 +185,40 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3 pt-1">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addLinha}
-          disabled={disabled}
-          className="h-8 text-xs"
-        >
-          <Plus className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+      {/* Rodapé: adicionar linha + totais */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          flexWrap: "wrap",
+          marginTop: 4,
+        }}
+      >
+        <button type="button" className="btn-ghost" onClick={addLinha} disabled={disabled}>
+          <Plus style={{ width: 13, height: 13 }} aria-hidden="true" />
           Adicionar linha
-        </Button>
+        </button>
 
         {linhas.length > 0 && (
-          <div className="flex items-center gap-3 text-xs">
+          <div className="ltot">
+            {gasto > 0 && (
+              <span
+                className="tchip-gasto"
+                title="Soma das linhas marcadas como gasto da empresa"
+              >
+                Gasto empresa: {gasto.toFixed(2)}€
+              </span>
+            )}
             {(["peca", "mao-obra", "outro"] as LinhaCategoria[]).map((c) =>
               totals[c] > 0 ? (
-                <span
-                  key={c}
-                  className={cn(
-                    "rounded px-2 py-0.5 font-mono tabular-nums",
-                    CATEGORIA_COLOR[c]
-                  )}
-                >
+                <span key={c} className="tchip-cat" style={CAT_CHIP_STYLE[c]}>
                   {LINHA_CATEGORIA_LABEL[c]}: {totals[c].toFixed(2)}€
                 </span>
               ) : null
             )}
-            <span className="font-mono tabular-nums text-base font-bold text-foreground">
-              Total: {total.toFixed(2)}€
-            </span>
+            <b style={{ fontSize: 14, color: "var(--ink)" }}>Total: {total.toFixed(2)}€</b>
           </div>
         )}
       </div>

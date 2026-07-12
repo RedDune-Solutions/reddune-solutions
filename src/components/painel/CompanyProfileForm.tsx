@@ -77,7 +77,7 @@ export function CompanyProfileForm({ settings }: Props) {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="row" style={{ gap: 18, marginBottom: 20 }}>
+      <div className="row" style={{ gap: 18, marginBottom: 18, alignItems: "flex-start" }}>
         <div
           style={{
             width: 88,
@@ -88,6 +88,7 @@ export function CompanyProfileForm({ settings }: Props) {
             placeItems: "center",
             border: "1px solid rgba(90, 14, 14, 0.10)",
             overflow: "hidden",
+            flexShrink: 0,
           }}
         >
           <Image
@@ -113,11 +114,10 @@ export function CompanyProfileForm({ settings }: Props) {
           <div className="muted" style={{ fontSize: 12.5 }}>
             Cola o URL do logo (PNG ou SVG). Recomendado 512×512.
           </div>
-          <div className="field" style={{ width: "100%", marginTop: 6 }}>
+          <div className="field" style={{ width: "100%", marginTop: 6, marginBottom: 0 }}>
             <label htmlFor="company-logo">URL do logo</label>
             <input
               id="company-logo"
-              className="ipt"
               value={logoUrl}
               onChange={(e) => setLogoUrl(e.target.value)}
               placeholder="https://…"
@@ -127,12 +127,11 @@ export function CompanyProfileForm({ settings }: Props) {
         </div>
       </div>
 
-      <div className="form-row">
+      <div className="set-grid">
         <div className="field">
-          <label htmlFor="company-nome">Nome legal</label>
+          <label htmlFor="company-nome">Nome</label>
           <input
             id="company-nome"
-            className="ipt"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="RedDune Solutions"
@@ -143,7 +142,6 @@ export function CompanyProfileForm({ settings }: Props) {
           <label htmlFor="company-nif">NIF</label>
           <input
             id="company-nif"
-            className="ipt"
             value={nif}
             onChange={(e) => setNif(e.target.value)}
             placeholder="123456789"
@@ -154,19 +152,17 @@ export function CompanyProfileForm({ settings }: Props) {
           {nifErr && (
             <span
               role="alert"
-              className="muted"
-              style={{ fontSize: 11.5, color: "var(--ember)", marginTop: 4 }}
+              style={{ display: "block", fontSize: 11.5, color: "var(--ember)", marginTop: 4 }}
             >
               NIF deve ter 9 dígitos.
             </span>
           )}
         </div>
         <div className="field">
-          <label htmlFor="company-email">Email principal</label>
+          <label htmlFor="company-email">Email</label>
           <input
             id="company-email"
             type="email"
-            className="ipt"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="reddunesolutions@gmail.com"
@@ -174,11 +170,10 @@ export function CompanyProfileForm({ settings }: Props) {
           />
         </div>
         <div className="field">
-          <label htmlFor="company-telefone">Telefone</label>
+          <label htmlFor="company-telefone">Telemóvel</label>
           <input
             id="company-telefone"
             type="tel"
-            className="ipt"
             value={telefone}
             onChange={(e) => setTelefone(e.target.value)}
             placeholder="+351 9XX XXX XXX"
@@ -189,7 +184,6 @@ export function CompanyProfileForm({ settings }: Props) {
           <label htmlFor="company-morada">Morada</label>
           <input
             id="company-morada"
-            className="ipt"
             value={morada}
             onChange={(e) => setMorada(e.target.value)}
             placeholder="Fuseta · Algarve"
@@ -198,12 +192,10 @@ export function CompanyProfileForm({ settings }: Props) {
         </div>
       </div>
 
-      <div className="row" style={{ justifyContent: "flex-end", marginTop: 18 }}>
-        <button type="submit" className="btn primary" disabled={saving || nifErr}>
-          {saving && <Loader2 className="ic animate-spin" aria-hidden="true" />}
-          <span>Guardar</span>
-        </button>
-      </div>
+      <button type="submit" className="btn-primary" style={{ marginTop: 6 }} disabled={saving || nifErr}>
+        {saving && <Loader2 className="ic animate-spin" aria-hidden="true" />}
+        Guardar
+      </button>
     </form>
   );
 }

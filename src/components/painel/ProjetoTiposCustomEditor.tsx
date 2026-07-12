@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, Trash2 } from "lucide-react";
+import { Plus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
+import { CATEGORIA_TIPOS, PROJETO_TIPO_LABEL } from "@/types/projeto";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
@@ -91,34 +92,46 @@ export function ProjetoTiposCustomEditor({ tipos }: Props) {
   const porCategoria = SERVICO_SLUG.map((slug) => ({
     slug,
     label: SERVICO_SLUG_LABEL[slug],
-    tipos: tipos.filter((t) => t.categoria === slug),
+    base: CATEGORIA_TIPOS[slug],
+    custom: tipos.filter((t) => t.categoria === slug),
   }));
 
   return (
     <div className="space-y-4">
-      {porCategoria.map(({ slug, label: catLabel, tipos: catTipos }) => (
-        <div key={slug} className="space-y-1.5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{catLabel}</p>
-          {catTipos.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">Sem tipos personalizados.</p>
-          ) : (
-            <ul className="space-y-1">
-              {catTipos.map((t) => (
-                <li key={t.id} className="flex items-center gap-2 text-sm rounded-md border border-border bg-background px-3 py-1.5">
-                  <span className="flex-1 font-medium">{t.label}</span>
-                  <span className="text-xs text-muted-foreground font-mono">{t.slug}</span>
-                  <button
-                    type="button"
-                    onClick={() => remove(t.id, t.label)}
-                    className="text-muted-foreground hover:text-destructive p-1 rounded"
-                    aria-label={`Apagar ${t.label}`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+      {porCategoria.map(({ slug, label: catLabel, base, custom }) => (
+        <div key={slug}>
+          <p className="plabel">{catLabel}</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {/* Tipos base — do sistema, não podem ser apagados */}
+            {base.map((t) => (
+              <span key={t} title="Tipo base do sistema" className="chip">
+                {PROJETO_TIPO_LABEL[t]}
+              </span>
+            ))}
+            {/* Tipos personalizados — com apagar */}
+            {custom.map((t) => (
+              <span key={t.id} className="chip on">
+                {t.label}
+                <button
+                  type="button"
+                  onClick={() => remove(t.id, t.label)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: 1,
+                    borderRadius: 999,
+                    background: "none",
+                    border: 0,
+                    color: "inherit",
+                    cursor: "pointer",
+                  }}
+                  aria-label={`Apagar ${t.label}`}
+                >
+                  <X className="h-3 w-3" aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       ))}
 
@@ -167,10 +180,10 @@ export function ProjetoTiposCustomEditor({ tipos }: Props) {
           </div>
         </form>
       ) : (
-        <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
-          <Plus className="h-3.5 w-3.5 mr-1" />
-          Novo tipo
-        </Button>
+        <button type="button" className="btn-ghost" onClick={() => setAdding(true)}>
+          <Plus className="ic" aria-hidden="true" style={{ width: 14, height: 14 }} />
+          Adicionar tipo
+        </button>
       )}
     </div>
   );

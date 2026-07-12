@@ -2,8 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { STATUS_LABELS, type ProjetoStatus } from "@/types/projeto";
+
+const moveBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 1,
+  borderRadius: 4,
+  background: "none",
+  border: 0,
+  color: "inherit",
+  cursor: "pointer",
+};
 
 export const KANBAN_DEFAULT_COLUMNS: ProjetoStatus[] = [
   "em-curso",
@@ -57,46 +68,38 @@ export function KanbanOrderSettings() {
   }
 
   return (
-    <div className="space-y-3">
-      <ul className="space-y-1.5">
+    <>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {columns.map((status, idx) => (
-          <li
-            key={status}
-            className="flex items-center gap-3 rounded-md border border-border-strong bg-background px-3 py-2"
-          >
-            <span className="flex-1 text-sm font-medium">{STATUS_LABELS[status]}</span>
-            <span className="text-[10px] text-muted-foreground tabular-nums">{idx + 1}</span>
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => move(idx, -1)}
-                disabled={idx === 0}
-                className="h-7 w-7 p-0"
-                aria-label={`Mover ${STATUS_LABELS[status]} para cima`}
-              >
-                <ChevronUp className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => move(idx, 1)}
-                disabled={idx === columns.length - 1}
-                className="h-7 w-7 p-0"
-                aria-label={`Mover ${STATUS_LABELS[status]} para baixo`}
-              >
-                <ChevronDown className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </li>
+          <span key={status} className="chip">
+            {STATUS_LABELS[status]}
+            <button
+              type="button"
+              onClick={() => move(idx, -1)}
+              disabled={idx === 0}
+              style={{ ...moveBtnStyle, opacity: idx === 0 ? 0.35 : 1 }}
+              aria-label={`Mover ${STATUS_LABELS[status]} para trás`}
+            >
+              <ChevronUp size={12} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => move(idx, 1)}
+              disabled={idx === columns.length - 1}
+              style={{ ...moveBtnStyle, opacity: idx === columns.length - 1 ? 0.35 : 1 }}
+              aria-label={`Mover ${STATUS_LABELS[status]} para a frente`}
+            >
+              <ChevronDown size={12} aria-hidden="true" />
+            </button>
+          </span>
         ))}
-      </ul>
-      <div className="flex justify-end pt-2">
-        <Button size="sm" variant="outline" onClick={reset}>
-          <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-          Repor ordem inicial
-        </Button>
       </div>
-    </div>
+      <div style={{ marginTop: 12 }}>
+        <button type="button" className="btn-ghost" onClick={reset}>
+          <RotateCcw aria-hidden="true" style={{ width: 14, height: 14 }} />
+          Repor ordem inicial
+        </button>
+      </div>
+    </>
   );
 }

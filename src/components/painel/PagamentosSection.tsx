@@ -3,17 +3,6 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Euro } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { METODO_PAGAMENTO, METODO_LABEL, type Pagamento, type MetodoPagamento } from "@/types/pagamento";
 import { parseMoney } from "@/lib/parse-number";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
@@ -38,6 +27,10 @@ function fmtDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+function money(n: number): string {
+  return n.toLocaleString("pt-PT");
 }
 
 export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projetoStatus, projetoTitulo }: Props) {
@@ -159,84 +152,112 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
   }
 
   return (
-    <section className="card p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          <Euro className="h-3.5 w-3.5" aria-hidden="true" />
+    <section className="card">
+      {/* Cabeçalho: label + Adicionar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div className="card-label" style={{ margin: 0 }}>
+          <Euro className="ic" aria-hidden="true" />
           Pagamentos
-        </p>
+        </div>
         {!adding && (
-          <Button size="sm" variant="outline" onClick={() => {
-            setAdding(true);
-            setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
-          }}>
-            <Plus className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              setAdding(true);
+              setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+            }}
+          >
+            <Plus style={{ width: 13, height: 13 }} aria-hidden="true" />
             Adicionar
-          </Button>
+          </button>
         )}
       </div>
 
-      {/* Totais */}
-      <div className="flex flex-wrap items-center gap-4 text-sm">
-        <span className="font-mono tabular-nums">
-          Pago: <strong>{totalPago}€</strong>
+      {/* Resumo mono: Pago · Total · Em dívida */}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          alignItems: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: 12.5,
+          marginBottom: 10,
+        }}
+      >
+        <span>
+          Pago: <b>{money(totalPago)}€</b>
         </span>
         {valorEstimado != null && (
           <>
-            <span className="font-mono tabular-nums text-muted-foreground">
-              Total: {valorEstimado}€
-            </span>
+            <span style={{ color: "var(--ink-mute)" }}>Total: {money(valorEstimado)}€</span>
             {emDivida != null && emDivida > 0 && (
-              <span className="font-mono tabular-nums text-rose-600 font-semibold">
-                Em dívida: {emDivida}€
+              <span style={{ color: "var(--ember)", fontWeight: 700 }}>
+                Em dívida: {money(emDivida)}€
               </span>
             )}
             {emDivida != null && emDivida <= 0 && (
-              <span className="font-mono tabular-nums text-emerald-600 font-semibold">
-                Liquidado
-              </span>
+              <span style={{ color: "var(--dune)", fontWeight: 700 }}>Liquidado</span>
             )}
           </>
         )}
         {canClose && (
-          <Button size="sm" variant="outline" onClick={fecharProjeto} className="ml-auto">
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ marginLeft: "auto" }}
+            onClick={fecharProjeto}
+          >
             Marcar como fechado
-          </Button>
+          </button>
         )}
       </div>
 
+      {/* Quick-pay */}
       {(entradaValor != null || restante != null) && !adding && (
-        <div className="flex flex-wrap gap-2">
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
           {entradaValor != null && (
-            <Button
-              size="sm"
-              variant="outline"
+            <button
+              type="button"
+              className="btn-ghost"
               onClick={() => quickPay(entradaValor)}
               disabled={saving}
             >
-              Entrada (50%): {entradaValor}€
-            </Button>
+              Entrada (50%): {money(entradaValor)}€
+            </button>
           )}
           {restante != null && (
-            <Button
-              size="sm"
-              variant="outline"
+            <button
+              type="button"
+              className="btn-ghost"
               onClick={() => quickPay(restante)}
               disabled={saving}
             >
-              Liquidar restante: {restante}€
-            </Button>
+              Liquidar restante: {money(restante)}€
+            </button>
           )}
         </div>
       )}
 
+      {/* Formulário de novo pagamento */}
       {adding && (
-        <form ref={formRef} onSubmit={add} className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
-          <div className="grid grid-cols-3 gap-2">
-            <div className="space-y-1">
-              <Label htmlFor="pv">Valor €</Label>
-              <Input
-                id="pv"
+        <form
+          ref={formRef}
+          onSubmit={add}
+          style={{
+            border: "1px solid rgba(90,14,14,.10)",
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 12,
+            background: "#fff",
+          }}
+        >
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
+            <div className="field">
+              <label htmlFor="pg-valor">Valor €</label>
+              <input
+                id="pg-valor"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -247,10 +268,10 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
                 required
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="pd">Data</Label>
-              <Input
-                id="pd"
+            <div className="field">
+              <label htmlFor="pg-data">Data</label>
+              <input
+                id="pg-data"
                 type="date"
                 value={data}
                 onChange={(e) => setData(e.target.value)}
@@ -258,27 +279,27 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
                 required
               />
             </div>
-            <div className="space-y-1">
-              <Label>Método</Label>
-              <Select
-                value={metodo || "__none"}
-                onValueChange={(v) => setMetodo(v === "__none" ? "" : (v as MetodoPagamento))}
+            <div className="field">
+              <label htmlFor="pg-metodo">Método</label>
+              <select
+                id="pg-metodo"
+                value={metodo}
+                onChange={(e) => setMetodo(e.target.value as MetodoPagamento | "")}
                 disabled={saving}
               >
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none">—</SelectItem>
-                  {METODO_PAGAMENTO.map((m) => (
-                    <SelectItem key={m} value={m}>{METODO_LABEL[m]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">—</option>
+                {METODO_PAGAMENTO.map((m) => (
+                  <option key={m} value={m}>
+                    {METODO_LABEL[m]}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="pn">Observações</Label>
-            <Textarea
-              id="pn"
+          <div className="field">
+            <label htmlFor="pg-notas">Observações</label>
+            <textarea
+              id="pg-notas"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               rows={2}
@@ -287,55 +308,66 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
             />
           </div>
           {error && (
-            <p className="text-xs text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded px-2 py-1">
-              {error}
-            </p>
+            <p style={{ fontSize: 12, color: "var(--ember)", margin: "0 0 10px" }}>{error}</p>
           )}
-          <div className="flex items-center justify-end gap-2">
-            <Button
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
+              className="btn-ghost"
               onClick={() => { setAdding(false); reset(); }}
               disabled={saving}
             >
               Cancelar
-            </Button>
-            <Button type="submit" size="sm" disabled={saving}>
-              {saving && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" aria-hidden="true" />}
+            </button>
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving && (
+                <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} aria-hidden="true" />
+              )}
               Registar
-            </Button>
+            </button>
           </div>
         </form>
       )}
 
+      {/* Lista de pagamentos */}
       {pagamentos.length === 0 ? (
-        <p className="text-xs text-muted-foreground italic">Sem pagamentos registados.</p>
+        <p style={{ fontSize: 12, color: "var(--ink-mute)", fontStyle: "italic", margin: 0 }}>
+          Sem pagamentos registados.
+        </p>
       ) : (
-        <ul className="divide-y divide-border rounded-md border border-border bg-background">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {pagamentos.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-              <span className="font-mono tabular-nums font-semibold w-20">{p.valor}€</span>
-              <span className="text-muted-foreground tabular-nums w-28">{fmtDate(p.data)}</span>
-              {p.metodo && (
-                <span className="text-xs rounded bg-muted px-1.5 py-0.5">
-                  {METODO_LABEL[p.metodo]}
-                </span>
-              )}
+            <div key={p.id} className="pay">
+              <b>{money(p.valor)}€</b>
+              <span className="pd">{fmtDate(p.data)}</span>
+              {p.metodo && <span className="pm">{METODO_LABEL[p.metodo]}</span>}
               {p.notas && (
-                <span className="text-xs text-muted-foreground truncate flex-1">{p.notas}</span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "var(--ink-mute)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
+                  {p.notas}
+                </span>
               )}
               <button
                 type="button"
+                className="icon-mini"
                 onClick={() => remove(p.id)}
-                className="ml-auto text-muted-foreground hover:text-destructive p-1 rounded"
                 aria-label="Apagar pagamento"
+                title="Apagar pagamento"
               >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                <Trash2 aria-hidden="true" />
               </button>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );

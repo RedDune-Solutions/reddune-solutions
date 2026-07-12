@@ -8,9 +8,9 @@ type Props = {
   /** Optional HTML title (allows <em> ember-italic accent). Overrides `title` text. */
   titleHtml?: string;
   description?: string;
-  /** Breadcrumb trail. Last crumb renders in ember. */
+  /** Breadcrumb trail — renderizado como .eyebrow (join com " · "). */
   crumbs?: string[];
-  /** Right-aligned action(s), e.g. a primary button. */
+  /** Right-aligned action(s), e.g. a primary button (.btn-primary). */
   actions?: ReactNode;
   className?: string;
   hideSearch?: boolean;
@@ -19,8 +19,10 @@ type Props = {
 };
 
 /**
- * Topbar — Oasis v5 `.topbar`. Grid: left (crumbs + title + desc),
- * center (global search), right (notifications bell + actions).
+ * Topbar — padrão `.top` do protótipo (Painel.html): à esquerda eyebrow +
+ * .greet (com <em> a gradiente) + .sub; à direita .top-tools com a pesquisa
+ * global, o sino e as actions da página. `.page-head` acompanha sempre
+ * (o protótipo usa "top page-head" nas páginas internas — visual igual).
  */
 export function Topbar({
   title,
@@ -33,39 +35,21 @@ export function Topbar({
   searchDefault,
 }: Props) {
   return (
-    <header className={cn("topbar", className)}>
+    <header className={cn("top", "page-head", className)}>
       <div className="min-w-0">
-        <div className="row" style={{ gap: 8 }}>
-          <div className="min-w-0">
-            {crumbs && crumbs.length > 0 && (
-              <div className="crumbs">
-                {crumbs.map((c, i) => (
-                  <span key={i}>
-                    {i > 0 && <span className="dotsep">·</span>}
-                    {i === crumbs.length - 1 ? <em>{c}</em> : c}
-                  </span>
-                ))}
-              </div>
-            )}
-            {titleHtml ? (
-              <h1 className="title" dangerouslySetInnerHTML={{ __html: titleHtml }} />
-            ) : (
-              <h1 className="title">{title}</h1>
-            )}
-            {description && <div className="desc">{description}</div>}
-          </div>
-        </div>
+        {crumbs && crumbs.length > 0 && (
+          <p className="eyebrow">{crumbs.join(" · ")}</p>
+        )}
+        {titleHtml ? (
+          <h1 className="greet" dangerouslySetInnerHTML={{ __html: titleHtml }} />
+        ) : (
+          title && <h1 className="greet">{title}</h1>
+        )}
+        {description && <p className="sub">{description}</p>}
       </div>
 
-      {!hideSearch ? (
-        <div className="hidden min-[901px]:block">
-          <GlobalSearch defaultValue={searchDefault} />
-        </div>
-      ) : (
-        <div className="hidden min-[901px]:block" />
-      )}
-
-      <div className="row" style={{ gap: 8 }}>
+      <div className="top-tools">
+        {!hideSearch && <GlobalSearch defaultValue={searchDefault} />}
         <NotificationsBell />
         {actions}
       </div>

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -20,28 +19,44 @@ type Props = {
   clientes?: Cliente[];
   label?: string;
   variant?: "primary" | "ghost";
+  /** Controlo externo do sheet (ex.: NovoMenu). Sem esta prop gere o próprio estado. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Esconde o botão trigger — o sheet passa a abrir apenas via `open` controlado. */
+  hideTrigger?: boolean;
 };
 
-export function NovaTarefaButton({ projeto, clientes = [], label, variant = "primary" }: Props) {
-  const [open, setOpen] = useState(false);
+export function NovaTarefaButton({
+  projeto,
+  clientes = [],
+  label,
+  variant = "primary",
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
+}: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
   const isEdit = !!projeto;
+
+  function setOpen(o: boolean) {
+    onOpenChange?.(o);
+    if (openProp === undefined) setInternalOpen(o);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          size="sm"
-          className={
-            variant === "primary"
-              ? "rounded-btn bg-ink text-cream hover:bg-ember"
-              : "rounded-btn"
-          }
-          variant={variant === "ghost" ? "ghost" : "default"}
-        >
-          {!isEdit && <Plus className="h-4 w-4 mr-1" aria-hidden="true" />}
-          {label ?? (isEdit ? "Editar" : "Novo projeto")}
-        </Button>
-      </SheetTrigger>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <button
+            type="button"
+            className={variant === "primary" ? "btn-primary" : "btn-ghost"}
+          >
+            {!isEdit && <Plus className="ic" aria-hidden="true" />}
+            {label ?? (isEdit ? "Editar" : "Novo projeto")}
+          </button>
+        </SheetTrigger>
+      )}
       <SheetContent side="right" className="flex flex-col p-0">
         <SheetHeader>
           <SheetTitle>{isEdit ? "Editar projeto" : "Novo projeto"}</SheetTitle>

@@ -14,11 +14,11 @@ export function ArquivosCard({ projetoId, arquivos }: Props) {
   const [value, setValue] = useState<ProjetoArquivo[]>(arquivos);
 
   return (
-    <section className="card" style={{ padding: 24 }}>
-      <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-4">
-        <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+    <section className="card">
+      <div className="card-label">
+        <Paperclip className="ic" aria-hidden="true" />
         Ficheiros / Orçamentos
-      </p>
+      </div>
       <ArquivosUploadZone projetoId={projetoId} value={value} onChange={setValue} />
     </section>
   );

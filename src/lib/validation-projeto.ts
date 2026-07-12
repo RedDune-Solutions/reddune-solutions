@@ -14,6 +14,7 @@ export const linhaSchema = z.object({
   categoria: z.enum(LINHA_CATEGORIA),
   quantidade: z.number().finite().min(0),
   precoUnit: z.number().finite(),
+  gastoEmpresa: z.boolean().optional(),
 });
 
 export const projetoSchema = z.object({

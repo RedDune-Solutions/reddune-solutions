@@ -86,7 +86,7 @@ export function FichaClienteForm({ token, cliente }: Props) {
         <button
           type="submit"
           disabled={estado === "saving"}
-          className="rounded-full border border-ember bg-transparent px-[26px] py-3 text-sm font-semibold leading-[1.2] text-ember transition duration-[350ms] ease-oasis hover:-translate-y-0.5 hover:bg-[rgba(214,66,42,0.06)] disabled:cursor-default disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-transparent"
+          className="rounded-full border border-ember bg-transparent px-[26px] py-3 text-sm font-semibold leading-[1.2] text-ember transition [transition-duration:350ms] ease-oasis hover:-translate-y-0.5 hover:bg-[rgba(214,66,42,0.06)] disabled:cursor-default disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-transparent"
         >
           {estado === "saving" ? "A guardar…" : "Guardar os meus dados"}
         </button>

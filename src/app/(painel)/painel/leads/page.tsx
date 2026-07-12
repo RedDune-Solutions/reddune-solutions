@@ -1,7 +1,6 @@
-import { Inbox, Clock, CheckCircle2, Loader } from "lucide-react";
+import { Inbox } from "lucide-react";
 import { getAllLeads } from "@/lib/mongodb/leads";
 import { Topbar } from "@/components/painel/Topbar";
-import { KpiCard } from "@/components/painel/KpiCard";
 import { PushOptIn } from "@/components/painel/PushOptIn";
 import { LeadsTable } from "@/components/painel/LeadsTable";
 
@@ -18,32 +17,41 @@ export default async function LeadsPage() {
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Leads"]}
-        titleHtml={`Leads · <em>${leads.length}</em>`}
-        description={`${novos} novos por tratar.`}
+        crumbs={["Leads"]}
+        titleHtml={`${novos} <em>por tratar</em>`}
         actions={<PushOptIn />}
       />
 
-      <div className="content">
-        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-          <KpiCard label="Total" value={leads.length} icon={Inbox} hint="enquiries captadas" />
-          <KpiCard tone="accent" label="Novos" value={novos} icon={Clock} hint="por contactar" />
-          <KpiCard tone="amber" label="Em curso" value={emCurso} icon={Loader} hint="contactado / orçamento" />
-          <KpiCard tone="green" label="Ganhos" value={ganhos} icon={CheckCircle2} hint="convertidos" />
+      <div className="mini-kpis">
+        <div className="k">
+          <div className="kpi-label">Total</div>
+          <div className="kpi-num">{leads.length}</div>
         </div>
-
-        {leads.length === 0 ? (
-          <div className="empty">
-            <div className="ic"><Inbox aria-hidden="true" /></div>
-            <div className="t">Sem leads</div>
-            <div className="desc">
-              As mensagens do formulário de contacto do site aparecem aqui automaticamente.
-            </div>
-          </div>
-        ) : (
-          <LeadsTable leads={leads} />
-        )}
+        <div className="k accent">
+          <div className="kpi-label">Novos</div>
+          <div className="kpi-num">{novos}</div>
+        </div>
+        <div className="k">
+          <div className="kpi-label">Em curso</div>
+          <div className="kpi-num">{emCurso}</div>
+        </div>
+        <div className="k">
+          <div className="kpi-label">Ganhos</div>
+          <div className="kpi-num">{ganhos}</div>
+        </div>
       </div>
+
+      {leads.length === 0 ? (
+        <div className="empty">
+          <div className="ic"><Inbox aria-hidden="true" /></div>
+          <div className="t">Sem leads</div>
+          <div className="desc">
+            As mensagens do formulário de contacto do site aparecem aqui automaticamente.
+          </div>
+        </div>
+      ) : (
+        <LeadsTable leads={leads} />
+      )}
     </>
   );
 }

@@ -34,7 +34,7 @@ export function PortalTabs({ projeto, dados }: Props) {
             aria-selected={ativa === t.id}
             aria-controls={`painel-${t.id}`}
             onClick={() => setAtiva(t.id)}
-            className={`rounded-full px-[18px] py-2 font-mono text-[11px] font-medium uppercase tracking-[0.14em] transition-colors duration-[350ms] ease-oasis ${
+            className={`rounded-full px-[18px] py-2 font-mono text-[11px] font-medium uppercase tracking-[0.14em] transition-colors [transition-duration:350ms] ease-oasis ${
               ativa === t.id
                 ? "bg-white text-ember shadow-[0_2px_10px_rgba(90,14,14,0.10)]"
                 : "text-ink-mute hover:text-ink"

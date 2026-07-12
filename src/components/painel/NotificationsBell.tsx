@@ -65,45 +65,21 @@ export function NotificationsBell() {
   const unread = data?.unread ?? 0;
   const items = data?.items ?? [];
   const hasBadge = unread > 0;
-  const badgeLabel = unread > 9 ? "9+" : String(unread);
 
   const ariaLabel = hasBadge
     ? `Notificações, ${unread} por tratar`
     : "Notificações";
 
+  // Ponto "unread" vem do CSS (.bell.unread::after) — sem markup próprio.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="btn ghost icon"
+          className={hasBadge ? "bell unread" : "bell"}
           aria-label={ariaLabel}
           type="button"
-          style={{ position: "relative" }}
         >
           <Bell className="ic" aria-hidden="true" />
-          {hasBadge && (
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: 4,
-                right: 4,
-                minWidth: 16,
-                height: 16,
-                padding: "0 4px",
-                borderRadius: 999,
-                background: "var(--ember, #d6422a)",
-                color: "#fff",
-                fontSize: 9.5,
-                fontWeight: 700,
-                lineHeight: "16px",
-                textAlign: "center",
-                boxShadow: "0 0 0 2px var(--cream, #f7eedb)",
-              }}
-            >
-              {badgeLabel}
-            </span>
-          )}
         </button>
       </DropdownMenuTrigger>
 

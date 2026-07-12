@@ -16,7 +16,7 @@ type SearchParams = Promise<{ filter?: string; feitas?: string }>;
 const FILTER_LABELS: Record<TarefaFilter, string> = {
   todas: "Todas",
   hoje: "Hoje",
-  semana: "Esta semana",
+  semana: "Semana",
   vencidas: "Vencidas",
 };
 
@@ -90,35 +90,35 @@ export default async function TarefasPage({
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Tarefas"]}
-        titleHtml={`Tarefas · <em>${pendentes} aberta${pendentes !== 1 ? "s" : ""}</em>`}
-        description="Acções associadas a projectos · ordenado por urgência."
-        actions={<NovaTarefaGlobalButton projetos={allProjetos} />}
+        crumbs={["Tarefas"]}
+        titleHtml={`${pendentes} <em>aberta${pendentes !== 1 ? "s" : ""}</em>`}
+        actions={
+          <>
+            <div className="view-tabs">
+              {(Object.keys(FILTER_LABELS) as TarefaFilter[]).map((f) => (
+                <Link key={f} href={buildUrl(f)} className={filter === f ? "on" : undefined}>
+                  {FILTER_LABELS[f]}
+                  {counts[f] > 0 && <span className="num">{counts[f]}</span>}
+                </Link>
+              ))}
+            </div>
+            <NovaTarefaGlobalButton projetos={allProjetos} />
+          </>
+        }
       />
 
-      <div className="content">
-        <div className="row between" style={{ flexWrap: "wrap", gap: 12 }}>
-          <div className="tabs">
-            {(Object.keys(FILTER_LABELS) as TarefaFilter[]).map((f) => (
-              <Link key={f} href={buildUrl(f)} className={filter === f ? "active" : undefined}>
-                {FILTER_LABELS[f]}
-                {counts[f] > 0 && <span className="num">{counts[f]}</span>}
-              </Link>
-            ))}
-          </div>
-          <Link href={toggleFeitasUrl} className={cn("toggle", showFeitas && "on")}>
-            <span className="sw" />
-            Mostrar feitas
-          </Link>
-        </div>
-
-        <TarefasPorProjeto
-          tarefas={allTarefas}
-          projetos={allProjetos}
-          filter={filter}
-          showFeitas={showFeitas}
-        />
+      <div className="chips" style={{ justifyContent: "flex-end" }}>
+        <Link href={toggleFeitasUrl} className={cn("chip", showFeitas && "on")}>
+          Mostrar feitas
+        </Link>
       </div>
+
+      <TarefasPorProjeto
+        tarefas={allTarefas}
+        projetos={allProjetos}
+        filter={filter}
+        showFeitas={showFeitas}
+      />
     </>
   );
 }

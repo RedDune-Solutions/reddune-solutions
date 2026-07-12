@@ -1,27 +1,37 @@
 import Link from "next/link";
 import {
-  Play,
-  Inbox,
-  Clock,
-  Check,
-  Users,
-  Coins,
-  AlertTriangle,
-  AlertCircle,
-  Sun,
-  ChevronRight,
   ArrowRight,
+  Euro,
+  FolderKanban,
+  FolderPlus,
+  Images,
+  Inbox,
+  ListChecks,
+  Package,
+  UserPlus,
+  Wrench,
+  type LucideIcon,
 } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
+import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { getRecentAuditEntries, type AuditEntry } from "@/lib/mongodb/mutation-audit";
+import { collectGastos, sumGastosInMonth } from "@/lib/gastos";
 import { Topbar } from "@/components/painel/Topbar";
-import { KpiCard } from "@/components/painel/KpiCard";
-import { TarefaCard } from "@/components/painel/TarefaCard";
-import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
-import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
-import { isOverdue, isToday, parseIsoDate, todayLisbonDate, todayLisbonMonth } from "@/lib/dates";
+import { NovoMenu } from "@/components/painel/NovoMenu";
+import { STATUS_GROUPS, TAREFAS_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
+import {
+  formatRelativeDay,
+  isOverdue,
+  isToday,
+  isWithinNextDays,
+  parseIsoDate,
+  startOfDay,
+  todayLisbonDate,
+  todayLisbonMonth,
+} from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -34,23 +44,22 @@ const COLL_LABEL: Record<string, string> = {
   portfolio: "Trabalho",
   servicos: "Serviço",
 };
-const OP_LABEL: Record<string, string> = { create: "criou", update: "editou", delete: "apagou" };
-const OP_ACT: Record<string, string> = { create: "create", update: "edit", delete: "delete" };
+// Colecções com rótulo feminino (concordância do particípio: criada/editada/apagada).
+const COLL_FEM = new Set(["tarefas"]);
+const OP_PART: Record<string, string> = { create: "criad", update: "editad", delete: "apagad" };
 
-function greeting(d: Date): string {
-  const h = d.getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 20) return "Boa tarde";
+// Hora actual em Lisboa (o servidor Vercel corre em UTC — getHours() cru
+// daria "Bom dia" à 01:00 de Lisboa no Verão).
+const LISBON_HOUR = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/Lisbon",
+  hour: "2-digit",
+  hourCycle: "h23",
+});
+
+function greeting(hourLisbon: number): string {
+  if (hourLisbon < 12) return "Bom dia";
+  if (hourLisbon < 20) return "Boa tarde";
   return "Boa noite";
-}
-
-function fmtDay(iso: string | null): string {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
-  } catch {
-    return "—";
-  }
 }
 
 function fmtRel(d: Date): string {
@@ -60,6 +69,7 @@ function fmtRel(d: Date): string {
   if (min < 60) return `há ${min} min`;
   const h = Math.round(min / 60);
   if (h < 24) return `há ${h}h`;
+  if (h < 48) return "ontem";
   return new Date(d).toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
 }
 
@@ -70,18 +80,121 @@ function auditObj(e: AuditEntry): string {
   return `${COLL_LABEL[e.collection] ?? e.collection} · ${e.entityId.slice(0, 8)}`;
 }
 
-export default async function PainelOverviewPage() {
-  const [projetos, clientes, pagamentos, audit] = await Promise.all([
+/** "Projecto criado" / "Tarefa editada" / "Pagamento apagado" … */
+function auditWho(e: AuditEntry): string {
+  const label = COLL_LABEL[e.collection] ?? e.collection;
+  const part = OP_PART[e.op];
+  if (!part) return label;
+  return `${label} ${part}${COLL_FEM.has(e.collection) ? "a" : "o"}`;
+}
+
+function auditIcon(e: AuditEntry): LucideIcon {
+  if (e.collection === "projetos") return e.op === "create" ? FolderPlus : FolderKanban;
+  switch (e.collection) {
+    case "clientes":
+      return UserPlus;
+    case "tarefas":
+      return ListChecks;
+    case "pagamentos":
+      return Euro;
+    case "products":
+      return Package;
+    case "portfolio":
+      return Images;
+    case "servicos":
+      return Wrench;
+    default:
+      return Inbox;
+  }
+}
+
+// ---------- Hero "O teu dia" (tarefas + prazos de projecto accionáveis) ----------
+
+type Foco = "hoje" | "semana";
+
+type HeroItem = {
+  key: string;
+  href: string;
+  titulo: string;
+  meta: string;
+  time: string | null;
+  overdue: boolean;
+  /** Vencida ou com prazo hoje (conta para o "Tens N coisas para hoje"). */
+  hoje: boolean;
+  pill: string; // rótulo do .pill-late quando overdue ("atrasada"/"atrasado")
+  color: string;
+  sortKey: number;
+};
+
+function heroDotColor(prazo: string | null, hoje: Date): string {
+  if (isOverdue(prazo, hoje)) return "var(--flame)";
+  if (isToday(prazo, hoje)) return "var(--apricot)";
+  return "var(--peach)"; // próximos dias (vista Semana)
+}
+
+function heroTime(prazo: string | null, prazoHora: string | null, hoje: Date): string | null {
+  if (!prazo) return null;
+  if (isToday(prazo, hoje)) return prazoHora ?? "hoje";
+  const rel = formatRelativeDay(prazo, hoje).toLowerCase();
+  return prazoHora ? `${rel} · ${prazoHora}` : rel;
+}
+
+function heroSortKey(prazo: string | null, prazoHora: string | null): number {
+  const d = parseIsoDate(prazo);
+  if (!d) return Number.MAX_SAFE_INTEGER;
+  let key = startOfDay(d).getTime();
+  if (prazoHora) {
+    const [hh, mm] = prazoHora.split(":").map(Number);
+    if (!Number.isNaN(hh)) key += (hh * 60 + (mm || 0)) * 60000;
+  } else {
+    key += 24 * 3600000 - 1; // sem hora → depois das que têm hora no mesmo dia
+  }
+  return key;
+}
+
+const eur = (n: number) => Math.round(n).toLocaleString("pt-PT");
+
+export default async function PainelOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ foco?: string }>;
+}) {
+  const [projetos, clientes, pagamentos, tarefas, despesas, audit, params] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
     getAllPagamentos(),
+    getAllTarefas(),
+    getAllDespesas(),
     getRecentAuditEntries(6),
+    searchParams,
   ]);
+
+  const foco: Foco = params.foco === "semana" ? "semana" : "hoje";
 
   const now = new Date();
   // "Hoje" no fuso de Portugal para comparações de dia/mês (o servidor Vercel
-  // corre em UTC). `now` mantém-se como instante real p/ saudação e rótulos.
+  // corre em UTC). `now` mantém-se como instante real p/ rótulos relativos.
   const hojeLisboa = todayLisbonDate(now);
+  const saudacao = `${greeting(Number(LISBON_HOUR.format(now)))}, <em>Iuri</em>.`;
+
+  if (projetos.length === 0) {
+    return (
+      <>
+        <Topbar
+          titleHtml={saudacao}
+          description="Ainda não há projectos."
+          actions={<NovoMenu projetos={projetos} clientes={clientes} />}
+        />
+        <div className="empty">
+          <div className="t">Sem dados ainda</div>
+          <div className="desc">
+            Usa o botão <strong>Novo</strong> ou vai a <strong>Projectos</strong> e cria o
+            primeiro projecto.
+          </div>
+        </div>
+      </>
+    );
+  }
 
   const pagoPorProjeto = new Map<string, number>();
   for (const p of pagamentos) {
@@ -98,320 +211,253 @@ export default async function PainelOverviewPage() {
     (sum, p) => sum + ((p.valorEstimado ?? 0) - (pagoPorProjeto.get(p.id) ?? 0)),
     0
   );
-  const emAtrasoLongo = projetos.filter((p) => {
-    if (p.status !== "terminado" || !p.dataFechado) return false;
-    const days = (Date.now() - new Date(p.dataFechado).getTime()) / 86400000;
-    return days > 30 && (p.valorEstimado ?? 0) > (pagoPorProjeto.get(p.id) ?? 0);
-  });
 
   const counts = {
-    total: projetos.length,
     emCurso: projetos.filter((p) => STATUS_GROUPS.ativo.includes(p.status)).length,
     proximos: projetos.filter((p) => STATUS_GROUPS.proximo.includes(p.status)).length,
     aguarda: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length,
     pronto: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length,
   };
 
-  // "Hoje" widget: active projects overdue or due today.
   const active = projetos.filter(
     (p) =>
       STATUS_GROUPS.ativo.includes(p.status) ||
       STATUS_GROUPS.proximo.includes(p.status) ||
       STATUS_GROUPS.aguarda.includes(p.status)
   );
-  const hojeItems = active
-    .filter((p) => p.prazo && (isOverdue(p.prazo, hojeLisboa) || isToday(p.prazo, hojeLisboa)))
-    .sort((a, b) => {
-      const ad = parseIsoDate(a.prazo ?? null);
-      const bd = parseIsoDate(b.prazo ?? null);
-      return (ad?.getTime() ?? 0) - (bd?.getTime() ?? 0);
-    })
-    .slice(0, 5);
 
-  const proximaAccaoProjetos = projetos
-    .filter(
-      (p) =>
-        STATUS_GROUPS.ativo.includes(p.status) || STATUS_GROUPS.proximo.includes(p.status)
-    )
-    .filter((p) => p.proximaAccao && p.proximaAccao.length > 0)
-    .slice(0, 6);
+  // Hero "O teu dia": tarefas não feitas + prazos de projecto — atrasados e de
+  // hoje; a vista Semana acrescenta os próximos 7 dias.
+  const isHoje = (prazo: string | null): boolean =>
+    isOverdue(prazo, hojeLisboa) || isToday(prazo, hojeLisboa);
+  const inScope = (prazo: string | null): boolean => {
+    if (!prazo) return false;
+    return isHoje(prazo) || isWithinNextDays(prazo, 7, hojeLisboa);
+  };
+
+  const projetoById = new Map<string, Projeto>(projetos.map((p) => [p.id, p]));
+  const tarefasVisiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
+
+  const heroAll: HeroItem[] = [];
+  for (const t of tarefas) {
+    if (t.feita || !inScope(t.prazo)) continue;
+    const proj = projetoById.get(t.projetoId);
+    if (!proj || !tarefasVisiveis.has(proj.status)) continue;
+    heroAll.push({
+      key: `t-${t.id}`,
+      href: `/painel/projetos/${proj.id}`,
+      titulo: t.titulo,
+      meta: proj.clienteNome ? `${proj.titulo} · ${proj.clienteNome}` : proj.titulo,
+      time: heroTime(t.prazo, t.prazoHora, hojeLisboa),
+      overdue: isOverdue(t.prazo, hojeLisboa),
+      hoje: isHoje(t.prazo),
+      pill: "atrasada",
+      color: heroDotColor(t.prazo, hojeLisboa),
+      sortKey: heroSortKey(t.prazo, t.prazoHora),
+    });
+  }
+  for (const p of active) {
+    if (!inScope(p.prazo)) continue;
+    heroAll.push({
+      key: `p-${p.id}`,
+      href: `/painel/projetos/${p.id}`,
+      titulo: p.titulo,
+      meta: p.clienteNome ? `Prazo do projecto · ${p.clienteNome}` : "Prazo do projecto",
+      time: heroTime(p.prazo, null, hojeLisboa),
+      overdue: isOverdue(p.prazo, hojeLisboa),
+      hoje: isHoje(p.prazo),
+      pill: "atrasado",
+      color: heroDotColor(p.prazo, hojeLisboa),
+      sortKey: heroSortKey(p.prazo, null),
+    });
+  }
+  heroAll.sort((a, b) => a.sortKey - b.sortKey);
+  const heroHoje = heroAll.filter((it) => it.hoje);
+  const heroShown = foco === "hoje" ? heroHoje : heroAll;
+
+  // Sub da saudação — formato do protótipo, a omitir partes a zero:
+  // "Tens 3 coisas para hoje · 1 vencida · 1 projeto em dívida"
+  const vencidas = heroHoje.filter((it) => it.overdue).length;
+  const subParts: string[] = [];
+  subParts.push(
+    heroHoje.length > 0
+      ? `Tens ${heroHoje.length} coisa${heroHoje.length === 1 ? "" : "s"} para hoje`
+      : "Sem prazos para hoje"
+  );
+  if (vencidas > 0) subParts.push(`${vencidas} vencida${vencidas === 1 ? "" : "s"}`);
+  if (dividas.length > 0) {
+    subParts.push(`${dividas.length} projeto${dividas.length === 1 ? "" : "s"} em dívida`);
+  }
 
   const mesActual = todayLisbonMonth(now);
   const ganhosMes = pagamentos
     .filter((p) => p.data?.startsWith(mesActual))
     .reduce((s, p) => s + p.valor, 0);
 
-  const dataLabel = hojeLisboa.toLocaleDateString("pt-PT", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  // Gastos do mês: linhas de projecto marcadas gastoEmpresa + despesas manuais.
+  const gastoEvents = collectGastos(projetos, despesas);
+  const gastosMes = sumGastosInMonth(gastoEvents, mesActual);
+  const lucroMes = ganhosMes - gastosMes;
 
-  if (projetos.length === 0) {
-    return (
-      <>
-        <Topbar crumbs={["Painel", "Visão geral"]} title="Visão geral" />
-        <div className="content">
-          <div className="empty">
-            <div className="ic">
-              <AlertCircle aria-hidden="true" />
-            </div>
-            <div className="t">Sem dados ainda</div>
-            <div className="desc">
-              Vai a <strong>Projectos</strong> e cria o primeiro projecto.
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const concluidosMes = projetos.filter((p) => p.dataFechado?.startsWith(mesActual)).length;
+  const novosClientesMes = clientes.filter((c) => c.criadoEm?.startsWith(mesActual)).length;
+  const pagamentosMes = pagamentos.filter((p) => p.data?.startsWith(mesActual)).length;
+  const ticketMedio = pagamentosMes > 0 ? Math.round(ganhosMes / pagamentosMes) : 0;
 
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Visão geral"]}
-        titleHtml={`${greeting(now)}, <em>Equipa</em>.`}
-        description={`${dataLabel} · ${counts.emCurso} em curso · ${counts.proximos} próximos · ${dividas.length} em dívida.`}
-        actions={<NovaTarefaButton clientes={clientes} />}
+        titleHtml={saudacao}
+        description={subParts.join(" · ")}
+        actions={<NovoMenu projetos={projetos} clientes={clientes} />}
       />
 
-      <div className="content">
-        {/* Today widget + primary KPIs */}
-        <div className="ov-top">
-          <div className="kpi ink" style={{ minHeight: 0 }}>
-            <div className="row between">
-              <div className="label">Hoje · {hojeLisboa.toLocaleDateString("pt-PT", { day: "2-digit", month: "short" })}</div>
-              <Sun size={20} style={{ color: "var(--apricot)" }} aria-hidden="true" />
-            </div>
-            <div className="v" style={{ fontSize: 30, lineHeight: 1.05 }}>
-              {hojeItems.length}{" "}
-              <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", color: "var(--apricot)", fontWeight: 500 }}>
-                {hojeItems.length === 1 ? "prazo" : "prazos"}
-              </span>
-            </div>
-            <div className="col" style={{ gap: 0, marginTop: 4 }}>
-              {hojeItems.length === 0 ? (
-                <span style={{ fontSize: 13, color: "#c89b6a" }}>Nada urgente hoje.</span>
-              ) : (
-                hojeItems.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/painel/projetos/${p.id}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "10px 0",
-                      borderTop: "1px dashed rgba(245, 233, 211, 0.12)",
-                    }}
-                  >
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--apricot)", width: 52 }}>
-                      {fmtDay(p.prazo)}
-                    </span>
-                    <span style={{ fontSize: 13, color: "#f5e9d3", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {p.titulo}
-                    </span>
-                    <ChevronRight size={13} style={{ color: "#6a4f3e" }} aria-hidden="true" />
-                  </Link>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
-            <KpiCard tone="accent" label="Em curso" value={counts.emCurso} icon={Play} hint={`${counts.total} no total`} />
-            <KpiCard label="Próximos" value={counts.proximos} icon={Inbox} hint="na fila — priorizar" />
-            <KpiCard tone="amber" label="Em espera" value={counts.aguarda} icon={Clock} hint="aguarda cliente ou encomenda" />
-            <KpiCard tone="green" label="Prontos" value={counts.pronto} icon={Check} hint="aguardam entrega · pagamento" />
-          </div>
+      {/* ---------- Hero "O teu dia" ---------- */}
+      <div className="hero">
+        <div className="hero-head">
+          <span className="eyebrow">O teu dia</span>
+          <nav className="toggle" aria-label="Âmbito da lista">
+            <Link
+              href="/painel?foco=hoje"
+              scroll={false}
+              className={foco === "hoje" ? "on" : undefined}
+              aria-current={foco === "hoje" ? "true" : undefined}
+            >
+              Hoje
+            </Link>
+            <Link
+              href="/painel?foco=semana"
+              scroll={false}
+              className={foco === "semana" ? "on" : undefined}
+              aria-current={foco === "semana" ? "true" : undefined}
+            >
+              Semana
+            </Link>
+          </nav>
         </div>
 
-        {/* Clients & money */}
-        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-          <KpiCard label="Clientes" value={clientes.length} icon={Users} hint="total de fichas" />
-          <KpiCard
-            tone="amber"
-            label="Em dívida"
-            value={dividasValor > 0 ? Math.round(dividasValor).toLocaleString("pt-PT") : "0"}
-            unit="€"
-            icon={Coins}
-            hint={`${dividas.length} projecto${dividas.length === 1 ? "" : "s"} por cobrar`}
-          />
-          <KpiCard
-            tone="accent"
-            label="Em atraso 30+ dias"
-            value={emAtrasoLongo.length}
-            icon={AlertTriangle}
-            hint={'terminados há +30 dias · <a class="ember" href="/painel/dividas" style="text-decoration:underline">ver dívidas</a>'}
-          />
-        </div>
+        {heroShown.length === 0 ? (
+          <div className="hero-empty">
+            {foco === "hoje"
+              ? "Sem prazos para hoje. Tens o dia livre para avançar no que está em curso."
+              : "Sem prazos nos próximos 7 dias. Semana desimpedida."}
+          </div>
+        ) : (
+          <div>
+            {heroShown.map((it) => (
+              <Link key={it.key} href={it.href} className="htask">
+                <span className="dot" style={{ background: it.color }} aria-hidden="true" />
+                <span className="check" aria-hidden="true" />
+                <div className="t-main">
+                  <div className="t-title">
+                    {it.titulo}
+                    {it.overdue && <span className="pill-late">{it.pill}</span>}
+                  </div>
+                  <div className="t-meta">{it.meta}</div>
+                </div>
+                {it.time && <span className="t-time">{it.time}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Foco da semana */}
-        <div className="col" style={{ gap: 14 }}>
-          <div className="section-h">
+      {/* ---------- KPIs slim ---------- */}
+      <div className="kpi-slim">
+        <div className="kpi">
+          <div className="kpi-label">Em curso</div>
+          <div className="kpi-num">{counts.emCurso}</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi-label">Próximos</div>
+          <div className="kpi-num">{counts.proximos}</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi-label">Em espera</div>
+          <div className="kpi-num">{counts.aguarda}</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi-label">Prontos</div>
+          <div className="kpi-num">{counts.pronto}</div>
+        </div>
+        <div className="kpi accent">
+          <div className="kpi-label">Em dívida</div>
+          <div className="kpi-num">{eur(dividasValor)}€</div>
+        </div>
+      </div>
+
+      {/* ---------- Resumo do mês · Atividade recente ---------- */}
+      <div className="cols2">
+        <div className="card">
+          <div className="card-head">
+            <span className="card-title">Resumo do mês</span>
+          </div>
+          <div className="month msum">
             <div>
-              <div className="eye">Próximas acções</div>
-              <div className="t">
-                Foco da <em className="italic">semana</em>
-              </div>
+              <div className="kpi-label">Receita</div>
+              <div className="m-num pos">{eur(ganhosMes)} €</div>
             </div>
-            <Link className="more" href="/painel/projetos?view=kanban">
-              Ver Kanban <ArrowRight className="ic" aria-hidden="true" />
+            <div>
+              <div className="kpi-label">Gastos</div>
+              <div className="m-num neg">{eur(gastosMes)} €</div>
+            </div>
+            <div>
+              <div className="kpi-label">Lucro</div>
+              <div className={lucroMes < 0 ? "m-num neg" : "m-num"}>{eur(lucroMes)} €</div>
+            </div>
+          </div>
+          <div
+            className="month msum"
+            style={{
+              marginTop: 14,
+              borderTop: "1px dashed rgba(90,14,14,.12)",
+              paddingTop: 14,
+            }}
+          >
+            <div>
+              <div className="kpi-label">Concluídos</div>
+              <div className="m-num sm">{concluidosMes}</div>
+            </div>
+            <div>
+              <div className="kpi-label">Novos clientes</div>
+              <div className="m-num sm">{novosClientesMes}</div>
+            </div>
+            <div>
+              <div className="kpi-label">Ticket médio</div>
+              <div className="m-num sm">{eur(ticketMedio)} €</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <span className="card-title">Atividade recente</span>
+            <Link className="link-more" href="/painel/auditoria">
+              Ver tudo <ArrowRight className="ic" aria-hidden="true" />
             </Link>
           </div>
-          {proximaAccaoProjetos.length === 0 ? (
-            <p className="muted" style={{ fontSize: 13 }}>Sem próximas acções activas. Tudo em dia.</p>
+          {audit.length === 0 ? (
+            <p className="muted" style={{ fontSize: 13 }}>
+              Sem atividade ainda.
+            </p>
           ) : (
-            <div className="ov-cards">
-              {proximaAccaoProjetos.map((p) => (
-                <TarefaCard key={p.id} projeto={p} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Activity + month */}
-        <div className="ov-bottom">
-          <div className="card">
-            <div className="ch">
-              <div>
-                <div className="t">Atividade recente</div>
-                <div className="sub">Últimas mutações registadas</div>
-              </div>
-              <Link className="btn ghost tiny" href="/painel/auditoria">Ver tudo</Link>
-            </div>
-            <div className="cb" style={{ padding: 0 }}>
-              {audit.length === 0 ? (
-                <p className="muted" style={{ fontSize: 13, padding: "16px 20px" }}>Sem atividade ainda.</p>
-              ) : (
-                audit.map((e, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "auto 1fr auto",
-                      gap: 14,
-                      alignItems: "center",
-                      padding: "12px 20px",
-                      borderBottom: "1px dashed rgba(90, 14, 14, 0.10)",
-                      fontSize: 13,
-                    }}
-                  >
-                    <div className="av-c sm b">{(e.userEmail ?? "?").slice(0, 1).toUpperCase()}</div>
-                    <div style={{ minWidth: 0 }}>
-                      <span style={{ color: "var(--ink-soft)" }}>
-                        {(e.userEmail ?? "Sistema").split("@")[0]}{" "}
-                        <span className={`act ${OP_ACT[e.op] ?? "edit"}`}>{OP_LABEL[e.op] ?? e.op}</span>{" "}
-                        <span className="muted">{COLL_LABEL[e.collection] ?? e.collection}</span>{" "}
-                      </span>
-                      <span style={{ color: "var(--ink)", fontWeight: 500 }}>{auditObj(e)}</span>
-                    </div>
-                    <span className="mono muted" style={{ fontSize: 11, whiteSpace: "nowrap" }}>{fmtRel(e.at)}</span>
+            audit.map((e, i) => {
+              const Icon = auditIcon(e);
+              return (
+                <div className="act" key={i}>
+                  <span className="a-ic">
+                    <Icon className="ic" aria-hidden="true" />
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <span className="who">{auditWho(e)}</span> · {auditObj(e)}
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <MonthSummary
-            mesLabel={hojeLisboa.toLocaleDateString("pt-PT", { month: "long" })}
-            recebido={ganhosMes}
-            concluidos={projetos.filter((p) => p.dataFechado?.startsWith(mesActual)).length}
-            novosClientes={clientes.filter((c) => c.criadoEm?.startsWith(mesActual)).length}
-            ticketMedio={(() => {
-              const cnt = pagamentos.filter((p) => p.data?.startsWith(mesActual)).length;
-              return cnt > 0 ? Math.round(ganhosMes / cnt) : 0;
-            })()}
-            dist={{
-              assist: active.filter((p) => p.categoria === "assistencia-tecnica").length,
-              web: active.filter((p) => p.categoria === "web-digital").length,
-              recup: active.filter((p) => p.categoria === "software-recuperacao").length,
-            }}
-          />
+                  <span className="when">{fmtRel(e.at)}</span>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </>
-  );
-}
-
-function MonthSummary({
-  mesLabel,
-  recebido,
-  concluidos,
-  novosClientes,
-  ticketMedio,
-  dist,
-}: {
-  mesLabel: string;
-  recebido: number;
-  concluidos: number;
-  novosClientes: number;
-  ticketMedio: number;
-  dist: { assist: number; web: number; recup: number };
-}) {
-  const totalDist = dist.assist + dist.web + dist.recup;
-  const eur = (n: number) => Math.round(n).toLocaleString("pt-PT");
-  const cap = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
-
-  return (
-    <div className="card">
-      <div className="ch">
-        <div>
-          <div className="t">{cap} · até hoje</div>
-          <div className="sub">Resumo do mês corrente</div>
-        </div>
-      </div>
-      <div className="cb">
-        <div style={{ display: "grid", gap: 12 }}>
-          <div className="row between">
-            <span className="muted mono" style={{ fontSize: 10.5, letterSpacing: "0.18em", textTransform: "uppercase" }}>Recebido</span>
-            <span className="ink" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22 }}>
-              {eur(recebido)} <span className="mono muted" style={{ fontSize: 14 }}>€</span>
-            </span>
-          </div>
-
-          <div style={{ height: 1, borderTop: "1px dashed rgba(90, 14, 14, 0.14)", margin: "4px 0" }} />
-
-          <div className="row between">
-            <div>
-              <div className="muted mono" style={{ fontSize: 10.5, letterSpacing: "0.18em", textTransform: "uppercase" }}>Concluídos</div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, marginTop: 4 }}>{concluidos}</div>
-            </div>
-            <div>
-              <div className="muted mono" style={{ fontSize: 10.5, letterSpacing: "0.18em", textTransform: "uppercase" }}>Novos clientes</div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, marginTop: 4 }}>{novosClientes}</div>
-            </div>
-            <div>
-              <div className="muted mono" style={{ fontSize: 10.5, letterSpacing: "0.18em", textTransform: "uppercase" }}>Ticket médio</div>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, marginTop: 4 }}>
-                {eur(ticketMedio)} <span className="mono muted" style={{ fontSize: 14 }}>€</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ height: 1, borderTop: "1px dashed rgba(90, 14, 14, 0.14)", margin: "4px 0" }} />
-
-          <div>
-            <div className="muted mono" style={{ fontSize: 10.5, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 8 }}>Distribuição (activos)</div>
-            {totalDist === 0 ? (
-              <p className="muted" style={{ fontSize: 12 }}>Sem projectos activos.</p>
-            ) : (
-              <>
-                <div style={{ display: "flex", gap: 4, height: 8, borderRadius: 4, overflow: "hidden" }}>
-                  {dist.assist > 0 && <div style={{ flex: dist.assist, background: "var(--ember)" }} />}
-                  {dist.web > 0 && <div style={{ flex: dist.web, background: "var(--apricot)" }} />}
-                  {dist.recup > 0 && <div style={{ flex: dist.recup, background: "var(--peach)" }} />}
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-mute)" }}>
-                  <span>Assist. · {dist.assist}</span>
-                  <span>Web · {dist.web}</span>
-                  <span>Recup. · {dist.recup}</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

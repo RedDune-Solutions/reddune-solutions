@@ -44,8 +44,6 @@ async function doInit(): Promise<void> {
     db.collection("servicos").createIndex({ id: 1 }, { unique: true }),
     db.collection("servicos").createIndex({ slug: 1, ordem: 1 }),
 
-    db.collection("tarefa_templates").createIndex({ id: 1 }, { unique: true }),
-
     db.collection("projeto_tipos_custom").createIndex({ id: 1 }, { unique: true }),
     db.collection("projeto_tipos_custom").createIndex({ slug: 1 }, { unique: true }),
 
@@ -71,6 +69,10 @@ async function doInit(): Promise<void> {
     db.collection("blocked_ips").createIndex({ ip: 1 }, { unique: true }),
 
     db.collection("settings").createIndex({ id: 1 }, { unique: true }),
+
+    db.collection("despesas").createIndex({ id: 1 }, { unique: true }),
+    db.collection("despesas").createIndex({ data: -1 }),
+    db.collection("despesas").createIndex({ projetoId: 1 }),
   ]);
 }
 

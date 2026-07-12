@@ -2,9 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Link2, MessageSquare, Plus, RefreshCw, Trash2, Globe, FolderUp, Loader2, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Link2, MessageSquare, Plus, RefreshCw, Trash2, Globe, FolderUp, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { safeJsonPost, safeFetch } from "@/lib/safe-fetch";
@@ -162,185 +161,199 @@ export function PortalSection({ projetoId, portalAtivo, links, comentarios, sand
   }
 
   return (
-    <section className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+    <section className="card">
+      {/* Cabeçalho: label + pill "N novo(s)" + Regenerar/Revogar */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        <div className="card-label" style={{ margin: 0 }}>
+          <Globe className="ic" aria-hidden="true" />
           Portal do cliente
-          {naoLidos > 0 && (
-            <span className="rounded-full bg-[#d6422a] px-2 py-0.5 text-[10px] font-bold text-white">
-              {naoLidos} novo{naoLidos === 1 ? "" : "s"}
-            </span>
-          )}
-        </p>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={gerar} disabled={busy}>
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-            {portalAtivo ? "Regenerar link" : "Gerar link"}
-          </Button>
-          {portalAtivo && (
-            <Button size="sm" variant="outline" onClick={revogar} disabled={busy}>
-              Revogar
-            </Button>
-          )}
         </div>
+        {naoLidos > 0 && (
+          <span className="pill" style={{ background: "var(--ember)", color: "#fff" }}>
+            {naoLidos} novo{naoLidos === 1 ? "" : "s"}
+          </span>
+        )}
+        <span style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          <button type="button" className="btn-ghost" onClick={gerar} disabled={busy}>
+            <RefreshCw style={{ width: 13, height: 13 }} aria-hidden="true" />
+            {portalAtivo ? "Regenerar link" : "Gerar link"}
+          </button>
+          {portalAtivo && (
+            <button type="button" className="btn-ghost" onClick={revogar} disabled={busy}>
+              Revogar
+            </button>
+          )}
+        </span>
       </div>
 
-      {tokenGerado && linkCompleto && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
-          <p className="mb-2 font-medium text-amber-900">
+      {/* Caixa do portal */}
+      {tokenGerado && linkCompleto ? (
+        <div className="portal-box">
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>
             Guarda este link agora — só é mostrado uma vez:
-          </p>
-          <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded bg-white px-2 py-1 text-xs">
-              {linkCompleto}
-            </code>
-            <Button size="sm" variant="outline" onClick={copiar}>
-              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-              Copiar
-            </Button>
+          </div>
+          <span className="lnk">{linkCompleto}</span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="button" className="btn-ghost" onClick={copiar}>
+              Copiar link
+            </button>
+            <a
+              className="btn-primary"
+              href={linkCompleto}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: "none" }}
+            >
+              Abrir portal ↗
+            </a>
           </div>
         </div>
-      )}
-
-      {portalAtivo && !tokenGerado && (
-        <p className="text-sm text-muted-foreground">
-          Portal activo. O link foi mostrado quando o geraste — se o perdeste, regenera (o antigo
-          deixa de funcionar).
-        </p>
-      )}
-      {!portalAtivo && !tokenGerado && (
-        <p className="text-sm text-muted-foreground">
-          Sem portal. Gera um link secreto e envia ao cliente por WhatsApp/email.
-        </p>
+      ) : (
+        <div className="portal-box">
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>
+            {portalAtivo
+              ? "Portal activo. O link foi mostrado quando o geraste — se o perdeste, regenera (o antigo deixa de funcionar)."
+              : "Sem portal. Gera um link secreto e envia ao cliente por WhatsApp/email."}
+          </div>
+        </div>
       )}
 
       {/* Links de preview */}
-      <div className="space-y-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-          Links de preview (Vercel/Pages)
-        </p>
+      <div className="psub">
+        <p className="plabel">Links de preview (Vercel/Pages)</p>
         {links.map((k) => (
-          <div key={k.id} className="flex items-center gap-2 text-sm">
-            <Link2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span className="font-medium">{k.label}</span>
-            <a
-              href={k.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="min-w-0 flex-1 truncate text-muted-foreground hover:underline"
-            >
+          <div key={k.id} className="plink">
+            <Link2 className="ic" aria-hidden="true" />
+            <b>{k.label}</b>
+            <a href={k.url} target="_blank" rel="noopener noreferrer">
               {k.url}
             </a>
-            <Button size="sm" variant="ghost" onClick={() => removeLink(k.id)} aria-label={`Remover ${k.label}`}>
-              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-            </Button>
+            <button
+              type="button"
+              className="icon-mini"
+              title="Remover"
+              aria-label={`Remover ${k.label}`}
+              onClick={() => removeLink(k.id)}
+            >
+              <Trash2 aria-hidden="true" />
+            </button>
           </div>
         ))}
-        <form onSubmit={addLink} className="flex flex-wrap items-center gap-2">
-          <Input
+        <form onSubmit={addLink} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input
+            className="in-sm"
+            style={{ width: 170 }}
+            placeholder="Nome (ex.: Protótipo v2)"
             value={novoLabel}
             onChange={(e) => setNovoLabel(e.target.value)}
-            placeholder="Nome (ex.: Protótipo v2)"
-            className="h-8 w-44 text-sm"
           />
-          <Input
+          <input
+            className="in-sm"
+            style={{ flex: 1, minWidth: 160 }}
+            placeholder="https://…"
             value={novoUrl}
             onChange={(e) => setNovoUrl(e.target.value)}
-            placeholder="https://…"
-            className="h-8 min-w-0 flex-1 text-sm"
           />
-          <Button size="sm" variant="outline" type="submit" disabled={busy || !novoLabel.trim() || !novoUrl.trim()}>
-            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          <button
+            type="submit"
+            className="btn-ghost"
+            disabled={busy || !novoLabel.trim() || !novoUrl.trim()}
+          >
+            <Plus style={{ width: 13, height: 13 }} aria-hidden="true" />
             Adicionar
-          </Button>
+          </button>
         </form>
       </div>
 
       {/* Projetos hospedados (sandbox multi-ficheiro) */}
-      <div className="space-y-2 border-t pt-3">
-        <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-          <FolderUp className="h-3.5 w-3.5" aria-hidden="true" />
+      <div className="psub">
+        <p className="plabel">
+          <FolderUp style={{ width: 13, height: 13 }} aria-hidden="true" />
           Projetos hospedados (ZIP → aberto no site)
         </p>
         {sandboxes.map((s) => (
-          <div key={s.id} className="flex items-center gap-2 text-sm">
-            <Globe className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span className="font-medium">{s.nome}</span>
-            <span className="text-xs text-muted-foreground">
-              {s.totalFicheiros} fich. · {s.entry}
-            </span>
+          <div key={s.id} className="plink">
+            <Globe className="ic" aria-hidden="true" />
+            <b>{s.nome}</b>
             <a
               href={`/api/portal/sandbox/${s.id}/${s.entry.split("/").map(encodeURIComponent).join("/")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-ink"
-              aria-label={`Abrir ${s.nome}`}
+              title={`Abrir ${s.nome}`}
             >
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              {s.totalFicheiros} fich. · {s.entry}
             </a>
-            <Button size="sm" variant="ghost" onClick={() => removeSandbox(s)} aria-label={`Remover ${s.nome}`}>
-              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-            </Button>
+            <button
+              type="button"
+              className="icon-mini"
+              title="Remover"
+              aria-label={`Remover ${s.nome}`}
+              onClick={() => removeSandbox(s)}
+            >
+              <Trash2 aria-hidden="true" />
+            </button>
           </div>
         ))}
-        <div>
-          <input
-            ref={zipRef}
-            type="file"
-            accept=".zip,application/zip,application/x-zip-compressed"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) uploadZip(f);
-              e.target.value = "";
-            }}
-          />
-          <Button size="sm" variant="outline" onClick={() => zipRef.current?.click()} disabled={uploading}>
-            {uploading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-            ) : (
-              <FolderUp className="h-3.5 w-3.5" aria-hidden="true" />
-            )}
-            {uploading ? "A carregar…" : "Carregar projeto (.zip)"}
-          </Button>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Comprime a pasta do projeto (index.html + assets) num ZIP. Abre no site sem GitHub. Até 30MB.
-          </p>
-        </div>
+        <input
+          ref={zipRef}
+          type="file"
+          accept=".zip,application/zip,application/x-zip-compressed"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) uploadZip(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={() => zipRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} aria-hidden="true" />
+          ) : (
+            <FolderUp style={{ width: 14, height: 14 }} aria-hidden="true" />
+          )}
+          {uploading ? "A carregar…" : "Carregar projeto (.zip)"}
+        </button>
+        <p style={{ fontSize: 11.5, color: "var(--ink-mute)", margin: "6px 0 0" }}>
+          Comprime a pasta do projeto (index.html + assets) num ZIP. Abre no site sem GitHub. Até 30MB.
+        </p>
       </div>
 
       {/* Comentários do cliente */}
       {comentarios.length > 0 && (
-        <div className="space-y-2 border-t pt-3">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-            <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+        <div className="psub">
+          <p className="plabel">
+            <MessageSquare style={{ width: 13, height: 13 }} aria-hidden="true" />
             Comentários do cliente
           </p>
-          <ul className="space-y-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {comentarios.map((c) => (
-              <li
-                key={c.id}
-                className={`rounded-lg border p-3 text-sm ${
-                  c.lidoEm ? "opacity-70" : "border-[#d6422a]/40 bg-[#d6422a]/5"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">{c.autorNome ?? "Cliente"}</span>
+              <div key={c.id} className={cn("pcom", c.lidoEm && "lido")}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <span style={{ fontSize: 11.5, color: "var(--ink-mute)" }}>
+                    <b style={{ color: "var(--ink)" }}>{c.autorNome ?? "Cliente"}</b>
                     {" · "}
                     {new Date(c.criadoEm).toLocaleString("pt-PT")}
-                  </p>
+                  </span>
                   {!c.lidoEm && (
-                    <Button size="sm" variant="ghost" onClick={() => marcarLido(c.id)}>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      style={{ padding: "5px 12px" }}
+                      onClick={() => marcarLido(c.id)}
+                    >
                       Marcar lido
-                    </Button>
+                    </button>
                   )}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap">{c.texto}</p>
-              </li>
+                <p style={{ margin: "6px 0 0", fontSize: 13.5, whiteSpace: "pre-wrap" }}>{c.texto}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </section>

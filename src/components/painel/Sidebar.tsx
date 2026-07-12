@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  ArrowUpRight,
   ExternalLink,
   Loader2,
   PanelLeftClose,
@@ -20,8 +21,6 @@ import {
   type PainelNavItem,
 } from "@/lib/painel-nav";
 
-const COLLAPSE_KEY = "painel.sidebar.collapsed";
-
 // Hrefs that belong to the "Conteúdo · Sistema" section (everything else = Principal).
 const SYSTEM_HREFS = new Set([
   "/painel/precos",
@@ -35,19 +34,23 @@ type Props = {
   user: { name?: string | null; email?: string | null };
   /** Optional real counts keyed by href (e.g. tarefas pendentes, projetos, dívidas). */
   counts?: Record<string, number>;
+  /** Estado recolhido (72px) — controlado pelo PainelShell via .app.collapsed. */
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 };
 
-export function Sidebar({ user, counts }: Props) {
+/**
+ * Sidebar — `.side` do protótipo (Painel.html). Escura, com secções
+ * "Principal" / "Conteúdo · Sistema", badges .count reais, atalho para o
+ * site público e bloco do utilizador com logout. A ordem custom das tabs
+ * (localStorage) e o spinner de navegação pendente mantêm-se.
+ */
+export function Sidebar({ user, counts, collapsed = false, onToggleCollapsed }: Props) {
   const pathname = usePathname() ?? "";
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [nav, setNav] = useState<PainelNavItem[]>(PAINEL_NAV_DEFAULT);
 
   useEffect(() => {
-    const saved = localStorage.getItem(COLLAPSE_KEY);
-    if (saved === "1") setCollapsed(true);
-    setMounted(true);
     const refresh = () => setNav(applyTabOrder(readTabOrder()));
     refresh();
     window.addEventListener(TAB_ORDER_EVENT, refresh);
@@ -62,17 +65,10 @@ export function Sidebar({ user, counts }: Props) {
     setPendingHref(null);
   }, [pathname]);
 
-  function toggleCollapsed() {
-    const next = !collapsed;
-    setCollapsed(next);
-    localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-  }
-
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   const initial = (user.name ?? user.email ?? "?").slice(0, 1).toUpperCase();
-  const isCollapsed = mounted && collapsed;
 
   const principal = nav.filter((n) => !SYSTEM_HREFS.has(n.href));
   const sistema = nav.filter((n) => SYSTEM_HREFS.has(n.href));
@@ -89,13 +85,15 @@ export function Sidebar({ user, counts }: Props) {
           if (href !== pathname) setPendingHref(href);
         }}
         aria-busy={pending ? "true" : undefined}
-        title={isCollapsed ? label : undefined}
+        title={collapsed ? label : undefined}
         className={cn("side-nav-item", (active || pending) && "active")}
       >
         <Icon className="ic" aria-hidden="true" />
-        {!isCollapsed && <span>{label}</span>}
-        {!isCollapsed && pending && <Loader2 className="ic animate-spin" style={{ marginLeft: "auto" }} aria-hidden="true" />}
-        {!isCollapsed && !pending && count != null && count > 0 && (
+        {!collapsed && <span>{label}</span>}
+        {!collapsed && pending && (
+          <Loader2 className="ic animate-spin" style={{ marginLeft: "auto" }} aria-hidden="true" />
+        )}
+        {!collapsed && !pending && count != null && count > 0 && (
           <span className="count">{count}</span>
         )}
       </Link>
@@ -103,27 +101,25 @@ export function Sidebar({ user, counts }: Props) {
   };
 
   return (
-    <aside
-      className="side hidden lg:flex"
-      style={{ width: isCollapsed ? 72 : 248, flexShrink: 0 }}
-    >
+    <aside className="side">
       <div className="side-head">
-        {!isCollapsed && (
-          <Link href="/" aria-label="Ver site público" className="side-logo">
+        {!collapsed && (
+          <Link href="/" title="Ver site público" className="side-logo">
             <Image src="/logo-mark.png" alt="" width={28} height={28} />
             <div className="wm">
               RedDune
-              <small>Painel · 2026</small>
+              <small>Painel</small>
             </div>
           </Link>
         )}
         <button
           type="button"
-          onClick={toggleCollapsed}
-          aria-label={isCollapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
+          onClick={onToggleCollapsed}
+          title={collapsed ? "Expandir" : "Recolher"}
+          aria-label={collapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
           className="side-collapse"
         >
-          {isCollapsed ? (
+          {collapsed ? (
             <PanelLeftOpen className="h-3.5 w-3.5" aria-hidden="true" />
           ) : (
             <PanelLeftClose className="h-3.5 w-3.5" aria-hidden="true" />
@@ -132,14 +128,14 @@ export function Sidebar({ user, counts }: Props) {
       </div>
 
       <div>
-        {!isCollapsed && <div className="side-section-label">Principal</div>}
+        {!collapsed && <div className="side-section-label">Principal</div>}
         <nav className="side-nav" aria-label="Navegação principal">
           {principal.map(renderItem)}
         </nav>
       </div>
 
       <div>
-        {!isCollapsed && <div className="side-section-label">Conteúdo · Sistema</div>}
+        {!collapsed && <div className="side-section-label">Conteúdo · Sistema</div>}
         <nav className="side-nav" aria-label="Conteúdo e sistema">
           {sistema.map(renderItem)}
         </nav>
@@ -152,22 +148,26 @@ export function Sidebar({ user, counts }: Props) {
         target="_blank"
         rel="noopener noreferrer"
         className="side-shortcut"
-        title={isCollapsed ? "Ver site público" : undefined}
+        title={collapsed ? "Ver site público" : undefined}
       >
         <ExternalLink className="ic" aria-hidden="true" />
-        {!isCollapsed && <span>Ver site público</span>}
-        {!isCollapsed && <ExternalLink className="arr" aria-hidden="true" />}
+        {!collapsed && <span>Ver site público</span>}
+        {!collapsed && <ArrowUpRight className="ic arr" aria-hidden="true" />}
       </Link>
 
       <div className="side-user">
         <div className="av">{initial}</div>
-        {!isCollapsed && (
+        {!collapsed && (
           <div className="min-w-0">
             <div className="name truncate">{user.name ?? "Equipa"}</div>
             <div className="email truncate">{user.email}</div>
           </div>
         )}
-        <SignOutButton iconOnly className="logout" />
+        {/* O botão vive dentro de um <form>; o marginLeft vai no wrapper
+            porque é o form (não o botão) que é o flex-item de .side-user. */}
+        <div style={{ marginLeft: "auto" }}>
+          <SignOutButton iconOnly className="logout" />
+        </div>
       </div>
     </aside>
   );

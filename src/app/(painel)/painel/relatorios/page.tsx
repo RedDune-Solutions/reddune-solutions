@@ -1,123 +1,115 @@
 import Link from "next/link";
-import { Coins, FolderKanban, Receipt, Users } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
+import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { Topbar } from "@/components/painel/Topbar";
-import { KpiCard } from "@/components/painel/KpiCard";
-import { STATUS_GROUPS, TIPO_TO_CATEGORIA, type Projeto } from "@/types/projeto";
+import { DespesasSection } from "@/components/painel/DespesasSection";
+import { DespesaFormSheet } from "@/components/painel/DespesaFormSheet";
+import { STATUS_GROUPS, TIPO_TO_CATEGORIA } from "@/types/projeto";
+import { DESPESA_CATEGORIA_LABEL, DESPESA_CATEGORIA_ORDER } from "@/types/despesa";
 import type { Pagamento } from "@/types/pagamento";
+import { collectGastos, sumGastosInMonth, gastosByCategoria } from "@/lib/gastos";
+import { todayLisbonDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
-const MES_ABBR = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+const MES_ABBR = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }
 
-// ---- SVG charts (ported from Oasis design handoff) ----
-function LineChart({ data, h = 220, w = 540 }: { data: { l: string; v: number }[]; h?: number; w?: number }) {
-  const max = Math.max(1, ...data.map((d) => d.v)) * 1.1;
-  const step = data.length > 1 ? (w - 40) / (data.length - 1) : 0;
-  const yScale = (v: number) => h - 32 - (v / max) * (h - 50);
-  const pts = data.map((d, i) => `${20 + i * step},${yScale(d.v)}`).join(" ");
-  const areaPts = `20,${h - 30} ${pts} ${20 + (data.length - 1) * step},${h - 30}`;
-  return (
-    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      {[0, 0.33, 0.66, 1].map((p, i) => (
-        <line key={i} x1="20" x2={w - 20} y1={20 + p * (h - 50)} y2={20 + p * (h - 50)} stroke="rgba(90,14,14,0.06)" strokeDasharray="4 4" />
-      ))}
-      <polygon points={areaPts} fill="rgba(214, 66, 42, 0.10)" />
-      <polyline points={pts} fill="none" stroke="var(--ember)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {data.map((d, i) => (
-        <circle key={i} cx={20 + i * step} cy={yScale(d.v)} r="3.5" fill="var(--sand-warm)" stroke="var(--ember)" strokeWidth="2" />
-      ))}
-      {data.map((d, i) => (
-        <text key={i} x={20 + i * step} y={h - 10} fill="var(--ink-mute)" fontSize="9.5" fontFamily="var(--font-mono)" letterSpacing="0.08em" textAnchor="middle">{d.l}</text>
-      ))}
-    </svg>
-  );
+function fmtAxis(v: number): string {
+  if (v >= 1000) return `${(v / 1000).toLocaleString("pt-PT", { maximumFractionDigits: 1 })}k`;
+  return String(Math.round(v));
 }
 
-function BarChart({ data, h = 220, w = 540 }: { data: { l: string; a: number; b: number; c: number }[]; h?: number; w?: number }) {
-  const max = Math.max(1, ...data.map((d) => d.a + d.b + d.c)) * 1.1;
-  const bw = (w - 60) / data.length;
-  const groupW = bw * 0.65;
-  return (
-    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      {[0, 0.33, 0.66, 1].map((p, i) => (
-        <line key={i} x1="20" x2={w - 20} y1={20 + p * (h - 50)} y2={20 + p * (h - 50)} stroke="rgba(90,14,14,0.06)" strokeDasharray="4 4" />
-      ))}
-      {data.map((d, i) => {
-        const x = 30 + i * bw + (bw - groupW) / 2;
-        const aH = (d.a / max) * (h - 50);
-        const bH = (d.b / max) * (h - 50);
-        const cH = (d.c / max) * (h - 50);
-        const y = h - 30;
-        return (
-          <g key={i}>
-            <rect x={x} y={y - aH} width={groupW} height={aH} fill="var(--ember)" />
-            <rect x={x} y={y - aH - bH} width={groupW} height={bH} fill="var(--apricot)" />
-            <rect x={x} y={y - aH - bH - cH} width={groupW} height={cH} fill="var(--peach)" />
-            <text x={x + groupW / 2} y={h - 10} fill="var(--ink-mute)" fontSize="9.5" fontFamily="var(--font-mono)" letterSpacing="0.08em" textAnchor="middle">{d.l}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
+function fmtEuro(v: number): string {
+  return `${Math.round(v).toLocaleString("pt-PT")} €`;
 }
 
-function Donut({ data, size = 180, thick = 22 }: { data: { l: string; v: number; c: string }[]; size?: number; thick?: number }) {
-  const total = data.reduce((s, d) => s + d.v, 0);
-  const r = size / 2 - thick / 2;
-  const C = 2 * Math.PI * r;
-  let offset = 0;
+// ---- Gráfico SVG "Receita vs Gastos" (geometria do protótipo, linhas 786-800) ----
+
+/** Receita (linha #d6422a cheia + área gradiente + pontos) vs Gastos (#b0793f tracejada). */
+function DualLineChart({ data }: { data: { l: string; rec: number; gas: number }[] }) {
+  const w = 700;
+  const h = 220;
+  const x0 = 56; // primeiro ponto
+  const x1 = 680; // último ponto
+  const yBase = 180; // linha do 0
+  const yTop = 40; // linha do máximo
+  const maxData = Math.max(...data.map((d) => Math.max(d.rec, d.gas)), 0);
+  const max = Math.max(1, maxData);
+  const step = data.length > 1 ? (x1 - x0) / (data.length - 1) : 0;
+  const x = (i: number) => x0 + i * step;
+  const y = (v: number) => yBase - (v / max) * (yBase - yTop);
+  const recPts = data.map((d, i) => `${x(i)},${y(d.rec)}`).join(" ");
+  const gasPts = data.map((d, i) => `${x(i)},${y(d.gas)}`).join(" ");
+  const areaPts = `${recPts} ${x(data.length - 1)},${yBase} ${x(0)},${yBase}`;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--cream-deep)" strokeWidth={thick} fill="none" />
-      {total > 0 && data.map((d, i) => {
-        const len = (d.v / total) * C;
-        const el = (
-          <circle key={i} cx={size / 2} cy={size / 2} r={r} stroke={d.c} strokeWidth={thick} fill="none"
-            strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-offset}
-            transform={`rotate(-90 ${size / 2} ${size / 2})`} strokeLinecap="butt" />
-        );
-        offset += len;
-        return el;
-      })}
-      <text x={size / 2} y={size / 2 - 4} textAnchor="middle" fontFamily="var(--font-display)" fontWeight="700" fontSize="28" fill="var(--ink)">{total}</text>
-      <text x={size / 2} y={size / 2 + 14} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="10" letterSpacing="0.18em" fill="var(--ink-mute)">PROJECTOS</text>
+    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Gráfico de receita e gastos mensais">
+      <defs>
+        <linearGradient id="rev-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#d6422a" stopOpacity=".20" />
+          <stop offset="100%" stopColor="#d6422a" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <line x1="46" y1={yBase} x2="690" y2={yBase} stroke="rgba(90,14,14,.14)" />
+      <line x1="46" y1="110" x2="690" y2="110" stroke="rgba(90,14,14,.06)" />
+      <line x1="46" y1={yTop} x2="690" y2={yTop} stroke="rgba(90,14,14,.06)" />
+      <text x="40" y={yBase + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="#8c7563">0</text>
+      {maxData > 0 && (
+        <>
+          <text x="40" y="114" textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="#8c7563">{fmtAxis(max / 2)}</text>
+          <text x="40" y={yTop + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="#8c7563">{fmtAxis(max)}</text>
+        </>
+      )}
+      <polygon points={areaPts} fill="url(#rev-area)" />
+      <polyline points={recPts} fill="none" stroke="#d6422a" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <g fill="#d6422a">
+        {data.map((d, i) =>
+          i === data.length - 1 ? (
+            <circle key={i} cx={x(i)} cy={y(d.rec)} r="4.5" stroke="#faf4e3" strokeWidth="2" />
+          ) : (
+            <circle key={i} cx={x(i)} cy={y(d.rec)} r="3.5" />
+          )
+        )}
+      </g>
+      <polyline points={gasPts} fill="none" stroke="#b0793f" strokeWidth="2" strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round" />
+      <g fill="#b0793f">
+        {data.map((d, i) => (
+          <circle key={i} cx={x(i)} cy={y(d.gas)} r="3" />
+        ))}
+      </g>
+      <g fontFamily="var(--font-mono)" fontSize="10" fill="#8c7563" textAnchor="middle">
+        {data.map((d, i) => (
+          <text key={i} x={x(i)} y="206">{d.l}</text>
+        ))}
+      </g>
     </svg>
   );
-}
-
-const AV = ["a", "b", "c", "d"] as const;
-function avFor(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return AV[h % AV.length];
-}
-function initials(name: string): string {
-  return name.split(/\s+/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 }
 
 export default async function RelatoriosPage() {
-  const [projetos, clientes, pagamentos] = await Promise.all([
+  const [projetos, clientes, pagamentos, despesas] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
     getAllPagamentos(),
+    getAllDespesas(),
   ]);
 
   const clienteNome = new Map(clientes.map((c) => [c.id, c.nome]));
-  const now = new Date();
+  // Ancorado ao dia de Lisboa para o "mês corrente" não deslizar em UTC.
+  const now = todayLisbonDate();
 
-  // Last 6 month keys (oldest → newest)
-  const monthsKeys: { key: string; label: string }[] = [];
-  for (let i = 5; i >= 0; i--) {
+  // Últimos 7 meses (mais antigo → actual) para os gráficos.
+  const months7: { key: string; label: string }[] = [];
+  for (let i = 6; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    monthsKeys.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: MES_ABBR[d.getMonth()] });
+    months7.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: MES_ABBR[d.getMonth()] });
   }
+  const currentKey = months7[months7.length - 1].key;
 
   // Receita mensal (pagamentos)
   const receitaPorMes = new Map<string, number>();
@@ -125,162 +117,210 @@ export default async function RelatoriosPage() {
     if (!pg.data) continue;
     receitaPorMes.set(monthKey(pg.data), (receitaPorMes.get(monthKey(pg.data)) ?? 0) + pg.valor);
   }
-  const lineData = monthsKeys.map((m) => ({ l: m.label, v: Math.round(receitaPorMes.get(m.key) ?? 0) }));
-  const receita6m = lineData.reduce((s, d) => s + d.v, 0);
 
-  // Receita semestre anterior (delta)
-  let receitaPrev = 0;
-  for (const pg of pagamentos as Pagamento[]) {
-    if (!pg.data) continue;
-    const d = new Date(pg.data);
-    const diffMonths = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
-    if (diffMonths >= 6 && diffMonths < 12) receitaPrev += pg.valor;
-  }
-  const receitaDelta = receitaPrev > 0 ? Math.round(((receita6m - receitaPrev) / receitaPrev) * 100) : null;
+  // Gastos: linhas de projecto marcadas `gastoEmpresa` + despesas manuais
+  const gastoEvents = collectGastos(projetos, despesas);
+  const gastosPorMes = months7.map((m) => sumGastosInMonth(gastoEvents, m.key));
 
-  // Bars: por mês, contagem por categoria (assist=a, web=b, recup=c)
-  const barMap = new Map<string, { a: number; b: number; c: number }>();
-  for (const m of monthsKeys) barMap.set(m.key, { a: 0, b: 0, c: 0 });
+  const dualData = months7.map((m, i) => ({
+    l: m.label,
+    rec: Math.round(receitaPorMes.get(m.key) ?? 0),
+    gas: Math.round(gastosPorMes[i]),
+  }));
+
+  // KPIs do mês corrente: Receita → Gastos → Lucro
+  const receitaMes = receitaPorMes.get(currentKey) ?? 0;
+  const gastosMes = gastosPorMes[gastosPorMes.length - 1];
+  const lucroMes = receitaMes - gastosMes;
+
+  // Gastos por categoria (mês corrente) — 6 baldes, largura % do máximo
+  const catTotais = gastosByCategoria(gastoEvents, new Set([currentKey]));
+  const catRows = DESPESA_CATEGORIA_ORDER.map((c) => ({ c, v: catTotais[c] }));
+  const catMax = Math.max(1, ...catRows.map((r) => r.v));
+  const temGastosMes = catRows.some((r) => r.v > 0);
+
+  // Barras empilhadas: contagem de projectos por categoria em cada mês
+  const mbarCounts = new Map<string, { web: number; assist: number; soft: number }>();
+  for (const m of months7) mbarCounts.set(m.key, { web: 0, assist: 0, soft: 0 });
   for (const p of projetos) {
     if (!p.dataCriado) continue;
-    const k = monthKey(p.dataCriado);
-    const slot = barMap.get(k);
+    const slot = mbarCounts.get(monthKey(p.dataCriado));
     if (!slot) continue;
     const cat = p.categoria ?? (p.tipo ? TIPO_TO_CATEGORIA[p.tipo] : null);
-    if (cat === "assistencia-tecnica") slot.a += 1;
-    else if (cat === "web-digital") slot.b += 1;
-    else if (cat === "software-recuperacao") slot.c += 1;
+    if (cat === "web-digital") slot.web += 1;
+    else if (cat === "assistencia-tecnica") slot.assist += 1;
+    else if (cat === "software-recuperacao") slot.soft += 1;
   }
-  const barData = monthsKeys.map((m) => ({ l: m.label, ...(barMap.get(m.key) ?? { a: 0, b: 0, c: 0 }) }));
+  const EMPTY_SLOT = { web: 0, assist: 0, soft: 0 };
+  const mbarMax = Math.max(1, ...months7.map((m) => {
+    const s = mbarCounts.get(m.key) ?? EMPTY_SLOT;
+    return s.web + s.assist + s.soft;
+  }));
+  // Altura por unidade: escala ao mês mais cheio, com tecto para poucos projectos.
+  const hpu = Math.min(40, 150 / mbarMax);
+  const mbarData = months7.map((m) => {
+    const s = mbarCounts.get(m.key) ?? EMPTY_SLOT;
+    // Ordem no DOM = de baixo para cima (.stack é column-reverse): Web, Assistência, Software.
+    const segs = [
+      { k: "web", n: s.web, color: "var(--ember)" },
+      { k: "assist", n: s.assist, color: "var(--apricot)" },
+      { k: "soft", n: s.soft, color: "var(--dune)" },
+    ].map((seg) => ({ ...seg, h: Math.round(seg.n * hpu) }));
+    return { key: m.key, l: m.label, total: s.web + s.assist + s.soft, segs };
+  });
 
-  // Donut: estado actual
+  // Donut: pipeline actual (cores do protótipo, linhas 764-769)
   const donut = [
     { l: "Em curso", v: projetos.filter((p) => STATUS_GROUPS.ativo.includes(p.status)).length, c: "var(--ember)" },
     { l: "Próximos", v: projetos.filter((p) => STATUS_GROUPS.proximo.includes(p.status)).length, c: "var(--apricot)" },
-    { l: "Em espera", v: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length, c: "#d49027" },
-    { l: "Prontos", v: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length, c: "#3f6a4d" },
+    { l: "Em espera", v: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length, c: "#c89b6a" },
+    { l: "Prontos", v: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length, c: "var(--dune)" },
   ];
+  const donutTotal = donut.reduce((s, d) => s + d.v, 0);
+  const donutVisiveis = donut.filter((d) => d.v > 0);
+  let donutAcc = 0;
+  const donutStops = donutVisiveis.map((d, i) => {
+    const from = donutAcc;
+    donutAcc = i === donutVisiveis.length - 1 ? 100 : donutAcc + (d.v / donutTotal) * 100;
+    return `${d.c} ${from}% ${donutAcc}%`;
+  });
+  const donutBg =
+    donutTotal > 0 ? `conic-gradient(${donutStops.join(", ")})` : "conic-gradient(rgba(90,14,14,.08) 0% 100%)";
 
-  // Top clientes por valor pago
+  // Top clientes por valor pago — todo o histórico (rótulo do card diz "todo o histórico").
   const pagoPorCliente = new Map<string, number>();
   for (const pg of pagamentos as Pagamento[]) {
-    if (!pg.clienteId) continue;
+    if (!pg.clienteId || !pg.data) continue;
     pagoPorCliente.set(pg.clienteId, (pagoPorCliente.get(pg.clienteId) ?? 0) + pg.valor);
   }
-  const projetosPorCliente = new Map<string, number>();
-  for (const p of projetos) {
-    if (p.clienteId) projetosPorCliente.set(p.clienteId, (projetosPorCliente.get(p.clienteId) ?? 0) + 1);
-  }
   const topClientes = [...pagoPorCliente.entries()]
-    .map(([id, v]) => ({ id, nome: clienteNome.get(id) ?? "(sem nome)", v, p: projetosPorCliente.get(id) ?? 0 }))
+    .map(([id, v]) => ({ id, nome: clienteNome.get(id) ?? "(sem nome)", v }))
     .sort((a, b) => b.v - a.v)
     .slice(0, 5);
+  const topMax = Math.max(1, ...topClientes.map((x) => x.v));
 
-  // KPIs
-  const fechados = projetos.filter((p: Projeto) => p.status === "terminado" || p.status === "fechado").length;
-  // Ticket médio coerente com o rótulo "últimos 6 meses": receita6m é a soma dos
-  // pagamentos da janela dos 6 meses, por isso dividimos pelo nº de pagamentos
-  // dessa MESMA janela (não por `fechados`, que é all-time e subestima o ticket).
-  const monthsKeySet = new Set(monthsKeys.map((m) => m.key));
-  const pagamentos6m = (pagamentos as Pagamento[]).filter(
-    (pg) => pg.data && monthsKeySet.has(monthKey(pg.data))
-  ).length;
-  const ticketMedio = pagamentos6m > 0 ? Math.round(receita6m / pagamentos6m) : 0;
+  // Opções de projecto para o form de despesas (mais recentes primeiro).
+  const projetoOptions = [...projetos]
+    .sort((a, b) => (b.dataCriado ?? "").localeCompare(a.dataCriado ?? ""))
+    .map((p) => ({ id: p.id, titulo: p.titulo }));
+  const despesasRecentes = despesas.slice(0, 12);
 
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Relatórios"]}
-        titleHtml={`Relatórios · <em>${now.getFullYear()}</em>`}
-        description="Performance financeira e operacional · últimos 6 meses."
+        crumbs={["Relatórios"]}
+        titleHtml="Relatórios"
+        actions={<DespesaFormSheet projetos={projetoOptions} />}
       />
 
-      <div className="content">
-        <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-          <KpiCard
-            tone="ink"
-            label="Receita 6 meses"
-            value={receita6m.toLocaleString("pt-PT")}
-            unit="€"
-            icon={Coins}
-            hint="vs. semestre anterior"
-            delta={receitaDelta != null ? { text: `${receitaDelta >= 0 ? "+" : ""}${receitaDelta}%`, dir: receitaDelta >= 0 ? "up" : "down" } : undefined}
-          />
-          <KpiCard label="Projectos fechados" value={fechados} icon={FolderKanban} hint="terminados + fechados" />
-          <KpiCard tone="accent" label="Ticket médio" value={ticketMedio.toLocaleString("pt-PT")} unit="€" icon={Receipt} hint="receita / pagamentos · 6 meses" />
-          <KpiCard tone="amber" label="Clientes" value={clientes.length} icon={Users} hint="total na base" />
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 18 }} className="rel-row">
-          <div className="card">
-            <div className="ch">
-              <div>
-                <div className="t">Receita mensal</div>
-                <div className="sub">Em euros · pagamentos recebidos</div>
-              </div>
-              <span className="chart-legend it"><span className="sw" style={{ background: "var(--ember)" }} />Receita</span>
-            </div>
-            <div className="cb"><LineChart data={lineData} /></div>
+      {/* Pipeline actual + Top clientes */}
+      <div className="rep-grid">
+        <div className="card">
+          <div className="card-head"><span className="card-title">Pipeline actual</span></div>
+          <div className="donut" style={{ background: donutBg }}>
+            <div className="donut-c"><b>{donutTotal}</b><span>projectos</span></div>
           </div>
-
-          <div className="card">
-            <div className="ch"><div className="t">Distribuição actual</div></div>
-            <div className="cb" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <Donut data={donut} />
-              <div className="col" style={{ gap: 8, flex: 1, minWidth: 140 }}>
-                {donut.map((d) => (
-                  <div key={d.l} className="row" style={{ gap: 8, fontSize: 12.5 }}>
-                    <span style={{ width: 10, height: 10, borderRadius: 3, background: d.c }} />
-                    <span className="muted" style={{ flex: 1 }}>{d.l}</span>
-                    <span className="ink mono" style={{ fontWeight: 500 }}>{d.v}</span>
-                  </div>
-                ))}
+          <div className="legend">
+            {donut.map((d) => (
+              <div key={d.l} className="lg">
+                <span className="sw" style={{ background: d.c }} />{d.l} <b>{d.v}</b>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 18 }} className="rel-row">
-          <div className="card">
-            <div className="ch">
-              <div>
-                <div className="t">Projectos por categoria</div>
-                <div className="sub">Volume mensal — empilhado</div>
+        <div className="card">
+          <div className="card-head"><span className="card-title">Top clientes</span><span className="kpi-label">todo o histórico</span></div>
+          {topClientes.length === 0 ? (
+            <p className="muted" style={{ fontSize: 13 }}>Sem pagamentos registados.</p>
+          ) : (
+            topClientes.map((x) => (
+              <div key={x.id} className="bar-row">
+                <div className="bl">
+                  <Link href={`/painel/clientes/${x.id}`} style={{ color: "inherit" }} className="hover:text-ember">{x.nome}</Link>
+                  <b>{fmtEuro(x.v)}</b>
+                </div>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: `${Math.max(4, Math.round((x.v / topMax) * 100))}%` }} />
+                </div>
               </div>
-              <div className="row" style={{ gap: 14, flexWrap: "wrap" }}>
-                <span className="chart-legend it"><span className="sw" style={{ background: "var(--ember)" }} />Assistência</span>
-                <span className="chart-legend it"><span className="sw" style={{ background: "var(--apricot)" }} />Web & Digital</span>
-                <span className="chart-legend it"><span className="sw" style={{ background: "var(--peach)" }} />Recuperação</span>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* KPIs do mês: Receita / Gastos / Lucro */}
+      <div className="mini-kpis" style={{ marginTop: 16 }}>
+        <div className="k"><div className="kpi-label">Receita · este mês</div><div className="kpi-num">{fmtEuro(receitaMes)}</div></div>
+        <div className="k"><div className="kpi-label">Gastos · este mês</div><div className="kpi-num" style={{ color: "var(--ember)" }}>{fmtEuro(gastosMes)}</div></div>
+        <div className="k accent"><div className="kpi-label">Lucro · este mês</div><div className="kpi-num">{fmtEuro(lucroMes)}</div></div>
+      </div>
+
+      {/* Receita vs Gastos */}
+      <div className="card chart-card" style={{ marginTop: 16 }}>
+        <div className="card-head"><span className="card-title">Receita vs Gastos</span><span className="kpi-label">últimos 7 meses</span></div>
+        <DualLineChart data={dualData} />
+        <div className="mlegend" style={{ marginTop: 6 }}>
+          <div className="lg"><span className="sw" style={{ background: "#d6422a" }} />Receita</div>
+          <div className="lg"><span className="sw" style={{ background: "#b0793f" }} />Gastos</div>
+        </div>
+      </div>
+
+      {/* Gastos por categoria */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-head">
+          <span className="card-title">Gastos por categoria</span>
+          <span className="kpi-label">este mês · {fmtEuro(gastosMes)}</span>
+        </div>
+        {!temGastosMes ? (
+          <p className="muted" style={{ fontSize: 13 }}>
+            Sem gastos registados este mês — marca linhas &quot;gasto da empresa&quot; nos projectos ou regista uma despesa.
+          </p>
+        ) : (
+          catRows.map((r) => (
+            <div key={r.c} className="bar-row">
+              <div className="bl">
+                {DESPESA_CATEGORIA_LABEL[r.c]} <b>{r.v.toLocaleString("pt-PT", { maximumFractionDigits: 2 })} €</b>
+              </div>
+              <div className="bar-track">
+                <div className="bar-fill exp" style={{ width: r.v > 0 ? `${Math.max(4, Math.round((r.v / catMax) * 100))}%` : 0 }} />
               </div>
             </div>
-            <div className="cb"><BarChart data={barData} /></div>
-          </div>
+          ))
+        )}
+      </div>
 
-          <div className="card">
-            <div className="ch"><div className="t">Top clientes · 6 meses</div></div>
-            <div className="cb" style={{ padding: 0 }}>
-              {topClientes.length === 0 ? (
-                <p className="muted" style={{ fontSize: 13, padding: "16px 20px" }}>Sem pagamentos registados.</p>
-              ) : (
-                topClientes.map((x, i) => (
-                  <div
-                    key={x.nome}
-                    style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center", padding: "12px 20px", borderBottom: i < topClientes.length - 1 ? "1px dashed rgba(90, 14, 14, 0.10)" : "0" }}
-                  >
-                    <div className={`av-c sm ${avFor(x.nome)}`}>{initials(x.nome)}</div>
-                    <div style={{ minWidth: 0 }}>
-                      <Link href={`/painel/clientes/${x.id}`} style={{ color: "var(--ink)", fontWeight: 500, fontSize: 13 }} className="hover:text-ember">{x.nome}</Link>
-                      <div className="muted" style={{ fontSize: 11.5 }}>{x.p} projecto{x.p === 1 ? "" : "s"}</div>
+      {/* Projectos por categoria · por mês */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-head">
+          <span className="card-title">Projectos por categoria · por mês</span>
+          <span className="kpi-label">últimos 7 meses</span>
+        </div>
+        <div className="mbars">
+          {mbarData.map((m) => (
+            <div key={m.key} className="mbar">
+              <div className={m.total === 0 ? "stack empty-stack" : "stack"}>
+                {m.segs.map((s) =>
+                  s.n > 0 ? (
+                    <div key={s.k} className="seg" style={{ height: s.h, background: s.color }}>
+                      {s.h >= 18 && <b>{s.n}</b>}
                     </div>
-                    <div className="num" style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14 }}>
-                      {Math.round(x.v).toLocaleString("pt-PT")}<span className="mono muted" style={{ fontSize: 11, marginLeft: 2 }}>€</span>
-                    </div>
-                  </div>
-                ))
-              )}
+                  ) : null
+                )}
+              </div>
+              <span className="ml">{m.l}</span>
             </div>
-          </div>
+          ))}
         </div>
+        <div className="mlegend">
+          <div className="lg"><span className="sw" style={{ background: "var(--ember)" }} />Web &amp; Digital</div>
+          <div className="lg"><span className="sw" style={{ background: "var(--apricot)" }} />Assistência</div>
+          <div className="lg"><span className="sw" style={{ background: "var(--dune)" }} />Software</div>
+        </div>
+      </div>
+
+      {/* Despesas recentes (feature do handoff — não está no protótipo) */}
+      <div style={{ marginTop: 16 }}>
+        <DespesasSection despesas={despesasRecentes} projetos={projetoOptions} />
       </div>
     </>
   );

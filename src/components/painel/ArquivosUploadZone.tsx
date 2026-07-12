@@ -2,9 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import imageCompression from "browser-image-compression";
-import { Upload, X, Loader2, FileText, FileSpreadsheet, ImageIcon, File as FileIcon, Download, type LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Upload, X, Loader2, FileText, FileSpreadsheet, ImageIcon, File as FileIcon, type LucideIcon } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -51,6 +49,18 @@ function iconFor(tipo: string): LucideIcon {
   if (tipo.includes("word")) return FileText;
   return FileIcon;
 }
+
+/** Chip de ficheiro — réplica do protótipo (borda 1px, radius 10, 8px 12px). */
+const chipStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  border: "1px solid rgba(90,14,14,.1)",
+  borderRadius: 10,
+  padding: "8px 12px",
+  fontSize: 13,
+  background: "#fff",
+};
 
 export function ArquivosUploadZone({ projetoId, value, onChange, disabled }: Props) {
   const { toast } = useToast();
@@ -146,42 +156,90 @@ export function ArquivosUploadZone({ projetoId, value, onChange, disabled }: Pro
   }
 
   return (
-    <div className="space-y-3">
-      <div
-        onClick={onPick}
-        onDrop={onDrop}
-        onDragOver={(e) => {
-          e.preventDefault();
-          if (!disabled) setDragOver(true);
-        }}
-        onDragLeave={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-        }}
-        role="button"
-        tabIndex={0}
-        aria-disabled={disabled}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onPick();
-          }
-        }}
-        className={cn(
-          "flex flex-col items-center justify-center gap-2",
-          "rounded-md border-2 border-dashed px-4 py-8",
-          "text-center cursor-pointer transition-colors",
-          dragOver ? "border-primary bg-primary/5" : "border-border bg-muted/20 hover:bg-muted/40",
-          disabled && "opacity-50 cursor-not-allowed"
-        )}
-      >
-        <Upload className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
-        <p className="text-sm font-medium">
-          Arrasta ficheiros ou <span className="text-primary underline">escolhe</span>
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Orçamentos (PDF), documentos ou imagens. Até 10MB. Imagens são comprimidas.
-        </p>
+    // A zona inteira aceita drag-and-drop (o realce aparece ao arrastar por cima).
+    <div
+      onDrop={onDrop}
+      onDragOver={(e) => {
+        e.preventDefault();
+        if (!disabled) setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+      }}
+      style={
+        dragOver
+          ? { outline: "2px dashed var(--ember)", outlineOffset: 6, borderRadius: 12 }
+          : undefined
+      }
+    >
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        {value.map((arquivo) => {
+          const Icon = iconFor(arquivo.tipo);
+          return (
+            <div key={arquivo.id} style={chipStyle}>
+              <Icon
+                style={{ width: 14, height: 14, color: "var(--ink-mute)", flexShrink: 0 }}
+                aria-hidden="true"
+              />
+              <a
+                href={arquivo.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Abrir ${arquivo.nome} (${formatBytes(arquivo.tamanho)})`}
+                style={{ color: "var(--ink)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+              >
+                {arquivo.nome}
+              </a>
+              <button
+                type="button"
+                className="icon-mini"
+                onClick={() => removeArquivo(arquivo)}
+                disabled={disabled || removingId === arquivo.id}
+                aria-label={`Remover ${arquivo.nome}`}
+                title="Remover"
+              >
+                {removingId === arquivo.id ? (
+                  <Loader2 className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <X aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          );
+        })}
+
+        {pending.map((p) => (
+          <div
+            key={p.id}
+            style={{
+              ...chipStyle,
+              borderColor: p.status === "error" ? "rgba(214,66,42,.4)" : "rgba(90,14,14,.1)",
+            }}
+          >
+            {p.status !== "error" ? (
+              <Loader2
+                className="animate-spin"
+                style={{ width: 14, height: 14, color: "var(--ember)", flexShrink: 0 }}
+                aria-hidden="true"
+              />
+            ) : (
+              <X style={{ width: 14, height: 14, color: "var(--ember)", flexShrink: 0 }} aria-hidden="true" />
+            )}
+            <span style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {p.name}
+            </span>
+            <span style={{ fontSize: 11.5, color: "var(--ink-mute)" }}>
+              {p.status === "compressing" ? "A comprimir…" : p.status === "uploading" ? "A enviar…" : p.error ?? "Erro"}
+            </span>
+          </div>
+        ))}
+
+        <button type="button" className="btn-ghost" onClick={onPick} disabled={disabled}>
+          <Upload style={{ width: 14, height: 14 }} aria-hidden="true" />
+          Carregar
+        </button>
+
         <input
           ref={inputRef}
           type="file"
@@ -193,78 +251,10 @@ export function ArquivosUploadZone({ projetoId, value, onChange, disabled }: Pro
         />
       </div>
 
-      {pending.length > 0 && (
-        <ul className="space-y-1.5">
-          {pending.map((p) => (
-            <li
-              key={p.id}
-              className={cn(
-                "flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs",
-                p.status === "error" ? "border-destructive/40" : "border-border"
-              )}
-            >
-              {p.status !== "error" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden="true" />
-              ) : (
-                <X className="h-3.5 w-3.5 text-destructive" aria-hidden="true" />
-              )}
-              <span className="flex-1 truncate">{p.name}</span>
-              <span className="text-muted-foreground">
-                {p.status === "compressing" ? "A comprimir…" : p.status === "uploading" ? "A enviar…" : p.error ?? "Erro"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {value.length === 0 ? (
-        <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
-          <FileIcon className="h-3.5 w-3.5" aria-hidden="true" />
-          Sem ficheiros anexados.
-        </p>
-      ) : (
-        <ul className="space-y-1.5">
-          {value.map((arquivo) => {
-            const Icon = iconFor(arquivo.tipo);
-            return (
-              <li
-                key={arquivo.id}
-                className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2"
-              >
-                <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{arquivo.nome}</p>
-                  <p className="text-[11px] text-muted-foreground font-mono">{formatBytes(arquivo.tamanho)}</p>
-                </div>
-                <a
-                  href={arquivo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-ink"
-                  aria-label={`Abrir ${arquivo.nome}`}
-                >
-                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeArquivo(arquivo)}
-                  disabled={disabled || removingId === arquivo.id}
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                  aria-label={`Remover ${arquivo.nome}`}
-                >
-                  {removingId === arquivo.id ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  )}
-                </Button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <p style={{ fontSize: 11.5, color: "var(--ink-mute)", margin: "8px 0 0" }}>
+        {value.length === 0 && pending.length === 0 ? "Sem ficheiros anexados. " : ""}
+        Arrasta ficheiros para aqui ou usa Carregar — PDF, documentos ou imagens até 10MB (imagens são comprimidas).
+      </p>
     </div>
   );
 }

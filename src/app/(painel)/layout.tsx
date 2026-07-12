@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import { Poppins, Inter } from "next/font/google";
 import { auth } from "@/lib/auth";
-import { Sidebar } from "@/components/painel/Sidebar";
-import { BottomNav } from "@/components/painel/BottomNav";
+import { PainelShell } from "@/components/painel/PainelShell";
 import { ensureIndexes } from "@/lib/mongodb/init-indexes";
 import { getProjetosResumo } from "@/lib/mongodb/projetos";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
@@ -89,20 +88,23 @@ export default async function PainelLayout({
   // Contagens p/ badges da sidebar (cacheadas 20s — ver getSidebarCounts).
   const counts = await getSidebarCounts();
 
+  // Estrutura do protótipo: .pnl > .app > .side + .content > .main.
+  // O scroll acontece no .content (painel.css) — o body não faz double-scroll
+  // porque o .app nunca cresce além de 100vh (conteúdo scrolla internamente).
   return (
     <div
-      className={`pnl painel-shell min-h-screen flex ${poppins.variable} ${inter.variable}`}
+      className={`pnl painel-shell ${poppins.variable} ${inter.variable}`}
       style={{
         ["--font-display" as string]: "var(--font-poppins)",
         ["--font-body" as string]: "var(--font-inter)",
       }}
     >
-      <Sidebar
+      <PainelShell
         user={{ name: session.user.name, email: session.user.email }}
         counts={counts}
-      />
-      <main className="main flex-1 min-w-0 flex flex-col">{children}</main>
-      <BottomNav counts={counts} />
+      >
+        {children}
+      </PainelShell>
     </div>
   );
 }

@@ -2,9 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Plus, Trash2, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Tarefa } from "@/types/tarefa";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
@@ -139,16 +137,19 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     startTransition(() => router.refresh());
   }
 
+  // Como no protótipo: pendentes primeiro, feitas (.trow.done) a seguir.
   const pendentes = items.filter((t) => !t.feita);
   const feitas = items.filter((t) => t.feita);
 
   return (
-    <div className="space-y-3">
+    <div>
       {items.length === 0 && !showInput && (
-        <p className="text-sm text-muted-foreground">Sem tarefas ainda.</p>
+        <p style={{ fontSize: 13, color: "var(--ink-mute)", margin: "0 0 8px" }}>
+          Sem tarefas ainda.
+        </p>
       )}
 
-      {pendentes.map((tarefa) => (
+      {[...pendentes, ...feitas].map((tarefa) => (
         <TarefaItem
           key={tarefa.id}
           tarefa={tarefa}
@@ -159,77 +160,62 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
         />
       ))}
 
-      {feitas.length > 0 && (
-        <details className="group">
-          <summary className="cursor-pointer text-xs text-muted-foreground font-mono uppercase tracking-wide select-none list-none flex items-center gap-1 mt-2">
-            <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
-            {feitas.length} concluída{feitas.length !== 1 ? "s" : ""}
-          </summary>
-          <div className="mt-2 space-y-2 opacity-60">
-            {feitas.map((tarefa) => (
-              <TarefaItem
-                key={tarefa.id}
-                tarefa={tarefa}
-                onToggle={() => toggleFeita(tarefa)}
-                onDelete={() => deletarTarefa(tarefa.id)}
-                onPrazo={(p) => updatePrazo(tarefa, p)}
-                disabled={busy.has(tarefa.id)}
-              />
-            ))}
-          </div>
-        </details>
-      )}
-
       {showInput ? (
-        <form onSubmit={adicionarTarefa} className="flex flex-wrap items-center gap-2 mt-2">
-          <Input
+        <form
+          onSubmit={adicionarTarefa}
+          style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4 }}
+        >
+          <input
+            className="in-sm"
+            style={{ flex: 1, minWidth: 180 }}
             value={novoTitulo}
             onChange={(e) => setNovoTitulo(e.target.value)}
-            placeholder="Nome da tarefa..."
+            placeholder="Nome da tarefa…"
             autoFocus
             maxLength={300}
             disabled={adding}
-            className="h-8 text-sm flex-1 min-w-[180px]"
           />
-          <Input
+          <input
+            className="in-sm"
             type="date"
             value={novoPrazo}
             onChange={(e) => setNovoPrazo(e.target.value)}
             disabled={adding}
-            className="h-8 text-sm w-[150px]"
             title="Data (opcional)"
           />
-          <Input
+          <input
+            className="in-sm"
             type="time"
             value={novaHora}
             onChange={(e) => setNovaHora(e.target.value)}
             disabled={adding || !novoPrazo}
-            className="h-8 text-sm w-[110px]"
             title="Hora (opcional)"
           />
-          <Button type="submit" size="sm" disabled={adding || !novoTitulo.trim()} className="h-8">
-            {adding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Adicionar"}
-          </Button>
-          <Button
+          <button type="submit" className="btn-primary" disabled={adding || !novoTitulo.trim()}>
+            {adding ? (
+              <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} aria-hidden="true" />
+            ) : (
+              "Adicionar"
+            )}
+          </button>
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8"
+            className="btn-ghost"
             onClick={() => { setShowInput(false); setNovoTitulo(""); setNovoPrazo(""); setNovaHora(""); }}
           >
             Cancelar
-          </Button>
+          </button>
         </form>
       ) : (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 text-muted-foreground hover:text-foreground"
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{ marginTop: 4 }}
           onClick={() => setShowInput(true)}
         >
-          <Plus className="h-3.5 w-3.5 mr-1" aria-hidden="true" />
+          <Plus style={{ width: 13, height: 13 }} aria-hidden="true" />
           Adicionar tarefa
-        </Button>
+        </button>
       )}
     </div>
   );
@@ -258,28 +244,22 @@ function TarefaItem({
   }
 
   return (
-    <div className="group flex items-center gap-3 rounded-md border border-border/60 bg-card px-3 py-2">
-      <input
-        type="checkbox"
-        checked={tarefa.feita}
-        onChange={onToggle}
+    <div className={cn("trow", tarefa.feita && "done")}>
+      <button
+        type="button"
+        className="check"
+        onClick={onToggle}
         disabled={disabled}
-        id={`tarefa-${tarefa.id}`}
-        className="h-4 w-4 rounded border-border accent-primary"
-      />
-      <label
-        htmlFor={`tarefa-${tarefa.id}`}
-        className={cn(
-          "flex-1 text-sm cursor-pointer",
-          tarefa.feita && "line-through text-muted-foreground"
-        )}
+        aria-label={tarefa.feita ? "Marcar como não feita" : "Marcar como feita"}
       >
-        {tarefa.titulo}
-      </label>
+        {tarefa.feita && <Check aria-hidden="true" />}
+      </button>
+      <span className="t-title">{tarefa.titulo}</span>
 
       {editingPrazo ? (
-        <Input
+        <input
           type="date"
+          className="in-sm"
           value={valorPrazo}
           autoFocus
           onChange={(e) => setValorPrazo(e.target.value)}
@@ -288,41 +268,40 @@ function TarefaItem({
             if (e.key === "Enter") commit();
             if (e.key === "Escape") { setValorPrazo(tarefa.prazo ?? ""); setEditingPrazo(false); }
           }}
-          className="h-7 text-xs w-[140px]"
         />
       ) : tarefa.prazo ? (
         <button
           type="button"
+          className="t-time"
+          style={{ background: "none", border: 0, cursor: "pointer", padding: 0 }}
           onClick={() => setEditingPrazo(true)}
-          className="inline-flex items-center gap-1 text-xs tabular-nums px-1.5 py-0.5 rounded hover:bg-muted text-muted-foreground"
           title="Editar data"
         >
-          <Calendar className="h-3 w-3" aria-hidden="true" />
           {fmtData(tarefa.prazo)}
-          {tarefa.prazoHora && (
-            <span className="font-mono">{tarefa.prazoHora}</span>
-          )}
+          {tarefa.prazoHora ? ` · ${tarefa.prazoHora}` : ""}
         </button>
       ) : (
         <button
           type="button"
+          className="t-time"
+          style={{ background: "none", border: 0, cursor: "pointer", padding: 0 }}
           onClick={() => setEditingPrazo(true)}
-          className="text-xs text-muted-foreground opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100 hover:text-foreground transition-opacity"
+          title="Definir data"
         >
-          + Data
+          + data
         </button>
       )}
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-6 w-6 p-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+      <button
+        type="button"
+        className="icon-mini"
         onClick={onDelete}
         disabled={disabled}
         aria-label="Apagar tarefa"
+        title="Apagar tarefa"
       >
-        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-      </Button>
+        <Trash2 aria-hidden="true" />
+      </button>
     </div>
   );
 }

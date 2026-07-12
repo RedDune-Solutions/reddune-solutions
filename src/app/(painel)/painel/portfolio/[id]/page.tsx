@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import { getPortfolioItemById } from "@/lib/mongodb/portfolio";
 import { Topbar } from "@/components/painel/Topbar";
 import { PortfolioForm } from "@/components/painel/PortfolioForm";
-import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -18,22 +17,20 @@ export default async function PortfolioDetailPage({ params }: { params: Params }
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Conteúdo", "Portfólio", item.title.pt]}
+        crumbs={["Portfólio"]}
         title={item.title.pt}
         description="Trabalho do portfólio"
       />
 
-      <div className="content max-w-3xl">
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/painel/portfolio">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Voltar ao portfólio
-          </Link>
-        </Button>
+      <div className="detail-top">
+        <Link href="/painel/portfolio" className="back-btn">
+          <ArrowLeft className="ic" aria-hidden="true" />
+          Voltar ao portfólio
+        </Link>
+      </div>
 
-        <div className="rounded-xl border border-border bg-card">
-          <PortfolioForm item={item} backHref="/painel/portfolio" />
-        </div>
+      <div className="card max-w-3xl" style={{ padding: 0, overflow: "hidden" }}>
+        <PortfolioForm item={item} backHref="/painel/portfolio" />
       </div>
     </>
   );

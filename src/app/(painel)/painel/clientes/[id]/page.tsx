@@ -1,27 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  Euro,
-  ListChecks,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { getProjetosByCliente } from "@/lib/mongodb/projetos";
 import { getClienteById } from "@/lib/mongodb/clientes";
 import { getPagamentosByCliente } from "@/lib/mongodb/pagamentos";
 import { METODO_LABEL } from "@/types/pagamento";
 import { Topbar } from "@/components/painel/Topbar";
-import { TarefaCard } from "@/components/painel/TarefaCard";
-import { KpiCard } from "@/components/painel/KpiCard";
+import { InlineStatusSelect } from "@/components/painel/InlineStatusSelect";
 import { ClienteForm } from "@/components/painel/ClienteForm";
-import { Button } from "@/components/ui/button";
-import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
+import { STATUS_GROUPS } from "@/types/projeto";
 import { parseIsoDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ id: string }>;
+
+const eur = (n: number) => Math.round(n).toLocaleString("pt-PT");
+
+function fmtDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return "—";
+  }
+}
 
 export default async function ClienteDetailPage({ params }: { params: Params }) {
   const { id } = await params;
@@ -54,94 +57,118 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
     return restante > 0 ? sum + restante : sum;
   }, 0);
 
+  const sortedProjetos = [...projetos].sort((a, b) => {
+    const aDate = parseIsoDate(a.dataCriado ?? null);
+    const bDate = parseIsoDate(b.dataCriado ?? null);
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    return bDate.getTime() - aDate.getTime();
+  });
+
   return (
     <>
       <Topbar
-        crumbs={["Painel", "Clientes", cliente.nome]}
+        crumbs={["Cliente"]}
         title={cliente.nome}
         description={`${projetos.length} projecto${projetos.length === 1 ? "" : "s"} no histórico.`}
       />
 
-      <div className="content max-w-6xl">
-        <div className="flex items-center justify-between">
-          <Button asChild variant="ghost" size="sm" className="-ml-3">
-            <Link href="/painel/clientes">
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Voltar a clientes
-            </Link>
-          </Button>
-        </div>
-
-        {/* Ficha editável inline */}
-        <div className="card" style={{ padding: 24 }}>
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-5">
-            Ficha do cliente
-          </h2>
-          <ClienteForm cliente={cliente} />
-        </div>
-
-        {/* KPIs */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Projectos" value={projetos.length} icon={ListChecks} tone="default" />
-          <KpiCard label="Em curso/espera" value={active.length} icon={AlertCircle} tone="accent" />
-          <KpiCard label="Concluídos" value={finished.length} icon={CheckCircle2} tone="green" />
-          <KpiCard
-            label="Valor estimado"
-            value={`${totalValor.toFixed(0)}€`}
-            icon={Euro}
-            tone="default"
-            hint="Soma de todos os projectos"
-          />
-          <KpiCard
-            label="Em dívida"
-            value={`${dividaTotal.toFixed(0)}€`}
-            icon={AlertCircle}
-            tone={dividaTotal > 0 ? "amber" : "green"}
-            hint="Valor por receber em projectos terminados"
-          />
-        </div>
-
-        {/* Activos */}
-        {active.length > 0 && (
-          <section>
-            <h2 className="font-headline text-lg font-semibold tracking-tight mb-4">
-              Activos
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {active.map((projeto) => (
-                <TarefaCard key={projeto.id} projeto={projeto} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Pagamentos histórico */}
-        {pagamentos.length > 0 && (
-          <section>
-            <h2 className="font-headline text-lg font-semibold tracking-tight mb-4">
-              Histórico de pagamentos
-            </h2>
-            <PagamentosHistorico
-              pagamentos={pagamentos}
-              projetosMap={Object.fromEntries(projetos.map((p) => [p.id, p.titulo]))}
-            />
-          </section>
-        )}
-
-        {/* Histórico */}
-        {projetos.length > 0 && (
-          <section>
-            <h2 className="font-headline text-lg font-semibold tracking-tight mb-4">
-              Histórico completo
-            </h2>
-            <ProjetoTimeline projetos={projetos} />
-          </section>
-        )}
-
-        {projetos.length === 0 && (
-          <p className="text-sm text-muted-foreground">Sem projectos associados a este cliente.</p>
-        )}
+      <div className="detail-top">
+        <Link href="/painel/clientes" className="back-btn">
+          <ArrowLeft className="ic" aria-hidden="true" /> Voltar a clientes
+        </Link>
       </div>
+
+      <div className="mini-kpis">
+        <div className="k">
+          <div className="kpi-label">Projectos</div>
+          <div className="kpi-num">{projetos.length}</div>
+        </div>
+        <div className="k">
+          <div className="kpi-label">Em curso / espera</div>
+          <div className="kpi-num">{active.length}</div>
+        </div>
+        <div className="k">
+          <div className="kpi-label">Concluídos</div>
+          <div className="kpi-num">{finished.length}</div>
+        </div>
+        <div className="k">
+          <div className="kpi-label">Valor estimado</div>
+          <div className="kpi-num">{eur(totalValor)} €</div>
+        </div>
+        <div className={dividaTotal > 0 ? "k accent" : "k"}>
+          <div className="kpi-label">Em dívida</div>
+          <div className="kpi-num">{eur(dividaTotal)} €</div>
+        </div>
+      </div>
+
+      {/* Ficha editável inline */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-label">
+          <User className="ic" aria-hidden="true" /> Ficha do cliente
+        </div>
+        <ClienteForm cliente={cliente} />
+      </div>
+
+      {/* Projectos do cliente */}
+      {sortedProjetos.length === 0 ? (
+        <div className="empty">
+          <div className="t">Sem projectos</div>
+          <div className="desc">Sem projectos associados a este cliente.</div>
+        </div>
+      ) : (
+        <>
+          <p className="eyebrow">Projectos</p>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Projecto</th>
+                <th>Estado</th>
+                <th className="col-hide-sm">Prazo</th>
+                <th>Valor</th>
+                <th className="col-hide-sm" />
+              </tr>
+            </thead>
+            <tbody>
+              {sortedProjetos.map((p) => (
+                <tr key={p.id}>
+                  <td className="name">
+                    <Link href={`/painel/projetos/${p.id}`}>{p.titulo}</Link>
+                  </td>
+                  <td>
+                    <InlineStatusSelect
+                      projetoId={p.id}
+                      status={p.status}
+                      pagoTotal={pagoPorProjeto.get(p.id) ?? 0}
+                      valorEstimado={p.valorEstimado}
+                    />
+                  </td>
+                  <td className="muted col-hide-sm">{fmtDate(p.prazo)}</td>
+                  {p.valorEstimado != null ? (
+                    <td className="num">{eur(p.valorEstimado)} €</td>
+                  ) : (
+                    <td className="muted">—</td>
+                  )}
+                  <td className="arr col-hide-sm">
+                    <Link href={`/painel/projetos/${p.id}`} aria-label={`Abrir ${p.titulo}`}>→</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {/* Histórico de pagamentos */}
+      {pagamentos.length > 0 && (
+        <div className="card" style={{ marginTop: 20 }}>
+          <PagamentosHistorico
+            pagamentos={pagamentos}
+            projetosMap={Object.fromEntries(projetos.map((p) => [p.id, p.titulo]))}
+          />
+        </div>
+      )}
     </>
   );
 }
@@ -162,63 +189,50 @@ function PagamentosHistorico({
   }
 
   return (
-    <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
-      <p className="font-mono tabular-nums text-sm">
-        Total pago: <strong>{total}€</strong> <span className="text-muted-foreground">· {pagamentos.length} pagamento{pagamentos.length === 1 ? "" : "s"}</span>
-      </p>
-      {Array.from(grupos.entries()).map(([projetoId, lista]) => {
-        const sub = lista.reduce((s, p) => s + p.valor, 0);
-        return (
-          <div key={projetoId} className="border-t border-border pt-3">
-            <div className="flex items-center justify-between mb-2">
-              <Link
-                href={`/painel/projetos/${projetoId}`}
-                className="text-sm font-semibold hover:text-primary truncate"
-              >
-                {projetosMap[projetoId] ?? "(projeto removido)"}
-              </Link>
-              <span className="font-mono tabular-nums text-sm">{sub}€</span>
+    <>
+      <div className="card-head">
+        <span className="card-title">Histórico de pagamentos</span>
+        <span className="mono muted" style={{ fontSize: 11 }}>
+          {total.toLocaleString("pt-PT")} € · {pagamentos.length} pagamento{pagamentos.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="col" style={{ gap: 16 }}>
+        {Array.from(grupos.entries()).map(([projetoId, lista]) => {
+          const sub = lista.reduce((s, p) => s + p.valor, 0);
+          return (
+            <div key={projetoId}>
+              <div className="row between" style={{ marginBottom: 8 }}>
+                <Link
+                  href={`/painel/projetos/${projetoId}`}
+                  style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13.5, color: "var(--ink)" }}
+                >
+                  {projetosMap[projetoId] ?? "(projeto removido)"}
+                </Link>
+                <span className="mono" style={{ fontSize: 12, fontWeight: 700 }}>
+                  {sub.toLocaleString("pt-PT")} €
+                </span>
+              </div>
+              <div className="col" style={{ gap: 7 }}>
+                {lista.map((p) => (
+                  <div key={p.id} className="pay">
+                    <b>{p.valor.toLocaleString("pt-PT")} €</b>
+                    <span className="pd">{fmtDate(p.data)}</span>
+                    {p.metodo && <span className="pm">{METODO_LABEL[p.metodo]}</span>}
+                    {p.notas && (
+                      <span
+                        className="pd"
+                        style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}
+                      >
+                        {p.notas}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-            <ul className="space-y-1 text-xs">
-              {lista.map((p) => (
-                <li key={p.id} className="flex items-center gap-3 text-muted-foreground">
-                  <span className="tabular-nums w-24">
-                    {new Date(p.data).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" })}
-                  </span>
-                  <span className="font-mono tabular-nums w-16 text-foreground">{p.valor}€</span>
-                  {p.metodo && <span className="rounded bg-muted px-1.5 py-0.5">{METODO_LABEL[p.metodo]}</span>}
-                  {p.notas && <span className="truncate flex-1">{p.notas}</span>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function ProjetoTimeline({ projetos }: { projetos: Projeto[] }) {
-  const sorted = [...projetos].sort((a, b) => {
-    const aDate = parseIsoDate(a.dataCriado ?? null);
-    const bDate = parseIsoDate(b.dataCriado ?? null);
-    if (!aDate && !bDate) return 0;
-    if (!aDate) return 1;
-    if (!bDate) return -1;
-    return bDate.getTime() - aDate.getTime();
-  });
-
-  return (
-    <ol className="relative border-l border-border ml-3 space-y-6 pl-6">
-      {sorted.map((p) => (
-        <li key={p.id} className="relative">
-          <span
-            aria-hidden="true"
-            className="absolute -left-[28px] top-1.5 inline-flex h-3 w-3 rounded-full border-2 border-background bg-primary"
-          />
-          <TarefaCard projeto={p} />
-        </li>
-      ))}
-    </ol>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -50,7 +50,8 @@ export async function DELETE(
 
     // Os `pagamentos` com este projetoId ficam INTENCIONALMENTE como histórico —
     // é receita real registada e apagá-los violaria a regra de não tocar em dados
-    // de negócio. Não são removidos aqui.
+    // de negócio. Não são removidos aqui. As `despesas` manuais ligadas ao projecto
+    // seguem a mesma lógica (dinheiro real gasto): ficam como histórico nos gastos.
 
     await logMutation({
       collection: "projetos",

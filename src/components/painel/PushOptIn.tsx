@@ -16,13 +16,22 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return arr;
 }
 
+type Props = {
+  /**
+   * Quando o push não está disponível (sem chave VAPID / browser sem suporte),
+   * mostra um fallback informativo em vez de não renderizar nada.
+   */
+  showFallback?: boolean;
+};
+
 /**
  * Botão opt-in de notificações push (web push self-hosted, VAPID).
  * Não renderiza nada se o browser não suportar ou se a chave pública VAPID
- * não estiver configurada — feature degrada graciosamente.
+ * não estiver configurada — feature degrada graciosamente (excepto com
+ * `showFallback`, que mostra o estado indisponível).
  * iOS: só funciona com a PWA instalada (Adicionar ao ecrã principal), iOS ≥16.4.
  */
-export function PushOptIn() {
+export function PushOptIn({ showFallback = false }: Props) {
   const [state, setState] = useState<State>("loading");
 
   useEffect(() => {
@@ -90,29 +99,38 @@ export function PushOptIn() {
     }
   };
 
-  if (state === "loading" || state === "unsupported") return null;
+  if (state === "loading") return null;
 
-  const base: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 7,
-    fontSize: 12.5,
-    fontWeight: 600,
-    padding: "8px 14px",
-    borderRadius: 999,
-    cursor: "pointer",
-    border: "1px solid var(--dune-deep, #2a1410)",
-    lineHeight: 1,
-    whiteSpace: "nowrap",
-  };
+  if (state === "unsupported") {
+    if (!showFallback) return null;
+    if (!PUBLIC_KEY) {
+      return (
+        <button
+          type="button"
+          className="btn-ghost"
+          disabled
+          style={{ opacity: 0.55, cursor: "default" }}
+          title="Requer chaves VAPID no Vercel"
+        >
+          <Bell aria-hidden="true" style={{ width: 14, height: 14 }} /> Ativar notificações
+        </button>
+      );
+    }
+    return (
+      <span className="muted" style={{ fontSize: 12.5 }}>
+        O teu browser não suporta notificações push.
+      </span>
+    );
+  }
 
   if (state === "denied") {
     return (
       <span
-        style={{ ...base, cursor: "default", opacity: 0.7, border: "1px solid transparent" }}
+        className="btn-ghost"
+        style={{ cursor: "default", opacity: 0.7, borderColor: "transparent" }}
         title="Desbloqueia as notificações nas definições do browser"
       >
-        <BellOff size={15} aria-hidden="true" /> Notificações bloqueadas
+        <BellOff aria-hidden="true" style={{ width: 14, height: 14 }} /> Notificações bloqueadas
       </span>
     );
   }
@@ -121,26 +139,22 @@ export function PushOptIn() {
     return (
       <button
         type="button"
+        className="btn-ghost"
         onClick={disable}
-        style={{ ...base, background: "rgba(63,125,74,0.12)", color: "#3f7d4a", borderColor: "transparent" }}
+        style={{ background: "rgba(63,125,74,0.12)", color: "#3f7d4a", borderColor: "transparent" }}
         title="Clica para desativar"
       >
-        <BellRing size={15} aria-hidden="true" /> Notificações ativas
+        <BellRing aria-hidden="true" style={{ width: 14, height: 14 }} /> Notificações ativas
       </button>
     );
   }
 
   return (
-    <button
-      type="button"
-      onClick={enable}
-      disabled={state === "busy"}
-      style={{ ...base, background: "var(--ink, #2a1410)", color: "var(--cream, #f7eedb)", borderColor: "transparent" }}
-    >
+    <button type="button" className="btn-ghost" onClick={enable} disabled={state === "busy"}>
       {state === "busy" ? (
-        <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+        <Loader2 className="animate-spin" aria-hidden="true" style={{ width: 14, height: 14 }} />
       ) : (
-        <Bell size={15} aria-hidden="true" />
+        <Bell aria-hidden="true" style={{ width: 14, height: 14 }} />
       )}
       Ativar notificações
     </button>

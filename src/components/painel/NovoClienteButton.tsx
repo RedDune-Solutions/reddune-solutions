@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -16,20 +15,33 @@ import type { Cliente } from "@/types/cliente";
 
 type Props = {
   cliente?: Cliente;
+  /** Controlo externo do sheet (ex.: NovoMenu). Sem esta prop gere o próprio estado. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Esconde o botão trigger — o sheet passa a abrir apenas via `open` controlado. */
+  hideTrigger?: boolean;
 };
 
-export function NovoClienteButton({ cliente }: Props) {
-  const [open, setOpen] = useState(false);
+export function NovoClienteButton({ cliente, open: openProp, onOpenChange, hideTrigger = false }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
   const isEdit = !!cliente;
+
+  function setOpen(o: boolean) {
+    onOpenChange?.(o);
+    if (openProp === undefined) setInternalOpen(o);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button size="sm" className="rounded-btn bg-ink text-cream hover:bg-ember">
-          {!isEdit && <Plus className="h-4 w-4 mr-1" aria-hidden="true" />}
-          {isEdit ? "Editar" : "Novo cliente"}
-        </Button>
-      </SheetTrigger>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <button type="button" className={isEdit ? "btn-ghost" : "btn-primary"}>
+            {!isEdit && <Plus className="ic" aria-hidden="true" />}
+            {isEdit ? "Editar" : "Novo cliente"}
+          </button>
+        </SheetTrigger>
+      )}
       <SheetContent side="right" className="flex flex-col p-0">
         <SheetHeader>
           <SheetTitle>{isEdit ? "Editar cliente" : "Novo cliente"}</SheetTitle>

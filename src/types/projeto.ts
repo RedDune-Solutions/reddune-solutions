@@ -156,6 +156,19 @@ export interface ProjetoLinha {
   categoria: LinhaCategoria;
   quantidade: number;
   precoUnit: number;
+  // true = esta linha foi um gasto real da empresa (peça/serviço que o Iuri
+  // comprou/pagou do bolso), não só o preço que o cliente paga. Alimenta os
+  // relatórios de gastos. Default false (undefined trata-se como false).
+  gastoEmpresa?: boolean;
+}
+
+/** Total de gasto da empresa nas linhas de um projecto (só linhas marcadas). */
+export function computeGastoEmpresa(linhas: ProjetoLinha[] | null | undefined): number {
+  if (!linhas) return 0;
+  return linhas.reduce(
+    (sum, l) => (l.gastoEmpresa ? sum + l.quantidade * l.precoUnit : sum),
+    0
+  );
 }
 
 export interface ProjetoHardware {

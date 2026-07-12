@@ -2,11 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Cpu, ChevronDown, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Cpu, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Projeto } from "@/types/projeto";
 import { safeJsonPost } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
@@ -63,94 +60,102 @@ export function HardwareSection({ projeto }: Props) {
   }
 
   return (
-    <section className="card p-6 space-y-3">
+    <section className={cn("card", open && "hw-open")}>
       <button
         type="button"
+        className="card-label"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2"
+        aria-expanded={open}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          width: "100%",
+          background: "none",
+          border: 0,
+          cursor: "pointer",
+          padding: 0,
+          margin: 0,
+          textAlign: "left",
+        }}
       >
-        <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          {open ? (
-            <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-          ) : (
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-          )}
-          <Cpu className="h-3.5 w-3.5" aria-hidden="true" />
-          Hardware
-          {hasData && !open && (
-            <span className="font-mono text-[10px] normal-case tracking-normal text-foreground/60">
-              {[hw.marca, hw.modelo].filter(Boolean).join(" ")}
-            </span>
-          )}
-        </p>
-        {dirty && open && (
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              save();
+        <ChevronRight className="ic chev" aria-hidden="true" />
+        <Cpu className="ic" aria-hidden="true" />
+        Hardware
+        {hasData && !open && (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              color: "var(--ink-mute)",
+              letterSpacing: ".04em",
+              textTransform: "none",
             }}
-            disabled={saving}
           >
-            {saving && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" aria-hidden="true" />}
-            Guardar
-          </Button>
+            {[hw.marca, hw.modelo].filter(Boolean).join(" ")}
+          </span>
         )}
       </button>
 
-      {open && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="hw-marca">Marca</Label>
-              <Input
-                id="hw-marca"
-                value={marca}
-                onChange={(e) => setMarca(e.target.value)}
-                maxLength={100}
-                disabled={saving}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="hw-modelo">Modelo</Label>
-              <Input
-                id="hw-modelo"
-                value={modelo}
-                onChange={(e) => setModelo(e.target.value)}
-                maxLength={100}
-                disabled={saving}
-              />
-            </div>
-            <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="hw-serial">Número de série</Label>
-              <Input
-                id="hw-serial"
-                value={serial}
-                onChange={(e) => setSerial(e.target.value)}
-                maxLength={100}
-                disabled={saving}
-              />
-            </div>
-            <div className="space-y-1 sm:col-span-2">
-              <Label htmlFor="hw-aces">Acessórios entregues</Label>
-              <Textarea
-                id="hw-aces"
-                value={acessorios}
-                onChange={(e) => setAcessorios(e.target.value)}
-                maxLength={500}
-                rows={2}
-                placeholder="ex: carregador, cabo, mala"
-                disabled={saving}
-              />
-            </div>
+      <div className="hw-body">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+          <div className="field">
+            <label htmlFor="hw-marca">Marca</label>
+            <input
+              id="hw-marca"
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              maxLength={100}
+              disabled={saving}
+            />
           </div>
-          {error && (
-            <p className="text-xs text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded px-2 py-1">
-              {error}
-            </p>
-          )}
+          <div className="field">
+            <label htmlFor="hw-modelo">Modelo</label>
+            <input
+              id="hw-modelo"
+              value={modelo}
+              onChange={(e) => setModelo(e.target.value)}
+              maxLength={100}
+              disabled={saving}
+            />
+          </div>
         </div>
-      )}
+        <div className="field">
+          <label htmlFor="hw-serial">Número de série</label>
+          <input
+            id="hw-serial"
+            value={serial}
+            onChange={(e) => setSerial(e.target.value)}
+            maxLength={100}
+            disabled={saving}
+          />
+        </div>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label htmlFor="hw-aces">Acessórios entregues</label>
+          <textarea
+            id="hw-aces"
+            value={acessorios}
+            onChange={(e) => setAcessorios(e.target.value)}
+            maxLength={500}
+            rows={2}
+            placeholder="ex: carregador, cabo, mala"
+            disabled={saving}
+          />
+        </div>
+        {error && (
+          <p style={{ fontSize: 12, color: "var(--ember)", margin: "10px 0 0" }}>{error}</p>
+        )}
+        {dirty && (
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+            <button type="button" className="btn-primary" onClick={save} disabled={saving}>
+              {saving && (
+                <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} aria-hidden="true" />
+              )}
+              Guardar
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

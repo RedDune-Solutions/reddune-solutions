@@ -66,7 +66,7 @@ export function ComentarioForm({ token, arquivoId, linkId, sandboxId, compact }:
         <button
           type="submit"
           disabled={estado === "sending" || !texto.trim()}
-          className="rounded-full bg-ink px-[26px] py-3 text-sm font-semibold leading-[1.2] text-cream transition duration-[350ms] ease-oasis hover:-translate-y-0.5 hover:bg-ember hover:shadow-[0_14px_36px_rgba(214,66,42,0.36)] disabled:cursor-default disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-ink disabled:hover:shadow-none"
+          className="rounded-full bg-ink px-[26px] py-3 text-sm font-semibold leading-[1.2] text-cream transition [transition-duration:350ms] ease-oasis hover:-translate-y-0.5 hover:bg-ember hover:shadow-[0_14px_36px_rgba(214,66,42,0.36)] disabled:cursor-default disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-ink disabled:hover:shadow-none"
         >
           {estado === "sending" ? "A enviar…" : "Enviar comentário"}
         </button>
