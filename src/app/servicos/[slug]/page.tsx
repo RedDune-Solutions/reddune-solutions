@@ -24,8 +24,10 @@ import { getTranslations } from "next-intl/server";
 import {
   serviceLd,
   faqPageLd,
+  breadcrumbLd,
   jsonLdScript,
 } from "@/lib/structured-data";
+import { ogLocale } from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -59,7 +61,7 @@ export async function generateMetadata({
       title: fullTitle,
       description: content.lead,
       type: "website",
-      locale,
+      locale: ogLocale(locale),
       url: `${base}/servicos/${slug}`,
     },
     twitter: {
@@ -353,12 +355,23 @@ export default async function ServicoSlugPage({ params }: PageProps) {
         )
       : null;
 
+  const isPt = locale !== "en";
+  const breadcrumbSchema = breadcrumbLd([
+    { name: isPt ? "Início" : "Home", url: publicEnv.baseUrl },
+    { name: isPt ? "Serviços" : "Services", url: `${publicEnv.baseUrl}/servicos` },
+    { name: plainTitle, url: `${publicEnv.baseUrl}/servicos/${typedSlug}` },
+  ]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbSchema) }}
       />
       {faqSchema && (
         <script

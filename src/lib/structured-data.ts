@@ -147,6 +147,57 @@ export function itemListLd(params: {
 }
 
 /**
+ * BreadcrumbList — inner pages two or more levels deep (/servicos/[slug]).
+ */
+export function breadcrumbLd(
+  items: Array<{ name: string; url: string }>,
+): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+/**
+ * ItemList of CreativeWork — portfolio (/portfolio).
+ */
+export function creativeWorkListLd(params: {
+  url: string;
+  name: string;
+  items: Array<{ id: string; name: string; url: string; image?: string }>;
+}): JsonLd {
+  const { url, name, items } = params;
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    url,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "CreativeWork",
+        "@id": `${base()}/portfolio#${item.id}`,
+        name: item.name,
+        url: item.url,
+        ...(item.image && { image: item.image }),
+        creator: {
+          "@type": "LocalBusiness",
+          "@id": `${base()}/#business`,
+        },
+      },
+    })),
+  };
+}
+
+/**
  * FAQPage — used by service sub-pages with FAQ accordion.
  */
 export function faqPageLd(
