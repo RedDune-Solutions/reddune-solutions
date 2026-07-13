@@ -19,12 +19,10 @@ import {
   STATUS_LABELS,
   PROJETO_STATUS,
   PROJETO_TIPO_LABEL,
-  PROJETO_RESPONSAVEL,
   CATEGORIA_TIPOS,
   TIPO_TO_CATEGORIA,
   type Projeto,
   type ProjetoStatus,
-  type ProjetoResponsavel,
 } from "@/types/projeto";
 import { SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { Cliente } from "@/types/cliente";
@@ -60,9 +58,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   );
   const [customTipos, setCustomTipos] = useState<ProjetoTipoCustom[]>([]);
   const [categoria, setCategoria] = useState<ServicoSlug | null>(projeto?.categoria ?? null);
-  const [responsavel, setResponsavel] = useState<ProjetoResponsavel | "">(
-    projeto?.responsavel ?? ""
-  );
   const [prazo, setPrazo] = useState(projeto?.prazo ?? "");
   const [garantiaAte, setGarantiaAte] = useState(projeto?.garantiaAte ?? "");
   const [proximaAccao, setProximaAccao] = useState(projeto?.proximaAccao ?? "");
@@ -147,7 +142,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
       categoria: categoria,
       tipo: tipos.length > 0 ? tipos[0] : null,
       tipos: tipos.length > 0 ? tipos : null,
-      responsavel: responsavel || null,
       prazo: prazo || null,
       proximaAccao: proximaAccao.trim() || null,
       notasResumo: notasResumo.trim() || null,
@@ -184,36 +178,16 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label>Estado *</Label>
-          <Select value={status} onValueChange={(v) => setStatus(v as ProjetoStatus)} disabled={isBusy}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {PROJETO_STATUS.map((s) => (
-                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label>Responsável</Label>
-          <Select
-            value={responsavel || "__none"}
-            onValueChange={(v) =>
-              setResponsavel(v === "__none" ? "" : (v as ProjetoResponsavel))
-            }
-            disabled={isBusy}
-          >
-            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">— Nenhum —</SelectItem>
-              {PROJETO_RESPONSAVEL.map((r) => (
-                <SelectItem key={r} value={r}>{r}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-1">
+        <Label>Estado *</Label>
+        <Select value={status} onValueChange={(v) => setStatus(v as ProjetoStatus)} disabled={isBusy}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {PROJETO_STATUS.map((s) => (
+              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tipos — chips compactos em linha única por categoria */}
