@@ -19,6 +19,24 @@ export async function getProjetoById(id: string): Promise<Projeto | null> {
     .findOne({ id }, { projection: { _id: 0 } });
 }
 
+/**
+ * Próximo código de referência para um prefixo (ex.: "AT" -> "AT-0043").
+ * Máximo sequencial existente do prefixo + 1, 4 dígitos com zeros à esquerda.
+ */
+export async function nextRefForPrefix(prefix: string): Promise<string> {
+  const db = await getDb();
+  const docs = await db
+    .collection<Projeto>(COLLECTION)
+    .find({ ref: { $regex: `^${prefix}-\\d{4}$` } }, { projection: { ref: 1, _id: 0 } })
+    .toArray();
+  let max = 0;
+  for (const d of docs) {
+    const m = /-(\d{4})$/.exec(d.ref ?? "");
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  return `${prefix}-${String(max + 1).padStart(4, "0")}`;
+}
+
 /** Projectos de um cliente. Usa o índice projetos.clienteId (antes filtrava em JS após getAllProjetos). */
 export async function getProjetosByCliente(clienteId: string): Promise<Projeto[]> {
   const db = await getDb();

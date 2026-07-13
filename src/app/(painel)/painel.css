@@ -187,6 +187,8 @@
 .pnl .kcard { display: block; background: var(--sand-warm); border: 1px solid rgba(90,14,14,.10); border-radius: 14px; padding: 13px; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(90,14,14,.05); transition: transform .2s var(--ease-oasis), box-shadow .2s var(--ease-oasis); }
 .pnl .kcard:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(90,14,14,.10); }
 .pnl .kcard .kc-cli { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mute); }
+.pnl .kcard .kc-ref { display: inline-block; margin-right: 6px; padding: 1px 5px; border-radius: 5px; background: rgba(90,14,14,.07); color: var(--ink-soft); font-weight: 600; letter-spacing: 0.04em; }
+.pnl .pd-ref { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--ink-mute); margin-top: 2px; }
 .pnl .kcard .kc-name { font-family: var(--font-display); font-weight: 600; font-size: 14px; margin: 3px 0 6px; color: var(--ink); }
 .pnl .kcard .kc-next { font-size: 12px; color: var(--ink-soft); }
 .pnl .kcard .kc-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }

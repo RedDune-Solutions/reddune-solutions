@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
-import { upsertProjeto, getProjetoById } from "@/lib/mongodb/projetos";
+import { upsertProjeto, getProjetoById, nextRefForPrefix } from "@/lib/mongodb/projetos";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { projetoInputSchema } from "@/lib/validation-projeto";
-import { TIPO_TO_CATEGORIA, type Projeto, type ProjetoTipo } from "@/types/projeto";
+import { TIPO_TO_CATEGORIA, refPrefixForCategoria, type Projeto, type ProjetoTipo } from "@/types/projeto";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +75,13 @@ export async function POST(request: Request) {
     categoriaFinal = TIPO_TO_CATEGORIA[tipoFinal];
   }
 
+  // Código de referência: gerado UMA vez ao criar (max do prefixo + 1);
+  // estável — preserva o existente em updates, nunca regenera.
+  let refFinal = pick("ref", null);
+  if (!input.id && !refFinal) {
+    refFinal = await nextRefForPrefix(refPrefixForCategoria(categoriaFinal));
+  }
+
   const statusFinal = input.status ?? existing?.status ?? "proximo";
   const wasOpen = existing && existing.status !== "terminado" && existing.status !== "fechado";
   const nowClosed = statusFinal === "terminado" || statusFinal === "fechado";
@@ -87,6 +94,7 @@ export async function POST(request: Request) {
   const projeto: Projeto = {
     id,
     titulo: input.titulo ?? existing?.titulo ?? "",
+    ref: refFinal,
     clienteId: pick("clienteId", null),
     clienteNome: pick("clienteNome", null),
     proximaAccao: pick("proximaAccao", null),

@@ -10,6 +10,7 @@ function makeProjeto(): Projeto {
   return {
     id: "p1",
     titulo: "Site Restaurante",
+    ref: "WD-0007",
     clienteId: "c1",
     clienteNome: "Maria",
     proximaAccao: POISON,

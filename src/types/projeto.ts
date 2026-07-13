@@ -215,6 +215,9 @@ export interface ProjetoPortal {
 export interface Projeto {
   id: string;
   titulo: string;
+  // Código de referência estável por categoria (ex.: AT-0043). Gerado no
+  // servidor ao criar; nunca muda depois. Ver refPrefixForCategoria.
+  ref: string | null;
   clienteId: string | null;
   clienteNome: string | null;
   proximaAccao: string | null;
@@ -237,6 +240,20 @@ export interface Projeto {
   arquivos: ProjetoArquivo[] | null;
   links: ProjetoLink[] | null;
   portal: ProjetoPortal | null;
+}
+
+/** Prefixo do código de referência por categoria (AT/WD/SR/GEN). */
+export function refPrefixForCategoria(categoria: ServicoSlug | null): string {
+  switch (categoria) {
+    case "assistencia-tecnica":
+      return "AT";
+    case "web-digital":
+      return "WD";
+    case "software-recuperacao":
+      return "SR";
+    default:
+      return "GEN";
+  }
 }
 
 export function deriveCategoriasFromTipos(tipos: ProjetoTipo[] | null): ServicoSlug[] {

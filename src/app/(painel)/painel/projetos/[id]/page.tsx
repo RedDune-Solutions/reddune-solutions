@@ -276,6 +276,7 @@ function ProjetoHero({ projeto, totalPago }: { projeto: import("@/types/projeto"
         </div>
       </div>
       <h1 className="pd-h1">{projeto.titulo}</h1>
+      {projeto.ref && <p className="pd-ref">{projeto.ref}</p>}
       {projeto.clienteNome && (
         <p className="pd-cli">
           {projeto.clienteId ? (

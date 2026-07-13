@@ -165,7 +165,10 @@ function KanbanCardBody({ projeto }: { projeto: Projeto }) {
   const tag = kcTag(projeto);
   return (
     <>
-      <div className="kc-cli">{projeto.clienteNome ?? "RedDune"}</div>
+      <div className="kc-cli">
+        {projeto.ref && <span className="kc-ref">{projeto.ref}</span>}
+        {projeto.clienteNome ?? "RedDune"}
+      </div>
       <div className="kc-name">{projeto.titulo}</div>
       {projeto.proximaAccao && <div className="kc-next">{projeto.proximaAccao}</div>}
       <div className="kc-foot">

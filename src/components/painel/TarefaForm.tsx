@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, UserPlus, Plus, X } from "lucide-react";
+import { Loader2, UserPlus, Plus, X, Wand2 } from "lucide-react";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,12 +24,14 @@ import {
   isProjetoIdeia,
   type Projeto,
   type ProjetoStatus,
+  type ProjetoTipo,
 } from "@/types/projeto";
 import { SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { Cliente } from "@/types/cliente";
 import { ClienteQuickForm } from "./ClienteQuickForm";
 import { safeFetch, safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   projeto?: Projeto;
@@ -41,6 +43,7 @@ type Props = {
 export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [pending, startTransition] = useTransition();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +141,47 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
     setShowQuickClient(false);
   }
 
+  // Compõe um título dos campos preenchidos: {Tipo} {objeto} — {Cliente}.
+  // Tipo = primeiro seleccionado ("Website" para web); objeto = hardware.modelo;
+  // cliente = nome seleccionado. Sem IA.
+  function tituloSugerido(): string {
+    const tipoSlug = tipos[0];
+    let tipoLabel = "";
+    if (tipoSlug) {
+      tipoLabel =
+        tipoSlug === "web"
+          ? "Website"
+          : PROJETO_TIPO_LABEL[tipoSlug as ProjetoTipo] ?? tipoSlug;
+    }
+    const objeto = projeto?.hardware?.modelo?.trim() ?? "";
+    const cliente =
+      clientesList.find((c) => c.id === clienteId)?.nome ?? projeto?.clienteNome ?? "";
+    const esquerda = [tipoLabel, objeto].filter(Boolean).join(" ");
+    if (!esquerda) return cliente;
+    return cliente ? `${esquerda} — ${cliente}` : esquerda;
+  }
+
+  async function gerarTitulo() {
+    const sugestao = tituloSugerido();
+    if (!sugestao) {
+      toast({
+        title: "Preenche o tipo ou o cliente primeiro",
+        variant: "destructive",
+      });
+      return;
+    }
+    const actual = titulo.trim();
+    if (actual && actual !== sugestao) {
+      const ok = await confirm({
+        title: "Substituir o título?",
+        description: `«${actual}» → «${sugestao}»`,
+        confirmLabel: "Substituir",
+      });
+      if (!ok) return;
+    }
+    setTitulo(sugestao);
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -178,7 +222,18 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   return (
     <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
       <div className="space-y-1">
-        <Label htmlFor="titulo">Título *</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="titulo">Título *</Label>
+          <button
+            type="button"
+            onClick={gerarTitulo}
+            disabled={isBusy}
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-50"
+          >
+            <Wand2 className="h-3 w-3" aria-hidden="true" />
+            Gerar título
+          </button>
+        </div>
         <Input
           id="titulo"
           value={titulo}
