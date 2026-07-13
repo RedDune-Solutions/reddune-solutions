@@ -112,7 +112,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
             return (
               <div key={l.id} className="lrow">
                 <input
-                  className="in-sm"
+                  className="in-sm ldesc"
                   placeholder="Descrição"
                   value={l.descricao}
                   onChange={(e) => updateLinha(l.id, { descricao: e.target.value })}
@@ -145,7 +145,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   aria-label="Quantidade"
                 />
                 <input
-                  className="in-sm"
+                  className="in-sm lpreco"
                   type="number"
                   inputMode="decimal"
                   step="0.01"
@@ -197,40 +197,17 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                 {/* Data do gasto — só interessa para linhas gasto-da-empresa
                     (regime de caixa: o gasto conta no mês em que pagaste). */}
                 {l.gastoEmpresa && (
-                  <div
-                    style={{
-                      gridColumn: "1 / -1",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      flexWrap: "wrap",
-                      paddingTop: 2,
-                    }}
-                  >
-                    <label
-                      htmlFor={`linha-data-${l.id}`}
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 10,
-                        textTransform: "uppercase",
-                        letterSpacing: ".1em",
-                        color: "#8a5a24",
-                      }}
-                    >
-                      Data do gasto
-                    </label>
+                  <div className="ldata">
+                    <label htmlFor={`linha-data-${l.id}`}>Data do gasto</label>
                     <input
                       id={`linha-data-${l.id}`}
                       className="in-sm"
                       type="date"
-                      style={{ width: 150 }}
                       value={l.data ?? ""}
                       onChange={(e) => updateLinha(l.id, { data: e.target.value || null })}
                       disabled={disabled}
                     />
-                    <span style={{ fontSize: 11, color: "var(--ink-mute)", fontStyle: "italic" }}>
-                      vazio = conta no mês do projecto
-                    </span>
+                    <span className="lhint">vazio = conta no mês do projecto</span>
                   </div>
                 )}
               </div>

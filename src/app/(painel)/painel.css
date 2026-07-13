@@ -156,7 +156,14 @@
 .pnl .chev { transition: transform .2s; }
 .pnl .hw-open .chev { transform: rotate(90deg); }
 .pnl .lrow { display: grid; grid-template-columns: 1fr 128px 52px 82px 72px 30px 26px 26px; gap: 8px; align-items: center; border: 1px solid rgba(90,14,14,.10); border-radius: 10px; padding: 7px 9px; background: #fff; margin-bottom: 8px; }
+/* Inputs têm min-width intrínseca que rebenta a grelha em ecrãs estreitos. */
+.pnl .lrow > * { min-width: 0; }
 .pnl .lchk { width: 15px; height: 15px; accent-color: var(--ember); justify-self: center; cursor: pointer; margin: 0; }
+/* Sub-linha "data do gasto" (regime de caixa) — só em linhas gasto-da-empresa. */
+.pnl .lrow .ldata { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; padding-top: 7px; border-top: 1px dashed rgba(90,14,14,.12); }
+.pnl .lrow .ldata label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #8a5a24; white-space: nowrap; }
+.pnl .lrow .ldata input[type="date"] { width: 148px; max-width: 100%; }
+.pnl .lrow .ldata .lhint { font-size: 11px; color: var(--ink-mute); font-style: italic; }
 .pnl .lrow .in-sm { width: 100%; }
 .pnl .lrow .lsub { font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-align: right; }
 .pnl .lcat { font-size: 11px; border-radius: 7px; padding: 6px 8px; border: 1px solid; width: 100%; background: #fff; font-family: inherit; }
@@ -499,7 +506,26 @@
   .pnl .detail-aside { width: 100%; }
   .pnl .cal-month-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .pnl .cal-month-scroll .cal { min-width: 620px; }
-  .pnl .lrow { grid-template-columns: 1fr 96px 44px 70px 60px 26px 24px 24px; gap: 5px; padding: 6px 7px; }
+  /* Em ecrã estreito a grelha de 8 colunas não cabe (colunas fixas > cartão):
+     reorganiza em 3 linhas — descrição / categoria+qtd+preço / subtotal+acções. */
+  .pnl .lrow {
+    grid-template-columns: minmax(0, 1fr) 44px 56px 26px 26px;
+    grid-template-areas:
+      "desc desc desc  desc  desc"
+      "cat  qtd  preco preco preco"
+      "sub  sub  chk   dup   del";
+    gap: 6px 5px;
+    padding: 7px;
+  }
+  .pnl .lrow .ldesc { grid-area: desc; }
+  .pnl .lrow .lcat { grid-area: cat; }
+  .pnl .lrow .qtd { grid-area: qtd; }
+  .pnl .lrow .lpreco { grid-area: preco; }
+  .pnl .lrow .lsub { grid-area: sub; text-align: left; align-self: center; }
+  .pnl .lrow .lchk { grid-area: chk; }
+  .pnl .lrow > button.icon-mini:nth-of-type(1) { grid-area: dup; }
+  .pnl .lrow > button.icon-mini:nth-of-type(2) { grid-area: del; }
+  .pnl .lrow .ldata { grid-area: auto; grid-column: 1 / -1; }
   .pnl .msum, .pnl .msub { grid-template-columns: 1fr 1fr; }
   .pnl .mbars { gap: 8px; }
 }
