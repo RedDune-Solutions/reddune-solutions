@@ -94,7 +94,6 @@ export async function POST(request: Request) {
     categoria: categoriaFinal,
     tipo: tipoFinal,
     tipos: tiposFinal,
-    responsavel: pick("responsavel", null),
     prazo: pick("prazo", null),
     dataCriado: input.id ? (existing?.dataCriado ?? input.dataCriado ?? now) : now,
     dataFechado: dataFechadoFinal,

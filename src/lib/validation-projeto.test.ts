@@ -6,8 +6,8 @@ import { projetoInputSchema } from "./validation-projeto";
  * tem de sair do parse como `undefined` (a rota preserva o valor existente);
  * `null`/"" explícitos apagam. O bug: transforms/preprocess no schema
  * convertiam ausente→null, e um "Guardar custos" (payload só com
- * id/titulo/status/linhas) apagava cliente, responsável, tipo, categoria,
- * próxima acção e local do projecto.
+ * id/titulo/status/linhas) apagava cliente, tipo, categoria, próxima acção
+ * e local do projecto.
  */
 describe("projetoInputSchema — merge parcial", () => {
   const parcialCustos = {
@@ -22,7 +22,6 @@ describe("projetoInputSchema — merge parcial", () => {
     const parsed = projetoInputSchema.parse(parcialCustos);
     expect(parsed.clienteId).toBeUndefined();
     expect(parsed.clienteNome).toBeUndefined();
-    expect(parsed.responsavel).toBeUndefined();
     expect(parsed.categoria).toBeUndefined();
     expect(parsed.tipo).toBeUndefined();
     expect(parsed.proximaAccao).toBeUndefined();
@@ -33,23 +32,19 @@ describe("projetoInputSchema — merge parcial", () => {
     const parsed = projetoInputSchema.parse({
       ...parcialCustos,
       clienteId: null,
-      responsavel: null,
     });
     expect(parsed.clienteId).toBeNull();
-    expect(parsed.responsavel).toBeNull();
   });
 
-  it('"" nos selects (categoria/tipo/responsavel/local) limpa para null', () => {
+  it('"" nos selects (categoria/tipo/local) limpa para null', () => {
     const parsed = projetoInputSchema.parse({
       ...parcialCustos,
       categoria: "",
       tipo: "",
-      responsavel: "",
       local: "",
     });
     expect(parsed.categoria).toBeNull();
     expect(parsed.tipo).toBeNull();
-    expect(parsed.responsavel).toBeNull();
     expect(parsed.local).toBeNull();
   });
 
@@ -58,10 +53,8 @@ describe("projetoInputSchema — merge parcial", () => {
       ...parcialCustos,
       clienteId: "c9",
       clienteNome: "Bruna",
-      responsavel: "eu",
     });
     expect(parsed.clienteId).toBe("c9");
     expect(parsed.clienteNome).toBe("Bruna");
-    expect(parsed.responsavel).toBe("eu");
   });
 });

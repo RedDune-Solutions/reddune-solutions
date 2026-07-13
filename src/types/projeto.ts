@@ -129,15 +129,6 @@ export const CATEGORIA_TIPOS: Record<ServicoSlug, ProjetoTipo[]> = {
   "software-recuperacao": ["recuperacao-dados", "formatacao"],
 };
 
-export const PROJETO_RESPONSAVEL = ["eu", "cliente", "fornecedor"] as const;
-export type ProjetoResponsavel = (typeof PROJETO_RESPONSAVEL)[number];
-
-export const RESPONSAVEL_LABEL: Record<ProjetoResponsavel, string> = {
-  eu: "Meu lado",
-  cliente: "Cliente",
-  fornecedor: "Parceiro",
-};
-
 export const PROJETO_LOCAL = ["oficina", "casa-cliente", "remoto"] as const;
 export type ProjetoLocal = (typeof PROJETO_LOCAL)[number];
 
@@ -221,7 +212,6 @@ export interface Projeto {
   categoria: ServicoSlug | null;
   tipo: ProjetoTipo | null;
   tipos: string[] | null; // base ProjetoTipo + custom slugs
-  responsavel: ProjetoResponsavel | null;
   prazo: string | null;
   dataCriado: string | null;
   dataFechado: string | null;

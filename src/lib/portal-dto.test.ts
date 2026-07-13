@@ -17,7 +17,6 @@ function makeProjeto(): Projeto {
     categoria: "web-digital",
     tipo: "web",
     tipos: ["web", "consultoria"],
-    responsavel: "eu",
     prazo: "2026-08-01",
     dataCriado: "2026-07-01",
     dataFechado: null,

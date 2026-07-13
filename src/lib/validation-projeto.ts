@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   PROJETO_STATUS,
   PROJETO_TIPO,
-  PROJETO_RESPONSAVEL,
   PROJETO_LOCAL,
   LINHA_CATEGORIA,
 } from "@/types/projeto";
@@ -44,7 +43,6 @@ export const projetoSchema = z.object({
       acessoriosEntregues: z.string().max(500).optional(),
     })
     .nullish(),
-  responsavel: z.preprocess((v) => (v === "" ? null : v), z.enum(PROJETO_RESPONSAVEL).nullish()),
   prazo: z.string().nullish(),
   dataCriado: z.string().nullish(),
   dataFechado: z.string().nullish(),
