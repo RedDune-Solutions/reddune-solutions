@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { Bell, FileText, UserPlus, MessageSquare } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Bell, FileText, UserPlus, MessageSquare, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -17,6 +17,7 @@ type NotificationItem = {
   description: string;
   href: string;
   timestamp: string;
+  unread: boolean;
 };
 
 type NotificationsPayload = {
@@ -26,6 +27,30 @@ type NotificationsPayload = {
 
 /** Intervalo de polling — refresca o feed em segundo plano (60s). */
 const POLL_MS = 60_000;
+
+// Notificações dispensadas (client-side): as notificações são derivadas de
+// leads/comentários/audit, não há colecção própria, por isso "eliminar" é
+// esconder localmente. Guardado por dispositivo; cap para não crescer sem fim.
+const DISMISSED_KEY = "painel.notif.dismissed";
+const DISMISSED_CAP = 300;
+
+function readDismissed(): string[] {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    const arr = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeDismissed(ids: string[]) {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(ids.slice(-DISMISSED_CAP)));
+  } catch {
+    // ignore
+  }
+}
 
 function fmtRelative(iso: string): string {
   const then = Date.parse(iso);
@@ -41,15 +66,20 @@ function fmtRelative(iso: string): string {
 }
 
 /**
- * NotificationsBell — sino real (in-app, só leitura) da Topbar.
+ * NotificationsBell — sino real (in-app) da Topbar.
  *
- * Faz fetch a /api/notifications no mount e a cada 60s. O badge mostra `unread`
- * (leads por tratar). Clicar abre um dropdown (Radix) com os items reais, cada
- * um linkável (Link do next) para /painel/leads ou /painel/auditoria. Estado
- * vazio honesto. Nenhuma escrita na BD — deriva de dados existentes.
+ * Fetch a /api/notifications no mount e a cada 60s. Cada item traz `unread`
+ * (lead novo ou comentário por ler = novo; audit = histórico). O feed marca os
+ * novos com um ponto e permite dispensar cada um (esconde localmente, não toca
+ * na BD). O badge reflecte os por-tratar menos os que foram dispensados.
  */
 export function NotificationsBell() {
   const [data, setData] = useState<NotificationsPayload | null>(null);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setDismissed(new Set(readDismissed()));
+  }, []);
 
   const load = useCallback(async () => {
     const res = await safeFetch<NotificationsPayload>("/api/notifications");
@@ -62,15 +92,36 @@ export function NotificationsBell() {
     return () => clearInterval(t);
   }, [load]);
 
-  const unread = data?.unread ?? 0;
-  const items = data?.items ?? [];
-  const hasBadge = unread > 0;
+  const allItems = useMemo(() => data?.items ?? [], [data]);
+  const serverUnread = data?.unread ?? 0;
 
-  const ariaLabel = hasBadge
-    ? `Notificações, ${unread} por tratar`
-    : "Notificações";
+  // Itens visíveis = não dispensados. Badge = por-tratar do servidor menos os
+  // itens por-tratar que o utilizador já dispensou (e ainda estão no feed).
+  const visibleItems = allItems.filter((i) => !dismissed.has(i.id));
+  const dismissedUnreadShown = allItems.filter((i) => i.unread && dismissed.has(i.id)).length;
+  const badge = Math.max(0, serverUnread - dismissedUnreadShown);
+  const hasBadge = badge > 0;
 
-  // Ponto "unread" vem do CSS (.bell.unread::after) — sem markup próprio.
+  function dismiss(id: string) {
+    setDismissed((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      writeDismissed([...next]);
+      return next;
+    });
+  }
+
+  function dismissAll() {
+    setDismissed((prev) => {
+      const next = new Set(prev);
+      for (const i of visibleItems) next.add(i.id);
+      writeDismissed([...next]);
+      return next;
+    });
+  }
+
+  const ariaLabel = hasBadge ? `Notificações, ${badge} por tratar` : "Notificações";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -88,14 +139,18 @@ export function NotificationsBell() {
           <span className="font-headline text-sm font-semibold text-ink">
             Notificações
           </span>
-          {hasBadge && (
-            <span className="text-[11px] font-medium text-ember">
-              {unread} por tratar
-            </span>
+          {visibleItems.length > 0 && (
+            <button
+              type="button"
+              onClick={dismissAll}
+              className="text-[11px] font-medium text-ink-soft hover:text-ember transition-colors"
+            >
+              Limpar
+            </button>
           )}
         </div>
 
-        {items.length === 0 ? (
+        {visibleItems.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <div className="text-sm font-medium text-ink">Sem novidades</div>
             <div className="mt-1 text-[12px] text-ink-soft">
@@ -104,15 +159,18 @@ export function NotificationsBell() {
           </div>
         ) : (
           <ul className="max-h-[22rem] overflow-y-auto py-1">
-            {items.map((item) => (
-              <li key={item.id}>
+            {visibleItems.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-start transition-colors hover:bg-cream-deep"
+              >
                 <Link
                   href={item.href}
-                  className="flex items-start gap-2.5 px-3.5 py-2.5 outline-none transition-colors hover:bg-cream-deep focus-visible:bg-cream-deep"
+                  className="flex min-w-0 flex-1 items-start gap-2.5 px-3.5 py-2.5 outline-none focus-visible:bg-cream-deep"
                 >
                   <span
                     aria-hidden="true"
-                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                    className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                     style={{
                       background:
                         item.type === "lead" || item.type === "comment"
@@ -133,8 +191,16 @@ export function NotificationsBell() {
                     )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-medium text-ink">
-                      {item.title}
+                    <span className="flex items-center gap-1.5">
+                      {item.unread && (
+                        <span
+                          aria-label="Nova"
+                          className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-ember"
+                        />
+                      )}
+                      <span className="block truncate text-[13px] font-medium text-ink">
+                        {item.title}
+                      </span>
                     </span>
                     <span className="block truncate text-[12px] text-ink-soft">
                       {item.description}
@@ -144,6 +210,19 @@ export function NotificationsBell() {
                     </span>
                   </span>
                 </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dismiss(item.id);
+                  }}
+                  aria-label="Dispensar notificação"
+                  title="Dispensar"
+                  className="mt-2.5 mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-ink-mute/70 transition-colors hover:bg-dune-deep/10 hover:text-ink"
+                >
+                  <X size={13} aria-hidden="true" />
+                </button>
               </li>
             ))}
           </ul>

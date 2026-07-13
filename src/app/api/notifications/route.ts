@@ -54,6 +54,8 @@ type NotificationItem = {
   href: string;
   /** ISO 8601 — timestamp do evento, para ordenação/relativos no cliente. */
   timestamp: string;
+  /** true = por tratar/novo (lead novo ou comentário por ler); audit = histórico. */
+  unread: boolean;
 };
 
 /** Extrai um rótulo legível de um documento de auditoria (titulo/nome/title.pt…). */
@@ -101,9 +103,10 @@ export const GET = withAuth(async () => {
         description: SUBJECT_LABELS[l.subject] ?? l.subject,
         href: "/painel/leads",
         timestamp: l.criadoEm,
+        unread: true,
       }));
 
-    const auditItems: NotificationItem[] = audit.map((e, i) => {
+    const auditItems: NotificationItem[] = audit.map((e) => {
       const verb = OP_VERB[e.op] ?? e.op;
       const recurso = COLL_LABEL[e.collection] ?? e.collection;
       const label = pickLabel(e.after) || pickLabel(e.before);
@@ -113,13 +116,16 @@ export const GET = withAuth(async () => {
           : e.collection === "clientes"
           ? `/painel/clientes/${e.entityId}`
           : "/painel/auditoria";
+      // id estável (não índice) para o dismiss client-side não trocar de alvo.
+      const at = new Date(e.at).getTime();
       return {
-        id: `audit-${e.entityId}-${i}`,
+        id: `audit-${e.entityId}-${at}`,
         type: "audit" as const,
         title: `${verb} ${recurso}`,
         description: label ?? "—",
         href,
         timestamp: new Date(e.at).toISOString(),
+        unread: false,
       };
     });
 
@@ -132,6 +138,7 @@ export const GET = withAuth(async () => {
         : c.texto,
       href: `/painel/projetos/${c.projetoId}`,
       timestamp: c.criadoEm,
+      unread: true,
     }));
 
     const items = [...leadItems, ...auditItems, ...comentarioItems]
