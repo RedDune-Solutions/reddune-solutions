@@ -10,45 +10,28 @@ import { PageHero } from "@/components/sections/PageHero";
 import { CTAWave } from "@/components/sections/CTAWave";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 import type { ServicoSlug } from "@/lib/servicos-content";
 import { getAllServicos } from "@/lib/mongodb/servicos";
 import { SERVICO_SLUG } from "@/types/servico";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const isPt = locale !== "en";
 
-  const title = isPt
-    ? "Serviços - RedDune Solutions"
-    : "Services - RedDune Solutions";
-  const description = isPt
-    ? "Três áreas de serviço — assistência técnica, web & digital, software & recuperação. Para particulares e empresas em Fuseta, Algarve."
-    : "Three service areas — technical support, web & digital, software & recovery. For individuals and businesses in Fuseta, Algarve.";
-
-  return {
-    title,
-    description,
+  return buildMetadata({
+    title: isPt
+      ? "Serviços de Informática no Algarve | RedDune Solutions"
+      : "IT Services & Pricing in the Algarve | RedDune Solutions",
+    description: isPt
+      ? "Compare os nossos serviços e preços: assistência técnica, web e digital, software e recuperação de dados. Para particulares e empresas em todo o Algarve."
+      : "Compare our services and pricing: technical support, web and digital, software and data recovery. For individuals and businesses across the Algarve.",
     keywords: isPt
       ? ["serviços informáticos", "assistência técnica", "desenvolvimento web", "recuperação de dados", "Algarve", "Fuseta"]
       : ["IT services", "technical support", "web development", "data recovery", "Algarve", "Fuseta"],
-    alternates: {
-      canonical: `${base}/servicos`,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale,
-      url: `${base}/servicos`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  };
+    path: "/servicos",
+    locale,
+  });
 }
 
 type ServiceVisualConfig = {
@@ -60,15 +43,15 @@ type ServiceVisualConfig = {
 const SERVICE_VISUALS: ReadonlyArray<ServiceVisualConfig> = [
   {
     slug: "assistencia-tecnica",
-    imageSrc: "/assistencia tecnica.jpg",
+    imageSrc: "/assistencia-tecnica.jpg",
   },
   {
     slug: "web-digital",
-    imageSrc: "/web e digital.jpg",
+    imageSrc: "/web-digital.jpg",
   },
   {
     slug: "software-recuperacao",
-    imageSrc: "/software e recuperacao.jpg",
+    imageSrc: "/software-recuperacao.jpg",
   },
 ] as const;
 
@@ -132,7 +115,7 @@ function ServicesHubBody({ precosDb }: { precosDb: Record<string, number | null>
                 >
                   <Image
                     src={svc.imageSrc}
-                    alt=""
+                    alt={t(`cards.${svc.slug}.imageAlt`)}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

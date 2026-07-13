@@ -25,6 +25,7 @@
         "prevImage": "Previous image",
         "nextImage": "Next image",
         "imageIndex": "Image {index}",
+        "productImageAlt": "{name} — image {n} of {total}",
         "trustSection": "Who we work for",
         "mapTitle": "Location — Fuseta, Algarve",
         "switchToPt": "Mudar para Português",
@@ -33,7 +34,7 @@
     "HomePage": {
         "Hero": {
             "eyebrow": "Reddune Solutions · Fuseta, Algarve",
-            "title": "<row>The right</row><row><accent>answer</accent>.</row><row>For any problem.</row>",
+            "title": "<row>The right </row><row><accent>answer</accent>. </row><row>For any problem.</row>",
             "description": "Custom IT solutions for individuals and businesses — technical support, web and data recovery. With the trust, efficiency and transparency you expect.",
             "cta": {
                 "primary": "See services",
@@ -110,24 +111,27 @@
         },
         "ServicesSection": {
             "eyebrow": "Our services",
-            "title": "A <accent>complete</accent> range, tailored to what you need.",
+            "title": "A <accent>complete</accent> range of IT services, tailored to what you need.",
             "description": "From a laptop that won't turn on to your company's website that needs an upgrade. We work with individuals and businesses, always with the same transparency.",
             "services": {
                 "tecAssist": {
                     "title": "Technical <accent>Support</accent>",
-                    "description": "Diagnosis and repair of computers, consoles and electronic equipment. Speed, precision and total transparency — we explain what we'll do before we do it."
+                    "description": "Diagnosis and repair of computers, consoles and electronic equipment. Speed, precision and total transparency — we explain what we'll do before we do it.",
+                    "imageAlt": "Technician repairing a computer — IT support in Fuseta, Algarve"
                 },
                 "webDigital": {
                     "title": "Web & <accent>Digital</accent>",
-                    "description": "Modern websites, e-commerce and custom systems. Designed to work on any screen, quick to load and easy for your client to use."
+                    "description": "Modern websites, e-commerce and custom systems. Designed to work on any screen, quick to load and easy for your client to use.",
+                    "imageAlt": "Modern website on a laptop — web design in the Algarve"
                 },
                 "dataRecovery": {
                     "title": "Software & <accent>Recovery</accent>",
-                    "description": "Installation and configuration of operating systems, drivers and essential software. Recovery of lost data — photos, documents, projects."
+                    "description": "Installation and configuration of operating systems, drivers and essential software. Recovery of lost data — photos, documents, projects.",
+                    "imageAlt": "Opened hard drive on a workbench — data recovery in the Algarve"
                 }
             },
             "cta": "Talk to us",
-            "quote": "Didn't find what you were looking for? Our passion is creating <accent>tailored solutions</accent>. <contactLink>Tell us your idea</contactLink> and we'll turn it into reality."
+            "quote": "Didn't find what you were looking for? Our passion is creating <accent>tailored solutions</accent>. <contactLink>Tell us your idea</contactLink> and we will turn it into reality."
         },
         "PortfolioSection": {
             "eyebrow": "Our portfolio",
@@ -147,7 +151,7 @@
             "badge": "📍 Fuseta · Algarve",
             "coordinates": "37.0556°N · 7.7445°W · Fuseta, PT",
             "placeLabel": "Our home.",
-            "title": "Technology and <accent>digital innovation</accent> — with feet planted in the sand.",
+            "title": "IT support in <accent>Fuseta, Algarve</accent> — with feet planted in the sand.",
             "description": "<strong>RedDune Solutions</strong> is a technology and digital innovation company, focused on providing complete solutions for computer maintenance, electronic equipment repair, and modern, efficient websites/apps.",
             "description2": "We combine <strong>technical knowledge, trust and commitment</strong> to ensure quality results tailored to each client's needs. Our goal is to simplify technology and help people and businesses make the most of the digital world.",
             "value1": "Trust",
@@ -156,9 +160,9 @@
         },
         "ContactCTA": {
             "eyebrow": "Next step",
-            "title": "<accent>Solutions</accent><br></br>for your problems.",
+            "title": "<accent>Solutions</accent> <br></br>for your problems.",
             "description": "Talk to us and we'll find the right solution. We're always available to help — in person in Fuseta or remotely anywhere in the country.",
-            "cta": "Get in touch"
+            "cta": "Talk to us"
         },
         "ContactSection": {
             "eyebrow": "Reply within 24h · Fuseta, Algarve",
@@ -202,8 +206,8 @@
     },
     "PortfolioPage": {
         "meta": {
-            "title": "Portfolio - RedDune Solutions",
-            "description": "Selected cases — repairs, builds, websites and recoveries by RedDune Solutions in Fuseta, Algarve."
+            "title": "Portfolio of Web & Software Projects | RedDune Solutions",
+            "description": "Real cases by RedDune in Fuseta, Algarve: PC repairs and builds, websites, software and data recoveries. See what we have already delivered for clients."
         },
         "hero": {
             "eyebrow": "Projects · 3 areas",
@@ -242,6 +246,11 @@
             "web-digital": "Web & Digital",
             "software-recuperacao": "Software & Recovery"
         },
+        "related": {
+            "title": "Other services",
+            "portfolioEyebrow": "Portfolio",
+            "portfolioCta": "See real work we have delivered in this area."
+        },
         "price": {
             "onRequest": "On request",
             "from": "from",
@@ -251,7 +260,7 @@
             "hero": {
                 "eyebrow": "Three areas · one team",
                 "title": "Everything you <accent>need</accent>, in one place.",
-                "lead": "Technical support, web development and data recovery. We serve individuals and businesses, in person or remotely."
+                "lead": "Technical support, web development and data recovery in Fuseta and across the Algarve — from Olhão to Tavira and Faro. We serve individuals and businesses, at the shop, at home or remotely anywhere in the country."
             },
             "intro": {
                 "eyebrow": "What we do",
@@ -262,17 +271,20 @@
                 "assistencia-tecnica": {
                     "title": "Technical <accent>Support</accent>",
                     "description": "Repair and maintenance of computers, consoles and electronic equipment. Cleaning, upgrades, screen swaps, formatting.",
-                    "price": "from <b>15€</b>"
+                    "price": "from <b>15€</b>",
+                    "imageAlt": "Technician repairing a computer — IT support in Fuseta, Algarve"
                 },
                 "web-digital": {
                     "title": "Web & <accent>Digital</accent>",
                     "description": "Websites, e-commerce, visual identity. We build your digital presence from scratch with modern tech and conversion-first thinking.",
-                    "price": "from <b>200€</b>"
+                    "price": "from <b>200€</b>",
+                    "imageAlt": "Modern website on a laptop — web design in the Algarve"
                 },
                 "software-recuperacao": {
                     "title": "Software & <accent>Recovery</accent>",
                     "description": "OS installs, drivers, antivirus. Recovery of photos, documents and projects lost to drive failure or accidental deletion.",
-                    "price": "from <b>25€</b>"
+                    "price": "from <b>25€</b>",
+                    "imageAlt": "Opened hard drive on a workbench — data recovery in the Algarve"
                 }
             },
             "process": {
@@ -484,8 +496,8 @@
         "copyMicrocopy": "Technology solutions in the Algarve"
     },
     "ReturnPolicyPage": {
-        "metaTitle": "Return Policy — RedDune Solutions | 14-day distance sales return",
-        "metaDescription": "Right of withdrawal on distance sales — 14 days, no questions asked. According to Portuguese Decree-Law no. 24/2014.",
+        "metaTitle": "Returns & Exchanges: 14 Days | RedDune Solutions",
+        "metaDescription": "Right of withdrawal on distance sales: 14 days to return an item, no questions asked, under Portuguese Decree-Law 24/2014. See how to return a purchase.",
         "eyebrow": "Shop · policies",
         "title": "Return <em>policy</em>.",
         "subtitle": "Right of withdrawal on distance sales — 14 days, no questions asked.",
@@ -531,8 +543,8 @@
         "ctaContact": "Talk to us"
     },
     "WarrantyPolicyPage": {
-        "metaTitle": "Warranty Policy — RedDune Solutions | New and Refurbished Equipment",
-        "metaDescription": "Learn about RedDune Solutions' warranty policy: 3 years for new equipment and 6 months for refurbished. Shop with complete peace of mind.",
+        "metaTitle": "Shop Warranty Policy | RedDune Solutions",
+        "metaDescription": "A 3-year warranty on new equipment and 6 months on refurbished, at RedDune's computer shop in Fuseta, Algarve. Buy with complete peace of mind.",
         "title": "Warranty Policy",
         "subtitle": "Your satisfaction and peace of mind are our priority.",
         "intro": "All of our products come with a warranty. Shop with confidence, knowing you're covered.",
@@ -547,8 +559,8 @@
         "ctaContact": "Get in touch"
     },
     "PrivacyPolicyPage": {
-        "metaTitle": "Privacy Policy — Reddune Solutions",
-        "metaDescription": "Learn how Reddune Solutions collects, processes and protects your personal data in compliance with the GDPR.",
+        "metaTitle": "Privacy Policy | RedDune Solutions",
+        "metaDescription": "Learn how RedDune Solutions collects, processes and protects your personal data — contact forms, shop and client portal — in compliance with the GDPR.",
         "title": "Privacy Policy",
         "subtitle": "Your privacy is our priority. Learn how we handle your personal data.",
         "section1Title": "Identification of the Data Controller",
@@ -583,15 +595,15 @@
         "ctaContact": "Get in touch"
     },
     "FaqPage": {
-        "metaTitle": "Frequently Asked Questions — Reddune Solutions",
-        "metaDescription": "Answers to the most common questions about Reddune Solutions services: tech support, equipment shop, websites and software, and data recovery in the Algarve.",
+        "metaTitle": "FAQ: IT Services in the Algarve | RedDune Solutions",
+        "metaDescription": "Questions about tech support, the shop, websites or data recovery in the Algarve? Straight answers from the RedDune team — and easy contact if any is missing.",
         "eyebrow": "Help · Frequently asked questions",
         "title": "Frequently Asked Questions",
         "subtitle": "We've gathered the most common questions about our services. Can't find what you're looking for? Get in touch — we answer everything.",
         "items": [
             {
                 "q": "What services do you offer?",
-                "a": "We work across four areas: tech support (repairs, cleaning, upgrades and PC builds), an IT equipment shop, web and software development (websites, online stores and custom systems) and data recovery. You can see the detail of each area on the Services page."
+                "a": "We work across four areas: tech support (repairs, cleaning, upgrades and PC builds), an IT equipment shop, web and software development (websites, online stores and custom systems) and data recovery. You can see the detail of each area on the [Services page](/servicos)."
             },
             {
                 "q": "Do you offer on-site support or only in-store?",
@@ -607,7 +619,7 @@
             },
             {
                 "q": "Can you recover data from a faulty drive?",
-                "a": "In most cases of logical failure (accidental formatting, corrupted drive, deleted files), yes. Physical failures requiring a clean room are referred to certified partner labs. We run a diagnosis before any commitment and always keep your data confidential."
+                "a": "In most cases of logical failure (accidental formatting, corrupted drive, deleted files), yes — see our [data recovery service](/servicos/software-recuperacao). Physical failures requiring a clean room are referred to certified partner labs. We run a diagnosis before any commitment and always keep your data confidential."
             },
             {
                 "q": "Do you build custom PCs?",
@@ -615,11 +627,11 @@
             },
             {
                 "q": "Do you also sell equipment and components?",
-                "a": "Yes, we have an IT equipment and components shop. You can browse part of the range on the Shop page; for specific requests or advice, just get in touch."
+                "a": "Yes, we have an IT equipment and components shop. You can browse part of the range on the [Shop page](/loja); for specific requests or advice, just get in touch."
             },
             {
                 "q": "Do you build websites and custom software?",
-                "a": "Yes. We develop everything from landing pages and brochure sites to online stores and custom systems, using modern technology with a focus on speed, SEO and conversion. Every project starts with a conversation to understand your business goal before we present a detailed quote."
+                "a": "Yes. We develop everything from landing pages and brochure sites to online stores and custom systems — see our [web design service](/servicos/web-digital). Every project starts with a conversation to understand your business goal before we present a detailed quote."
             },
             {
                 "q": "Do your services come with a warranty?",
@@ -631,7 +643,7 @@
             },
             {
                 "q": "How can I contact you?",
-                "a": "You can reach us via WhatsApp, phone or email, or use the form on the Contact page. We reply as quickly as possible and help you figure out the best path for your case."
+                "a": "You can reach us via WhatsApp, phone or email, or use the form on the [Contact page](/contacto). We reply as quickly as possible and help you figure out the best path for your case."
             }
         ],
         "closingTitle": "Didn't find your answer?",

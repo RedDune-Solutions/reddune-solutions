@@ -5,36 +5,19 @@ import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { ClosingCTA } from "@/components/sections/ClosingCTA";
 import { getLocale, getTranslations } from "next-intl/server";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const t = await getTranslations("WarrantyPolicyPage");
 
-  const title = t("metaTitle");
-  const description = t("metaDescription");
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: `${base}/loja/politica-garantia`,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale,
-      url: `${base}/loja/politica-garantia`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  };
+  return buildMetadata({
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    path: "/loja/politica-garantia",
+    locale,
+  });
 }
 
 export default async function WarrantyPolicyPage() {
@@ -135,7 +118,7 @@ export default async function WarrantyPolicyPage() {
           title={t("closingTitle")}
           body={t("closingBody")}
           ctaLabel={t("ctaContact")}
-          ctaHref="/contacto?from=shop"
+          ctaHref="/contacto"
         />
       </main>
       <Footer />

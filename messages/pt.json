@@ -25,6 +25,7 @@
         "prevImage": "Imagem anterior",
         "nextImage": "Próxima imagem",
         "imageIndex": "Imagem {index}",
+        "productImageAlt": "{name} — imagem {n} de {total}",
         "trustSection": "Para quem trabalhamos",
         "mapTitle": "Localização — Fuseta, Algarve",
         "switchToPt": "Mudar para Português",
@@ -33,7 +34,7 @@
     "HomePage": {
         "Hero": {
             "eyebrow": "Reddune Solutions · Fuseta, Algarve",
-            "title": "<row>A resposta</row><row><accent>certa</accent>.</row><row>Para qualquer problema.</row>",
+            "title": "<row>A resposta </row><row><accent>certa</accent>. </row><row>Para qualquer problema.</row>",
             "description": "Soluções informáticas personalizadas para particulares e empresas — assistência técnica, web e recuperação de dados. Com a confiança, eficiência e transparência que esperas.",
             "cta": {
                 "primary": "Ver serviços",
@@ -110,24 +111,27 @@
         },
         "ServicesSection": {
             "eyebrow": "Os nossos serviços",
-            "title": "Uma gama <accent>completa</accent>, à medida do que precisas.",
+            "title": "Serviços informáticos <accent>completos</accent>, à medida do que precisas.",
             "description": "De um portátil que não liga ao site da tua empresa que precisa de upgrade. Trabalhamos com particulares e empresas, sempre com a mesma transparência.",
             "services": {
                 "tecAssist": {
                     "title": "Assistência <accent>Técnica</accent>",
-                    "description": "Diagnóstico e reparação de computadores, consolas e equipamentos eletrónicos. Rapidez, precisão e total transparência — explicamos o que vamos fazer antes de o fazer."
+                    "description": "Diagnóstico e reparação de computadores, consolas e equipamentos eletrónicos. Rapidez, precisão e total transparência — explicamos o que vamos fazer antes de o fazer.",
+                    "imageAlt": "Técnico a reparar um computador — assistência técnica informática em Fuseta, Algarve"
                 },
                 "webDigital": {
                     "title": "Web & <accent>Digital</accent>",
-                    "description": "Websites modernos, e-commerce e sistemas personalizados. Pensados para funcionarem em qualquer ecrã, rápidos a abrir e fáceis para o teu cliente usar."
+                    "description": "Websites modernos, e-commerce e sistemas personalizados. Pensados para funcionarem em qualquer ecrã, rápidos a abrir e fáceis para o teu cliente usar.",
+                    "imageAlt": "Website moderno num portátil — criação de websites no Algarve"
                 },
                 "dataRecovery": {
                     "title": "Software & <accent>Recuperação</accent>",
-                    "description": "Instalação e configuração de sistemas operativos, drivers e software essencial. Recuperação de dados perdidos — fotos, documentos, projetos."
+                    "description": "Instalação e configuração de sistemas operativos, drivers e software essencial. Recuperação de dados perdidos — fotos, documentos, projetos.",
+                    "imageAlt": "Disco rígido aberto em bancada — recuperação de dados no Algarve"
                 }
             },
-            "cta": "Fala connosco",
-            "quote": "Não encontrou o que procura? A nossa paixão é criar <accent>soluções à medida</accent>. <contactLink>Conta-nos a tua ideia</contactLink> e vamos transformá-la em realidade."
+            "cta": "Falar connosco",
+            "quote": "Não encontraste o que procuras? A nossa paixão é criar <accent>soluções à medida</accent>. <contactLink>Conta-nos a tua ideia</contactLink> e vamos transformá-la em realidade."
         },
         "PortfolioSection": {
             "eyebrow": "O nosso portfólio",
@@ -147,7 +151,7 @@
             "badge": "📍 Fuseta · Algarve",
             "coordinates": "37.0556°N · 7.7445°W · Fuseta, PT",
             "placeLabel": "A nossa casa.",
-            "title": "Tecnologia e <accent>inovação digital</accent> — com pés assentes na areia.",
+            "title": "Assistência informática em <accent>Fuseta, Algarve</accent> — com pés assentes na areia.",
             "description": "A <strong>RedDune Solutions</strong> é uma empresa especializada em tecnologia e inovação digital, focada em oferecer soluções completas em manutenção de computadores, reparação de equipamentos eletrónicos e criação de websites/apps modernos e eficientes.",
             "description2": "Combinamos <strong>conhecimento técnico, confiança e compromisso</strong> para garantir resultados de qualidade, adaptados às necessidades de cada cliente. O nosso objetivo é simplificar a tecnologia e ajudar pessoas e negócios a tirarem o máximo proveito do mundo digital.",
             "value1": "Confiança",
@@ -156,9 +160,9 @@
         },
         "ContactCTA": {
             "eyebrow": "Próximo passo",
-            "title": "<accent>Soluções</accent><br></br>para os seus problemas.",
+            "title": "<accent>Soluções</accent> <br></br>para os teus problemas.",
             "description": "Fala connosco e encontramos a solução certa. Estamos sempre disponíveis para ajudar — em pessoa em Fuseta ou em remoto para qualquer ponto do país.",
-            "cta": "Entrar em contacto"
+            "cta": "Falar connosco"
         },
         "ContactSection": {
             "eyebrow": "Resposta em <24h · Fuseta, Algarve",
@@ -202,8 +206,8 @@
     },
     "PortfolioPage": {
         "meta": {
-            "title": "Portfólio - RedDune Solutions",
-            "description": "Casos selecionados — reparações, builds, sites e recuperações da RedDune Solutions em Fuseta, Algarve."
+            "title": "Portfólio de Projetos Web e Software | RedDune Solutions",
+            "description": "Casos reais da RedDune em Fuseta, Algarve: reparações e builds de PC, websites, software e recuperações de dados. Veja o que já entregámos aos clientes."
         },
         "hero": {
             "eyebrow": "Projetos · 3 áreas",
@@ -242,6 +246,11 @@
             "web-digital": "Web & Digital",
             "software-recuperacao": "Software & Recuperação"
         },
+        "related": {
+            "title": "Outros serviços",
+            "portfolioEyebrow": "Portfólio",
+            "portfolioCta": "Vê trabalhos reais que já entregámos nesta área."
+        },
         "price": {
             "onRequest": "Sob consulta",
             "from": "desde",
@@ -251,7 +260,7 @@
             "hero": {
                 "eyebrow": "Três áreas · uma só equipa",
                 "title": "Tudo o que <accent>precisas</accent> num só sítio.",
-                "lead": "Assistência técnica, desenvolvimento web e recuperação de dados. Atendemos particulares e empresas, presencial ou remoto."
+                "lead": "Assistência técnica, desenvolvimento web e recuperação de dados em Fuseta e em todo o Algarve — de Olhão a Tavira e Faro. Atendemos particulares e empresas, na loja, ao domicílio ou em remoto para qualquer ponto do país."
             },
             "intro": {
                 "eyebrow": "O que fazemos",
@@ -262,17 +271,20 @@
                 "assistencia-tecnica": {
                     "title": "Assistência <accent>Técnica</accent>",
                     "description": "Reparação e manutenção de computadores, consolas e equipamentos eletrónicos. Limpezas, upgrades, troca de écrãs, formatações.",
-                    "price": "desde <b>15€</b>"
+                    "price": "desde <b>15€</b>",
+                    "imageAlt": "Técnico a reparar um computador — assistência técnica informática em Fuseta, Algarve"
                 },
                 "web-digital": {
                     "title": "Web & <accent>Digital</accent>",
                     "description": "Websites, e-commerce, identidade visual. Construímos a sua presença digital de raiz, com tecnologia moderna e foco em conversão.",
-                    "price": "desde <b>200€</b>"
+                    "price": "desde <b>200€</b>",
+                    "imageAlt": "Website moderno num portátil — criação de websites no Algarve"
                 },
                 "software-recuperacao": {
                     "title": "Software & <accent>Recuperação</accent>",
                     "description": "Instalações de sistemas, drivers, antivírus. Recuperação de fotos, documentos e projetos perdidos por avaria ou apagamento.",
-                    "price": "desde <b>25€</b>"
+                    "price": "desde <b>25€</b>",
+                    "imageAlt": "Disco rígido aberto em bancada — recuperação de dados no Algarve"
                 }
             },
             "process": {
@@ -484,8 +496,8 @@
         "copyMicrocopy": "Soluções tecnológicas no Algarve"
     },
     "ReturnPolicyPage": {
-        "metaTitle": "Política de Devolução — RedDune Solutions | 14 dias compras à distância",
-        "metaDescription": "Direito de livre resolução em compras à distância — 14 dias, sem perguntas. Conforme o Decreto-Lei n.º 24/2014.",
+        "metaTitle": "Devoluções e Trocas: 14 Dias | RedDune Solutions",
+        "metaDescription": "Direito de livre resolução em compras à distância: 14 dias para devolver, sem perguntas, conforme o Decreto-Lei n.º 24/2014. Veja como devolver um artigo.",
         "eyebrow": "Loja · políticas",
         "title": "Política de <em>devolução</em>.",
         "subtitle": "Direito de livre resolução em compras à distância — 14 dias, sem perguntas.",
@@ -531,8 +543,8 @@
         "ctaContact": "Falar connosco"
     },
     "WarrantyPolicyPage": {
-        "metaTitle": "Política de Garantia — RedDune Solutions | Equipamentos Novos e Recondicionados",
-        "metaDescription": "Conheça a política de garantia da RedDune Solutions: 3 anos para equipamentos novos e 6 meses para recondicionados. Compre com total segurança.",
+        "metaTitle": "Política de Garantia da Loja | RedDune Solutions",
+        "metaDescription": "Garantia de 3 anos em equipamentos novos e 6 meses em recondicionados, na loja de informática da RedDune em Fuseta, Algarve. Compre com total segurança.",
         "title": "Política de Garantia",
         "subtitle": "A sua satisfação e tranquilidade são a nossa prioridade.",
         "intro": "Todos os nossos produtos contam com garantia. Compre com confiança, sabendo que está protegido.",
@@ -547,8 +559,8 @@
         "ctaContact": "Falar connosco"
     },
     "PrivacyPolicyPage": {
-        "metaTitle": "Política de Privacidade — Reddune Solutions",
-        "metaDescription": "Saiba como a Reddune Solutions recolhe, trata e protege os seus dados pessoais em conformidade com o RGPD.",
+        "metaTitle": "Política de Privacidade | RedDune Solutions",
+        "metaDescription": "Saiba como a RedDune Solutions recolhe, trata e protege os seus dados pessoais — formulários, loja e portal de cliente — em conformidade com o RGPD.",
         "title": "Política de Privacidade",
         "subtitle": "A sua privacidade é a nossa prioridade. Conheça como tratamos os seus dados pessoais.",
         "section1Title": "Identificação do Responsável pelo Tratamento",
@@ -583,15 +595,15 @@
         "ctaContact": "Falar connosco"
     },
     "FaqPage": {
-        "metaTitle": "Perguntas Frequentes — Reddune Solutions",
-        "metaDescription": "Respostas às dúvidas mais comuns sobre os serviços da Reddune Solutions: assistência técnica, loja de equipamento, websites e software, e recuperação de dados no Algarve.",
+        "metaTitle": "Perguntas Frequentes: Informática no Algarve | RedDune",
+        "metaDescription": "Dúvidas sobre assistência técnica, loja, websites ou recuperação de dados no Algarve? Respostas diretas da equipa RedDune — e contacto fácil se faltar alguma.",
         "eyebrow": "Ajuda · Perguntas frequentes",
         "title": "Perguntas Frequentes",
         "subtitle": "Reunimos as dúvidas mais comuns sobre os nossos serviços. Não encontra o que procura? Fale connosco — respondemos a tudo.",
         "items": [
             {
                 "q": "Que serviços oferecem?",
-                "a": "Trabalhamos em quatro áreas: assistência técnica (reparação, limpeza, upgrades e montagem de PCs), loja de equipamento informático, desenvolvimento web e software (websites, lojas online e sistemas à medida) e recuperação de dados. Pode ver o detalhe de cada área na página de Serviços."
+                "a": "Trabalhamos em quatro áreas: assistência técnica (reparação, limpeza, upgrades e montagem de PCs), loja de equipamento informático, desenvolvimento web e software (websites, lojas online e sistemas à medida) e recuperação de dados. Pode ver o detalhe de cada área na [página de Serviços](/servicos)."
             },
             {
                 "q": "Fazem assistência ao domicílio ou só em loja?",
@@ -607,7 +619,7 @@
             },
             {
                 "q": "Conseguem recuperar dados de um disco avariado?",
-                "a": "Na maioria dos casos de avaria lógica (formatação acidental, disco corrompido, ficheiros apagados), sim. Avarias físicas que exijam sala limpa são reencaminhadas para laboratórios parceiros certificados. Fazemos um diagnóstico antes de qualquer compromisso e mantemos sempre os seus dados confidenciais."
+                "a": "Na maioria dos casos de avaria lógica (formatação acidental, disco corrompido, ficheiros apagados), sim — veja o serviço de [recuperação de dados](/servicos/software-recuperacao). Avarias físicas que exijam sala limpa são reencaminhadas para laboratórios parceiros certificados. Fazemos um diagnóstico antes de qualquer compromisso e mantemos sempre os seus dados confidenciais."
             },
             {
                 "q": "Montam PCs à medida?",
@@ -615,11 +627,11 @@
             },
             {
                 "q": "Também vendem equipamento e componentes?",
-                "a": "Sim, temos loja de equipamento e componentes informáticos. Pode consultar parte da oferta na página da Loja; para pedidos específicos ou aconselhamento, é só falar connosco."
+                "a": "Sim, temos loja de equipamento e componentes informáticos. Pode consultar parte da oferta na [página da Loja](/loja); para pedidos específicos ou aconselhamento, é só falar connosco."
             },
             {
                 "q": "Fazem websites e software à medida?",
-                "a": "Sim. Desenvolvemos desde landing pages e sites institucionais a lojas online e sistemas personalizados, com tecnologia moderna e foco em velocidade, SEO e conversão. Cada projeto começa com uma conversa para entender o objetivo do seu negócio antes de apresentarmos um orçamento detalhado."
+                "a": "Sim. Desenvolvemos desde landing pages e sites institucionais a lojas online e sistemas personalizados — conheça o serviço de [criação de websites](/servicos/web-digital). Cada projeto começa com uma conversa para entender o objetivo do seu negócio antes de apresentarmos um orçamento detalhado."
             },
             {
                 "q": "Os trabalhos têm garantia?",
@@ -631,7 +643,7 @@
             },
             {
                 "q": "Como vos posso contactar?",
-                "a": "Pode falar connosco por WhatsApp, telefone ou email, ou usar o formulário da página de Contacto. Respondemos o mais rápido possível e ajudamos a perceber qual o melhor caminho para o seu caso."
+                "a": "Pode falar connosco por WhatsApp, telefone ou email, ou usar o formulário da [página de Contacto](/contacto). Respondemos o mais rápido possível e ajudamos a perceber qual o melhor caminho para o seu caso."
             }
         ],
         "closingTitle": "Não encontrou a resposta?",

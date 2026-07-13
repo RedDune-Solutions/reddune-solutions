@@ -1,12 +1,17 @@
 {
   "slug": "web-digital",
   "eyebrow": "Websites · e-commerce · systems",
-  "title": "Digital presence <em>that converts</em> into customers.",
+  "title": "Websites <em>that convert</em> visitors into customers.",
   "lead": "We build websites, online stores and custom systems. Modern technology (Next.js, React) with focus on speed, SEO and conversion.",
+  "seo": {
+    "metaTitle": "Website Design & Online Stores in the Algarve | RedDune",
+    "metaDescription": "Websites, online stores and custom systems for Algarve businesses. Fast, tuned for local SEO and designed to turn visitors into paying customers.",
+    "serviceName": "Web Design & Development"
+  },
   "overview": {
     "eyebrow": "Overview",
     "title": "More than a <em>website</em> — a business tool.",
-    "lead": "A beautiful website that doesn't sell isn't worth it. We design every project around your business goal: attract customers, sell products, book appointments. Everything we ship is mobile-optimised, fast to load and ready for local SEO."
+    "lead": "A beautiful website that doesn't sell isn't worth it. We design every project around your business goal: attract customers, sell products, book appointments. Everything we ship is mobile-optimised, fast to load and ready for local SEO. We mostly work with small Algarve businesses — restaurants, holiday rentals, local shops and services — that need to show up on Google and have a website that speaks for them. From domain to hosting and maintenance we handle everything, and we explain technical decisions in plain language."
   },
   "items": {
     "eyebrow": "Included services",

@@ -27,7 +27,7 @@ import {
   breadcrumbLd,
   jsonLdScript,
 } from "@/lib/structured-data";
-import { ogLocale } from "@/lib/seo";
+import { buildMetadata } from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -37,6 +37,11 @@ export function generateStaticParams() {
   return SERVICOS_SLUGS.map((slug) => ({ slug }));
 }
 
+// Slugs são um conjunto fixo: qualquer outro valor deve dar 404 real ao nível
+// do router. Sem isto, o streaming (loading.tsx) envia o status 200 antes do
+// notFound() correr → soft-404 no Google.
+export const dynamicParams = false;
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -45,31 +50,14 @@ export async function generateMetadata({
 
   const locale = await getLocale();
   const content = await getServicoContent(locale, slug);
-  const base = publicEnv.baseUrl;
 
-  // Strip <em>...</em> from title for plain-text metadata.
-  const plainTitle = content.title.replace(/<\/?em>/g, "");
-  const fullTitle = `${plainTitle} - RedDune Solutions`;
-
-  return {
-    title: fullTitle,
-    description: content.lead,
-    alternates: {
-      canonical: `${base}/servicos/${slug}`,
-    },
-    openGraph: {
-      title: fullTitle,
-      description: content.lead,
-      type: "website",
-      locale: ogLocale(locale),
-      url: `${base}/servicos/${slug}`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: fullTitle,
-      description: content.lead,
-    },
-  };
+  // Meta separada do copy do hero: keyword de serviço + localização.
+  return buildMetadata({
+    title: content.seo.metaTitle,
+    description: content.seo.metaDescription,
+    path: `/servicos/${slug}`,
+    locale,
+  });
 }
 
 // Tiny HTML interpreter for the limited set of tags we use in content JSON:
@@ -317,9 +305,19 @@ export default async function ServicoSlugPage({ params }: PageProps) {
   const locale = await getLocale();
   const content = await getServicoContent(locale, typedSlug);
 
+  // Preço mínimo real (admin-edited) para o Offer do JSON-LD.
+  let priceFrom: number | undefined;
+
   // Override items.list with DB-backed serviços (admin-edited prices).
   try {
     const dbServicos = await getServicosBySlug(typedSlug, true);
+    const precos = dbServicos.flatMap((s) => [
+      ...(typeof s.precoBase === "number" ? [s.precoBase] : []),
+      ...(s.variantes ?? [])
+        .map((v) => v.preco)
+        .filter((p): p is number => typeof p === "number"),
+    ]);
+    if (precos.length > 0) priceFrom = Math.min(...precos);
     if (dbServicos.length > 0) {
       const tPrice = await getTranslations("ServicosPage.price");
       const priceLabels: PriceLabels = {
@@ -339,13 +337,12 @@ export default async function ServicoSlugPage({ params }: PageProps) {
     console.error("DB servicos fetch falhou, fallback ao JSON:", e);
   }
 
-  // Strip <em>...</em> for plain-text JSON-LD payload.
-  const plainTitle = content.title.replace(/<\/?em>/g, "");
-
   const serviceSchema = serviceLd({
     slug: typedSlug,
-    name: plainTitle,
+    // Nome limpo do serviço (sem headline de marketing) — ver content.seo.
+    name: content.seo.serviceName,
     description: content.lead,
+    priceFrom,
   });
 
   const faqSchema =
@@ -356,10 +353,12 @@ export default async function ServicoSlugPage({ params }: PageProps) {
       : null;
 
   const isPt = locale !== "en";
+  const tServ = await getTranslations("ServicosPage");
+  const outrosSlugs = SERVICOS_SLUGS.filter((s) => s !== typedSlug);
   const breadcrumbSchema = breadcrumbLd([
     { name: isPt ? "Início" : "Home", url: publicEnv.baseUrl },
     { name: isPt ? "Serviços" : "Services", url: `${publicEnv.baseUrl}/servicos` },
-    { name: plainTitle, url: `${publicEnv.baseUrl}/servicos/${typedSlug}` },
+    { name: content.seo.serviceName, url: `${publicEnv.baseUrl}/servicos/${typedSlug}` },
   ]);
 
   return (
@@ -380,6 +379,29 @@ export default async function ServicoSlugPage({ params }: PageProps) {
         />
       )}
       <main id="main" className="flex-grow">
+        {/* Breadcrumb visível — espelha o BreadcrumbList JSON-LD */}
+        <nav
+          aria-label={isPt ? "Navegação estrutural" : "Breadcrumb"}
+          className="mx-auto w-full max-w-content px-8 pt-7 -mb-4"
+        >
+          <ol className="flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-ink-soft">
+            <li>
+              <Link href="/" className="transition-colors hover:text-ember">
+                {isPt ? "Início" : "Home"}
+              </Link>
+            </li>
+            <li aria-hidden="true">·</li>
+            <li>
+              <Link href="/servicos" className="transition-colors hover:text-ember">
+                {isPt ? "Serviços" : "Services"}
+              </Link>
+            </li>
+            <li aria-hidden="true">·</li>
+            <li aria-current="page" className="font-medium text-dune-deep">
+              {content.seo.serviceName}
+            </li>
+          </ol>
+        </nav>
         <PageHero
           eyebrow={content.eyebrow}
           title={renderRich(content.title)}
@@ -621,6 +643,71 @@ export default async function ServicoSlugPage({ params }: PageProps) {
                 </details>
               </Reveal>
             ))}
+          </div>
+        </section>
+
+        {/* Cross-links: serviços irmãos + portfólio da categoria (antes eram
+            becos de linking — nenhuma página de serviço linkava as outras) */}
+        <section className="relative mx-auto w-full max-w-content px-8 pb-20">
+          <Reveal>
+            <h2
+              className={cn(
+                "font-display font-bold text-ink mb-8",
+                "text-[clamp(26px,3.5vw,44px)] tracking-[-0.02em]",
+              )}
+            >
+              {tServ("related.title")}
+            </h2>
+          </Reveal>
+          <div className="grid gap-5 grid-cols-1 md:grid-cols-3">
+            {outrosSlugs.map((s) => (
+              <Reveal key={s}>
+                <Link
+                  href={`/servicos/${s}`}
+                  className={cn(
+                    "group flex h-full flex-col rounded-card bg-sand-warm",
+                    "px-7 py-7 no-underline text-ink shadow-warm",
+                    "transition-all duration-500 ease-oasis",
+                    "hover:-translate-y-1 hover:shadow-warm-lg",
+                  )}
+                >
+                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ember mb-3">
+                    {tServ(`slugLabel.${s}`)}
+                  </span>
+                  <p className="flex-1 text-[14px] leading-[1.55] text-ink-soft">
+                    {tServ(`hub.cards.${s}.description`)}
+                  </p>
+                  <ArrowRight
+                    className="mt-4 size-[16px] text-ember transition-transform duration-300 group-hover:translate-x-1"
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                </Link>
+              </Reveal>
+            ))}
+            <Reveal>
+              <Link
+                href={`/portfolio?categoria=${typedSlug}`}
+                className={cn(
+                  "group flex h-full flex-col justify-between rounded-card bg-ink text-cream",
+                  "px-7 py-7 no-underline shadow-warm",
+                  "transition-all duration-500 ease-oasis",
+                  "hover:-translate-y-1 hover:shadow-warm-lg",
+                )}
+              >
+                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-apricot mb-3">
+                  {tServ("related.portfolioEyebrow")}
+                </span>
+                <p className="flex-1 text-[14px] leading-[1.55] text-cream-deep">
+                  {tServ("related.portfolioCta")}
+                </p>
+                <ArrowRight
+                  className="mt-4 size-[16px] text-apricot transition-transform duration-300 group-hover:translate-x-1"
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
+              </Link>
+            </Reveal>
           </div>
         </section>
 

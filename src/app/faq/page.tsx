@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { ClosingCTA } from "@/components/sections/ClosingCTA";
 import { getLocale, getTranslations } from "next-intl/server";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { faqPageLd, jsonLdScript } from "@/lib/structured-data";
 
@@ -23,13 +24,43 @@ import { faqPageLd, jsonLdScript } from "@/lib/structured-data";
 
 type FaqItem = { q: string; a: string };
 
+// Respostas suportam links markdown [texto](/rota) — renderizados como <Link>
+// no acordeão e reduzidos a texto simples no JSON-LD FAQPage (o schema deve
+// espelhar o texto visível, sem markup).
+const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+function stripLinks(a: string): string {
+  return a.replace(LINK_RE, "$1");
+}
+
+function renderAnswer(a: string): React.ReactNode {
+  const nodes: React.ReactNode[] = [];
+  let cursor = 0;
+  const re = new RegExp(LINK_RE.source, "g");
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(a)) !== null) {
+    if (match.index > cursor) nodes.push(a.slice(cursor, match.index));
+    nodes.push(
+      <Link
+        key={match.index}
+        href={match[2]}
+        className="underline underline-offset-2 decoration-ember/50 transition-colors hover:text-ember group-open:decoration-apricot/60 group-open:hover:text-apricot"
+      >
+        {match[1]}
+      </Link>,
+    );
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < a.length) nodes.push(a.slice(cursor));
+  return nodes;
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const isPt = locale !== "en";
   const t = await getTranslations("FaqPage");
 
-  return {
+  return buildMetadata({
     title: t("metaTitle"),
     description: t("metaDescription"),
     keywords: isPt
@@ -53,22 +84,9 @@ export async function generateMetadata(): Promise<Metadata> {
           "Algarve",
           "Fuseta",
         ],
-    alternates: {
-      canonical: `${base}/faq`,
-    },
-    openGraph: {
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-      type: "website",
-      locale,
-      url: `${base}/faq`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-    },
-  };
+    path: "/faq",
+    locale,
+  });
 }
 
 export default async function FaqPage() {
@@ -81,7 +99,9 @@ export default async function FaqPage() {
 
   const faqSchema =
     items.length > 0
-      ? faqPageLd(items.map(({ q, a }) => ({ question: q, answer: a })))
+      ? faqPageLd(
+          items.map(({ q, a }) => ({ question: q, answer: stripLinks(a) })),
+        )
       : null;
 
   return (
@@ -138,7 +158,7 @@ export default async function FaqPage() {
                       "text-ink-soft group-open:text-cream-deep",
                     )}
                   >
-                    {faq.a}
+                    {renderAnswer(faq.a)}
                   </p>
                 </details>
               </Reveal>
@@ -151,7 +171,7 @@ export default async function FaqPage() {
           title={t("closingTitle")}
           body={t("closingBody")}
           ctaLabel={t("ctaContact")}
-          ctaHref="/contacto?from=home"
+          ctaHref="/contacto"
         />
       </main>
       <Footer />

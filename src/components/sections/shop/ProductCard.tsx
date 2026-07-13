@@ -18,7 +18,7 @@ type Props = {
  *
  * Visual port of the design-handoff loja card style (sand-warm background,
  * rounded-card, hover lift). Keeps multi-image carousel from previous
- * implementation. CTA goes to /contacto?subject=loja&from=shop.
+ * implementation. CTA goes to /contacto?subject=loja.
  */
 export function ProductCard({ product, locale }: Props) {
   const t = useTranslations("ShopPage");
@@ -67,7 +67,15 @@ export function ProductCard({ product, locale }: Props) {
         ) : (
           <Image
             src={images[currentIndex]}
-            alt={`${name} ${currentIndex + 1}`}
+            alt={
+              images.length > 1
+                ? a11y("productImageAlt", {
+                    name,
+                    n: currentIndex + 1,
+                    total: images.length,
+                  })
+                : name
+            }
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-contain p-4"
@@ -179,7 +187,7 @@ export function ProductCard({ product, locale }: Props) {
             })()}
           </div>
           <Link
-            href="/contacto?subject=loja&from=shop"
+            href="/contacto?subject=loja"
             className={cn(
               "inline-flex h-10 w-10 shrink-0 items-center justify-center",
               "rounded-full bg-ink text-cream",

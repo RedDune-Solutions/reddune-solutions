@@ -1,12 +1,17 @@
 {
   "slug": "software-recuperacao",
   "eyebrow": "Systems · data · security",
-  "title": "We recover <em>what seemed</em> lost.",
+  "title": "Data recovery — <em>what seemed lost</em> comes back.",
   "lead": "Recovery of photos, documents and projects lost to drive failures, accidental formatting or ransomware. We also install and configure operating systems and essential software.",
+  "seo": {
+    "metaTitle": "Data Recovery & Software in the Algarve | RedDune",
+    "metaDescription": "Recovery of photos, documents and failing drives in Fuseta, Algarve. Operating system and software setup. An honest assessment before you spend a cent.",
+    "serviceName": "Data Recovery & Software"
+  },
   "overview": {
     "eyebrow": "Overview",
     "title": "Before buying a <em>new</em> device — talk to us.",
-    "lead": "90% of failing hard drives still have recoverable data. Don't give up on the wedding photos or the company books. We have professional tools and experience to tackle hard cases — including drives with physical damage and ransomware attacks."
+    "lead": "90% of failing hard drives still have recoverable data. Don't give up on the wedding photos or the company books. We have professional tools and experience to tackle hard cases — including drives with physical damage and ransomware attacks. We receive drives, memory cards and USB sticks from across the region — from Fuseta to Olhão, Tavira and Faro — and tell you what is recoverable before any cost. If a case needs a specialised lab, we tell you straight away."
   },
   "items": {
     "eyebrow": "Included services",

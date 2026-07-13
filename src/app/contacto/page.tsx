@@ -7,44 +7,29 @@ import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/sections/PageHero";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { ContactInfo } from "@/components/sections/ContactInfo";
+import { Toaster } from "@/components/ui/toaster";
 import { Reveal } from "@/components/motion/Reveal";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
+import { contactPageLd, jsonLdScript } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const isPt = locale !== "en";
 
-  const title = isPt
-    ? "Contacto - RedDune Solutions"
-    : "Contact - RedDune Solutions";
-  const description = isPt
-    ? "Entre em contacto com a RedDune Solutions para orçamentos, suporte técnico ou dúvidas sobre produtos. Respondemos rapidamente."
-    : "Contact RedDune Solutions for quotes, technical support or product enquiries. We respond quickly.";
-
-  return {
-    title,
-    description,
+  return buildMetadata({
+    title: isPt
+      ? "Contacto e Orçamentos em Fuseta, Algarve | RedDune"
+      : "Contact & Quotes in Fuseta, Algarve | RedDune Solutions",
+    description: isPt
+      ? "Peça um orçamento gratuito ou tire dúvidas por telefone, WhatsApp ou email. Estamos na Fuseta, Algarve, e respondemos no próprio dia útil. Sem compromisso."
+      : "Ask for a free quote or get in touch by phone, WhatsApp or email. Based in Fuseta, Algarve — we reply within one working day, with no strings attached.",
     keywords: isPt
       ? ["contacto RedDune Solutions", "suporte técnico", "orçamento informático", "Fuseta", "Algarve"]
       : ["contact RedDune Solutions", "technical support", "IT quote", "Fuseta", "Algarve"],
-    alternates: {
-      canonical: `${base}/contacto`,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale,
-      url: `${base}/contacto`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  };
+    path: "/contacto",
+    locale,
+  });
 }
 
 function ContactHero() {
@@ -112,11 +97,17 @@ export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(contactPageLd()) }}
+      />
       <main id="main" className="flex-grow">
         <ContactHero />
         <FormBlock />
       </main>
       <Footer />
+      {/* ContactForm usa toasts; o Toaster global saiu do root layout. */}
+      <Toaster />
     </div>
   );
 }

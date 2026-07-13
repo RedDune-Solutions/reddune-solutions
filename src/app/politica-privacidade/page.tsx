@@ -5,15 +5,14 @@ import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { ClosingCTA } from "@/components/sections/ClosingCTA";
 import { getLocale, getTranslations } from "next-intl/server";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const isPt = locale !== "en";
   const t = await getTranslations("PrivacyPolicyPage");
 
-  return {
+  return buildMetadata({
     title: t("metaTitle"),
     description: t("metaDescription"),
     keywords: isPt
@@ -33,22 +32,9 @@ export async function generateMetadata(): Promise<Metadata> {
           "personal data",
           "Fuseta",
         ],
-    alternates: {
-      canonical: `${base}/politica-privacidade`,
-    },
-    openGraph: {
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-      type: "website",
-      locale,
-      url: `${base}/politica-privacidade`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-    },
-  };
+    path: "/politica-privacidade",
+    locale,
+  });
 }
 
 // Splits "Política de Privacidade" / "Privacy Policy" into
@@ -173,7 +159,7 @@ export default async function PrivacyPolicyPage() {
           title={t("closingTitle")}
           body={t("closingBody")}
           ctaLabel={t("ctaContact")}
-          ctaHref="/contacto?from=home"
+          ctaHref="/contacto"
         />
       </main>
       <Footer />

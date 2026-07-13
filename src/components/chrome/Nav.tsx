@@ -129,7 +129,7 @@ export function Nav({ pillHidden = false }: NavProps) {
           {/* Contacto link — aparece apenas no drawer mobile */}
           <li className="hidden max-[900px]:block">
             <Link
-              href="/contacto?from=home"
+              href="/contacto"
               onClick={() => setOpen(false)}
               className={cn(
                 "cta",
@@ -153,7 +153,7 @@ export function Nav({ pillHidden = false }: NavProps) {
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <LanguageSwitcher />
           <Link
-            href="/contacto?from=home"
+            href="/contacto"
             className={cn(
               "cta",
               "inline-flex max-[900px]:hidden items-center gap-2 rounded-btn",

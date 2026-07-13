@@ -7,9 +7,6 @@ import {
   Geist_Mono,
 } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/toaster";
-import { ConfirmProvider } from "@/components/ui/confirm-dialog";
-import { RdLoaderFirstPaint } from "@/components/ui/rd-loader-first-paint";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -18,12 +15,13 @@ import { StructuredData } from "@/components/structured-data";
 import { publicEnv } from "@/lib/env";
 
 // === Oasis v5 fonts (Phase 1) ===
+// Todas variáveis: sem array `weight`, o next/font serve UM ficheiro com o
+// eixo wght inteiro em vez de um ficheiro por peso (menos requests/bytes).
 // Display headings (variable, axes opsz + wght)
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-display",
-  weight: ["400", "500", "600", "700", "800"],
   preload: true,
 });
 
@@ -32,7 +30,6 @@ const serif = Newsreader({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-serif",
-  weight: ["400", "500"],
   style: ["italic"],
   preload: false,
 });
@@ -42,7 +39,6 @@ const body = DM_Sans({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-body",
-  weight: ["400", "500", "600", "700"],
   preload: true,
 });
 
@@ -51,12 +47,16 @@ const mono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-mono",
-  weight: ["400", "500"],
   preload: false,
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.baseUrl),
+  // Default só usado por páginas sem title próprio (ex.: not-found).
+  title: {
+    default: "RedDune Solutions — Fuseta, Algarve",
+    template: "%s",
+  },
   appleWebApp: {
     capable: true,
     title: "RedDune",
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    siteName: "Reddune Solutions",
+    siteName: "RedDune Solutions",
     type: "website",
   },
   twitter: {
@@ -89,6 +89,23 @@ export default async function RootLayout({
   const messages = await getMessages();
   const locale = await getLocale();
 
+  // Só os namespaces consumidos por componentes CLIENTE vão no payload RSC —
+  // o resto renderiza no servidor e não precisa de viajar até ao browser
+  // (poupa ~30KB de HTML por página). Se um novo componente "use client"
+  // usar useTranslations com outro namespace, adicioná-lo aqui.
+  const m = messages as Record<string, unknown>;
+  const clientMessages = {
+    A11y: m.A11y,
+    Navigation: m.Navigation,
+    Footer: m.Footer,
+    HomePage: {
+      ContactSection: (m.HomePage as Record<string, unknown> | undefined)
+        ?.ContactSection,
+    },
+    PortfolioPage: m.PortfolioPage,
+    ShopPage: m.ShopPage,
+  } as typeof messages;
+
   return (
     <html
       lang={locale}
@@ -100,14 +117,16 @@ export default async function RootLayout({
         "!scroll-smooth"
       )}
     >
+      {/* Toaster/ConfirmProvider/RdLoaderFirstPaint saíram deste layout: o
+          overlay do loader escondia todo o SSR das páginas públicas (LCP) e o
+          Radix Dialog/Toast pesava no bundle público. Vivem agora no layout do
+          (painel); o Toaster também monta em /contacto (form usa toasts). */}
       <body className={cn("font-body antialiased")}>
         <ServiceWorkerRegister />
-        <RdLoaderFirstPaint />
         <StructuredData />
-        <NextIntlClientProvider messages={messages}>
-          <ConfirmProvider>{children}</ConfirmProvider>
+        <NextIntlClientProvider messages={clientMessages}>
+          {children}
         </NextIntlClientProvider>
-        <Toaster />
         <Analytics />
       </body>
     </html>

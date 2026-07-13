@@ -32,17 +32,17 @@ const SERVICES: ReadonlyArray<ServiceConfig> = [
   {
     key: "tecAssist",
     href: "/servicos/assistencia-tecnica",
-    imageSrc: "/assistencia tecnica.jpg",
+    imageSrc: "/assistencia-tecnica.jpg",
   },
   {
     key: "webDigital",
     href: "/servicos/web-digital",
-    imageSrc: "/web e digital.jpg",
+    imageSrc: "/web-digital.jpg",
   },
   {
     key: "dataRecovery",
     href: "/servicos/software-recuperacao",
-    imageSrc: "/software e recuperacao.jpg",
+    imageSrc: "/software-recuperacao.jpg",
   },
 ] as const;
 
@@ -123,7 +123,7 @@ export function Services() {
               >
                 <Image
                   src={svc.imageSrc}
-                  alt=""
+                  alt={t(`services.${svc.key}.imageAlt`)}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -190,7 +190,7 @@ export function Services() {
               accent: (chunks) => <em>{chunks}</em>,
               contactLink: (chunks) => (
                 <Link
-                  href="/contacto?from=home"
+                  href="/contacto"
                   className="font-semibold text-cream underline underline-offset-4 decoration-apricot/60 hover:decoration-apricot"
                 >
                   {chunks}

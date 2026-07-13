@@ -161,7 +161,7 @@ function ShopEmptyState({ filtering }: { filtering: boolean }) {
             />
           </a>
           <Link
-            href="/contacto?from=shop"
+            href="/contacto"
             className={cn(
               "inline-flex items-center",
               "rounded-btn border border-dune-deep/15 bg-white/60",

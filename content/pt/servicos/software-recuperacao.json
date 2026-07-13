@@ -1,12 +1,17 @@
 {
   "slug": "software-recuperacao",
   "eyebrow": "Sistemas · dados · segurança",
-  "title": "Recuperamos <em>o que parecia</em> perdido.",
+  "title": "Recuperação de dados — <em>o que parecia perdido</em>, volta.",
   "lead": "Recuperação de fotos, documentos e projetos perdidos por avaria, formatação acidental ou ransomware. Também instalamos e configuramos sistemas operativos e software essencial.",
+  "seo": {
+    "metaTitle": "Recuperação de Dados e Software no Algarve | RedDune",
+    "metaDescription": "Recuperação de fotos, documentos e discos com avaria em Fuseta, Algarve. Instalação de sistemas e software essencial. Avaliação honesta, sem surpresas.",
+    "serviceName": "Recuperação de Dados e Software"
+  },
   "overview": {
     "eyebrow": "Visão geral",
     "title": "Antes de comprar um equipamento <em>novo</em> — fala connosco.",
-    "lead": "90% dos discos rígidos com falhas ainda têm dados recuperáveis. Não desistas das fotos do casamento ou da contabilidade da empresa. Temos ferramentas profissionais e experiência para abordar casos difíceis — incluindo discos com avaria física e ataques de ransomware."
+    "lead": "90% dos discos rígidos com falhas ainda têm dados recuperáveis. Não desistas das fotos do casamento ou da contabilidade da empresa. Temos ferramentas profissionais e experiência para abordar casos difíceis — incluindo discos com avaria física e ataques de ransomware. Recebemos discos, cartões de memória e pens de toda a região — da Fuseta a Olhão, Tavira e Faro — e dizemos-te o que é recuperável antes de qualquer custo. Se o caso exigir laboratório especializado, dizemos-to sem rodeios."
   },
   "items": {
     "eyebrow": "Serviços incluídos",

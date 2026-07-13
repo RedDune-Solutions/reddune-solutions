@@ -31,6 +31,15 @@ export type ServiceContent = {
   eyebrow: string;
   title: string;
   lead: string;
+  /** Metadata SEO — separada do copy visual do hero. */
+  seo: {
+    /** <title> com keyword de serviço + localização (50-60 chars). */
+    metaTitle: string;
+    /** Meta description 150-160 chars. */
+    metaDescription: string;
+    /** Nome limpo do serviço para o JSON-LD (sem marketing). */
+    serviceName: string;
+  };
   overview: {
     eyebrow: string;
     title: string;

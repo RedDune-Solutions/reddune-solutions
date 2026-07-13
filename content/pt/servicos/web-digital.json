@@ -1,12 +1,17 @@
 {
   "slug": "web-digital",
   "eyebrow": "Websites · e-commerce · sistemas",
-  "title": "Presença digital <em>que converte</em> em clientes.",
+  "title": "Websites <em>que convertem</em> visitas em clientes.",
   "lead": "Construímos websites, lojas online e sistemas personalizados. Tecnologia moderna (Next.js, React) com foco em velocidade, SEO e conversão.",
+  "seo": {
+    "metaTitle": "Criação de Websites e Lojas Online no Algarve | RedDune",
+    "metaDescription": "Websites, lojas online e sistemas à medida para negócios do Algarve. Rápidos, otimizados para SEO local e pensados para converter visitas em clientes.",
+    "serviceName": "Desenvolvimento Web e Digital"
+  },
   "overview": {
     "eyebrow": "Visão geral",
     "title": "Mais do que um <em>site</em> — uma ferramenta de negócio.",
-    "lead": "Um site bonito que não vende não serve. Desenhamos cada projeto a partir do objetivo do teu negócio: captar clientes, vender produtos, agendar marcações. Tudo o que fazemos é otimizado para mobile, rápido a carregar, e pronto para SEO local."
+    "lead": "Um site bonito que não vende não serve. Desenhamos cada projeto a partir do objetivo do teu negócio: captar clientes, vender produtos, agendar marcações. Tudo o que fazemos é otimizado para mobile, rápido a carregar, e pronto para SEO local. Trabalhamos sobretudo com pequenos negócios do Algarve — restaurantes, alojamento local, comércio e serviços — que precisam de aparecer no Google e de um site que responda por eles. Do domínio ao alojamento e à manutenção, tratamos de tudo, e explicamos as decisões técnicas em português corrente."
   },
   "items": {
     "eyebrow": "Serviços incluídos",

@@ -11,42 +11,27 @@ import { About } from "@/components/sections/About";
 import { CTAWave } from "@/components/sections/CTAWave";
 import { getDestaquesLanding, getAllPortfolioItems } from "@/lib/mongodb/portfolio";
 import { getLocale } from "next-intl/server";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const isPt = locale !== "en";
 
-  const title = isPt
-    ? "RedDune Solutions - A resposta certa, para qualquer problema."
-    : "RedDune Solutions - The right answer, for any problem.";
-  const description = isPt
-    ? "Assistência técnica informática, montagem de PCs, desenvolvimento web e recuperação de dados em Fuseta, Algarve. Serviço personalizado para particulares e empresas."
-    : "Computer repair, PC assembly, web development and data recovery in Fuseta, Algarve. Personalised IT service for individuals and businesses.";
-
-  return {
-    title,
-    description,
+  // Keyword de serviço + localização no <title>; o slogan da marca vive no
+  // H1 visível do hero, não aqui.
+  return buildMetadata({
+    title: isPt
+      ? "Assistência Informática e Web em Fuseta | RedDune Solutions"
+      : "IT Support & Web Services in Fuseta, Algarve | RedDune",
+    description: isPt
+      ? "Assistência técnica informática, montagem de PCs, websites e recuperação de dados em Fuseta e em todo o Algarve. Serviço próximo, para pessoas e empresas."
+      : "Computer repair, custom PC builds, web development and data recovery in Fuseta and across the Algarve. Personal IT service for homes and businesses.",
     keywords: isPt
       ? ["assistência técnica informática", "reparação computadores", "Fuseta", "Algarve", "serviços web", "recuperação de dados", "RedDune Solutions", "montagem PC"]
       : ["computer repair", "IT support", "Fuseta", "Algarve", "web services", "data recovery", "RedDune Solutions", "PC assembly"],
-    alternates: {
-      canonical: `${base}/`,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale,
-      url: `${base}/`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  };
+    path: "/",
+    locale,
+  });
 }
 
 export default async function Home() {

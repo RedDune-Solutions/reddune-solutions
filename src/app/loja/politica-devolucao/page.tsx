@@ -5,32 +5,18 @@ import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { ClosingCTA } from "@/components/sections/ClosingCTA";
 import { getLocale, getTranslations } from "next-intl/server";
-import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const t = await getTranslations("ReturnPolicyPage");
 
-  return {
+  return buildMetadata({
     title: t("metaTitle"),
     description: t("metaDescription"),
-    alternates: {
-      canonical: `${base}/loja/politica-devolucao`,
-    },
-    openGraph: {
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-      type: "website",
-      locale,
-      url: `${base}/loja/politica-devolucao`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("metaTitle"),
-      description: t("metaDescription"),
-    },
-  };
+    path: "/loja/politica-devolucao",
+    locale,
+  });
 }
 
 type PolicySection = {
@@ -97,9 +83,9 @@ export default async function ReturnPolicyPage() {
                     <span className="font-mono text-[13px] uppercase tracking-[0.12em] text-ember">
                       {sec.n}
                     </span>
-                    <h3 className="font-display text-[24px] md:text-[28px] font-bold tracking-[-0.01em] text-ink m-0">
+                    <h2 className="font-display text-[24px] md:text-[28px] font-bold tracking-[-0.01em] text-ink m-0">
                       {sec.title}
-                    </h3>
+                    </h2>
                   </div>
                   <p className="text-[16px] leading-[1.7] text-ink-soft">
                     {renderPolicyBody(sec.body)}
@@ -114,7 +100,7 @@ export default async function ReturnPolicyPage() {
           title={t("closingTitle")}
           body={t("closingBody")}
           ctaLabel={t("ctaContact")}
-          ctaHref="/contacto?from=shop"
+          ctaHref="/contacto"
         />
       </main>
       <Footer />

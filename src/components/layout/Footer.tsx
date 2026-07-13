@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
 import { contactInfo } from "@/config/contact";
 import { cn } from "@/lib/utils";
 import { SocialIcons } from "@/components/chrome/SocialIcons";
@@ -18,21 +17,12 @@ export function Footer() {
   const t = useTranslations("Footer");
   const tNav = useTranslations("Navigation");
   const a11y = useTranslations("A11y");
-  const pathname = usePathname() ?? "/";
 
-  const origin = pathname.startsWith("/loja")
-    ? "shop"
-    : pathname.startsWith("/servicos")
-      ? "pricing"
-      : pathname.startsWith("/portfolio")
-        ? "portfolio"
-        : pathname.startsWith("/contacto")
-          ? "contact"
-          : "home";
-
-  const warrantyHref = `/loja/politica-garantia?from=${origin}`;
-  const returnHref = `/loja/politica-devolucao?from=${origin}`;
-  const privacyHref = `/politica-privacidade?from=${origin}`;
+  // URLs limpas: parâmetros de tracking nos hrefs criavam variantes de URL
+  // das páginas canónicas em todos os links internos do site.
+  const warrantyHref = "/loja/politica-garantia";
+  const returnHref = "/loja/politica-devolucao";
+  const privacyHref = "/politica-privacidade";
   const year = new Date().getFullYear();
 
   const telHref = contactInfo.phone.replace(/[\s()]/g, "");
@@ -78,14 +68,14 @@ export function Footer() {
 
           {/* Navegação */}
           <nav aria-label={t("col1Title")}>
-            <h5
+            <div
               className={cn(
                 "mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.18em]",
                 "text-ember",
               )}
             >
               {t("col1Title")}
-            </h5>
+            </div>
             <ul className="list-none space-y-0">
               <FooterLi>
                 <FooterLink href="/">{tNav("home")}</FooterLink>
@@ -106,19 +96,24 @@ export function Footer() {
                   {tNav.has("faq") ? tNav("faq") : "FAQ"}
                 </FooterLink>
               </FooterLi>
+              <FooterLi>
+                <FooterLink href="/contacto">
+                  {tNav.has("contact") ? tNav("contact") : "Contacto"}
+                </FooterLink>
+              </FooterLi>
             </ul>
           </nav>
 
           {/* Empresa */}
           <nav aria-label={t("col2Title")}>
-            <h5
+            <div
               className={cn(
                 "mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.18em]",
                 "text-ember",
               )}
             >
               {t("col2Title")}
-            </h5>
+            </div>
             <ul className="list-none space-y-0">
               <FooterLi>
                 <FooterLink href={warrantyHref}>{t("warrantyPolicy")}</FooterLink>
@@ -136,14 +131,14 @@ export function Footer() {
 
           {/* Contacto */}
           <nav aria-label={t("col3Title")}>
-            <h5
+            <div
               className={cn(
                 "mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.18em]",
                 "text-ember",
               )}
             >
               {t("col3Title")}
-            </h5>
+            </div>
             <ul className="list-none space-y-0">
               <FooterLi>
                 <span

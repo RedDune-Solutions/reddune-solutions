@@ -3,6 +3,9 @@ import { unstable_cache } from "next/cache";
 import { Poppins, Inter } from "next/font/google";
 import { auth } from "@/lib/auth";
 import { PainelShell } from "@/components/painel/PainelShell";
+import { Toaster } from "@/components/ui/toaster";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
+import { RdLoaderFirstPaint } from "@/components/ui/rd-loader-first-paint";
 import { ensureIndexes } from "@/lib/mongodb/init-indexes";
 import { getProjetosResumo } from "@/lib/mongodb/projetos";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
@@ -99,12 +102,16 @@ export default async function PainelLayout({
         ["--font-body" as string]: "var(--font-inter)",
       }}
     >
-      <PainelShell
-        user={{ name: session.user.name, email: session.user.email }}
-        counts={counts}
-      >
-        {children}
-      </PainelShell>
+      <RdLoaderFirstPaint />
+      <ConfirmProvider>
+        <PainelShell
+          user={{ name: session.user.name, email: session.user.email }}
+          counts={counts}
+        >
+          {children}
+        </PainelShell>
+      </ConfirmProvider>
+      <Toaster />
     </div>
   );
 }

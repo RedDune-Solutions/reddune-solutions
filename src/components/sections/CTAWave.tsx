@@ -89,7 +89,7 @@ export function CTAWave() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-[14px] cta-wave-actions">
               <Link
-                href="/contacto?from=home"
+                href="/contacto"
                 className={cn(
                   "group inline-flex items-center gap-3",
                   "rounded-btn bg-cream px-8 py-5",

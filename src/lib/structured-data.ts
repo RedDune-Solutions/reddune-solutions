@@ -8,7 +8,7 @@
 
 import { contactInfo } from "@/config/contact";
 import { publicEnv } from "@/lib/env";
-import { LOCATION } from "@/lib/constants";
+import { LOCATION, PHONE, INSTAGRAM, LINKEDIN, FACEBOOK } from "@/lib/constants";
 
 type JsonLd = Record<string, unknown>;
 
@@ -21,15 +21,18 @@ const base = () => publicEnv.baseUrl;
 export function localBusinessLd(): JsonLd {
   return {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    // ComputerStore é o subtipo LocalBusiness mais específico para o negócio
+    // (loja + assistência informática); manter LocalBusiness no array preserva
+    // compatibilidade com parsers que não conhecem o subtipo.
+    "@type": ["ComputerStore", "LocalBusiness"],
     "@id": `${base()}/#business`,
-    name: "Reddune Solutions",
+    name: "RedDune Solutions",
     description:
       "Assistência técnica informática, montagem de PCs, desenvolvimento web/app e recuperação de dados no Algarve.",
     url: base(),
     logo: `${base()}/logo.png`,
     image: `${base()}/opengraph-image`,
-    telephone: contactInfo.phone,
+    telephone: PHONE,
     email: contactInfo.email,
     priceRange: "€€",
     address: {
@@ -55,7 +58,7 @@ export function localBusinessLd(): JsonLd {
         closes: "18:00",
       },
     ],
-    sameAs: [contactInfo.instagramUrl],
+    sameAs: [INSTAGRAM, LINKEDIN, FACEBOOK],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Serviços de Informática",
@@ -66,6 +69,32 @@ export function localBusinessLd(): JsonLd {
         { "@type": "Offer", itemOffered: { "@type": "Service", name: "Montagem de PCs" } },
       ],
     },
+  };
+}
+
+/**
+ * WebSite — nome do site nos SERPs. Injectado no layout junto do LocalBusiness.
+ */
+export function websiteLd(): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${base()}/#website`,
+    name: "RedDune Solutions",
+    url: base(),
+    publisher: { "@id": `${base()}/#business` },
+  };
+}
+
+/**
+ * ContactPage — /contacto.
+ */
+export function contactPageLd(): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    url: `${base()}/contacto`,
+    mainEntity: { "@id": `${base()}/#business` },
   };
 }
 
@@ -89,7 +118,7 @@ export function serviceLd(params: {
     provider: {
       "@type": "LocalBusiness",
       "@id": `${base()}/#business`,
-      name: "Reddune Solutions",
+      name: "RedDune Solutions",
     },
     areaServed: [
       { "@type": "AdministrativeArea", name: LOCATION.region },
@@ -118,7 +147,14 @@ export function serviceLd(params: {
 export function itemListLd(params: {
   url: string;
   name: string;
-  items: Array<{ id: string; name: string; price: number; url?: string; image?: string }>;
+  items: Array<{
+    id: string;
+    name: string;
+    price: number;
+    url?: string;
+    image?: string;
+    description?: string;
+  }>;
 }): JsonLd {
   const { url, name, items } = params;
   return {
@@ -134,7 +170,9 @@ export function itemListLd(params: {
         "@type": "Product",
         "@id": `${base()}/loja#${item.id}`,
         name: item.name,
+        url: item.url ?? `${base()}/loja#${item.id}`,
         ...(item.image && { image: item.image }),
+        ...(item.description && { description: item.description }),
         offers: {
           "@type": "Offer",
           priceCurrency: "EUR",
@@ -170,7 +208,7 @@ export function breadcrumbLd(
 export function creativeWorkListLd(params: {
   url: string;
   name: string;
-  items: Array<{ id: string; name: string; url: string; image?: string }>;
+  items: Array<{ id: string; name: string; url?: string; image?: string }>;
 }): JsonLd {
   const { url, name, items } = params;
   return {
@@ -186,7 +224,8 @@ export function creativeWorkListLd(params: {
         "@type": "CreativeWork",
         "@id": `${base()}/portfolio#${item.id}`,
         name: item.name,
-        url: item.url,
+        // Itens sem site próprio não emitem url vazio.
+        ...(item.url && { url: item.url }),
         ...(item.image && { image: item.image }),
         creator: {
           "@type": "LocalBusiness",
@@ -222,5 +261,7 @@ export function faqPageLd(
  * server-rendered output is allowed; React strips this from the body in SSR.
  */
 export function jsonLdScript(ld: JsonLd): string {
-  return JSON.stringify(ld);
+  // Escapar "<" impede que uma string vinda da BD com "</script>" feche o
+  // <script> e injecte HTML na página (XSS via dangerouslySetInnerHTML).
+  return JSON.stringify(ld).replace(/</g, "\\u003c");
 }

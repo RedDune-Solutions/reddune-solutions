@@ -10,43 +10,27 @@ import { ProductGrid } from "@/components/sections/shop/ProductGrid";
 import { Reveal } from "@/components/motion/Reveal";
 import { getAllProducts } from "@/lib/mongodb/products";
 import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { itemListLd, jsonLdScript } from "@/lib/structured-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const isPt = locale !== "en";
 
-  const title = isPt
-    ? "Loja - RedDune Solutions"
-    : "Shop - RedDune Solutions";
-  const description = isPt
-    ? "Compre computadores novos, recondicionados e segunda mão, componentes e acessórios em Fuseta, Algarve. Preços justos e qualidade garantida."
-    : "Buy new, refurbished and second-hand computers, components and accessories in Fuseta, Algarve. Fair prices and guaranteed quality.";
-
-  return {
-    title,
-    description,
+  return buildMetadata({
+    title: isPt
+      ? "Loja de Informática em Fuseta, Algarve | RedDune"
+      : "Computer Shop in Fuseta, Algarve | RedDune Solutions",
+    description: isPt
+      ? "Computadores novos, recondicionados e em segunda mão, componentes e acessórios com garantia. Preços justos e aconselhamento honesto em Fuseta, Algarve."
+      : "New, refurbished and second-hand computers, PC components and accessories, all with warranty. Fair prices and honest advice at our shop in Fuseta, Algarve.",
     keywords: isPt
       ? ["loja informática", "comprar computador", "componentes PC", "segunda mão", "recondicionado", "Algarve", "Fuseta"]
       : ["computer shop", "buy computer", "PC components", "second hand", "refurbished", "Algarve", "Fuseta"],
-    alternates: {
-      canonical: `${base}/loja`,
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale,
-      url: `${base}/loja`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  };
+    path: "/loja",
+    locale,
+  });
 }
 
 function ShopHeroSection() {
@@ -165,7 +149,7 @@ function WarrantyStrip() {
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href="/loja/politica-garantia?from=shop"
+              href="/loja/politica-garantia"
               className={cn(
                 "inline-flex items-center gap-2 rounded-btn",
                 "bg-ink text-cream px-5 py-3",
@@ -181,7 +165,7 @@ function WarrantyStrip() {
               />
             </Link>
             <Link
-              href="/loja/politica-devolucao?from=shop"
+              href="/loja/politica-devolucao"
               className={cn(
                 "inline-flex items-center gap-2 rounded-btn",
                 "border border-dune-deep/15 bg-white/60 px-5 py-3",
@@ -218,6 +202,7 @@ export default async function ShopPage() {
       name: isPt ? p.name.pt : p.name.en,
       price: p.price,
       image: p.imageUrls[0],
+      description: isPt ? p.description.pt : p.description.en,
     })),
   });
 
@@ -233,6 +218,9 @@ export default async function ShopPage() {
       <main id="main" className="flex-grow">
         <ShopHeroSection />
         <section className="pb-16">
+          {/* h2 sr-only: os títulos dos produtos são h3 e vinham antes de
+              qualquer h2 (salto h1→h3 na hierarquia). */}
+          <h2 className="sr-only">{isPt ? "Catálogo" : "Catalogue"}</h2>
           <ProductGrid products={products} />
         </section>
         <WarrantyStrip />

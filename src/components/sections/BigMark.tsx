@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslations } from "next-intl";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";

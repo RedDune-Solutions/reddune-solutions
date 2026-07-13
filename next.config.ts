@@ -68,6 +68,13 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    // AVIF primeiro (fallback WebP automático na negociação do optimizador).
+    formats: ["image/avif", "image/webp"],
+    // 31 dias: evita a Vercel re-buscar cada variante a cada request
+    // (Cache-Control max-age=0 por defeito). Seguro porque os assets públicos
+    // raramente mudam e os do Blob têm filenames únicos; se um ficheiro em
+    // public/ for substituído, renomear (cache busting).
+    minimumCacheTTL: 2678400,
     remotePatterns: [
       { protocol: "https", hostname: "flagcdn.com", pathname: "/**" },
       { protocol: "https", hostname: "instagram.flis11-1.fna.fbcdn.net", pathname: "/**" },

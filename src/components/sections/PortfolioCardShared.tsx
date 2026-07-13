@@ -17,7 +17,7 @@ type Props = {
   item: PortfolioItem;
   locale: "pt" | "en";
   tag: string;
-  /** Título exibido no h4. Default: item.title[locale]. */
+  /** Título exibido no h3. Default: item.title[locale]. */
   displayTitle?: string;
   /** Força um href fixo ignorando item.url. */
   hrefOverride?: string;
@@ -42,7 +42,7 @@ export function PortfolioCardShared({
 }: Props) {
   const t = useTranslations("PortfolioPage");
   const image = item.imageUrl;
-  const href = hrefOverride ?? (item.url || hrefFallback || "/contacto?from=portfolio");
+  const href = hrefOverride ?? (item.url || hrefFallback || "/contacto");
   const title = displayTitle ?? item.title[locale];
 
   return (
@@ -107,14 +107,14 @@ export function PortfolioCardShared({
           "group-hover:-translate-y-2"
         )}
       >
-        <h4
+        <h3
           className={cn(
             "font-display text-[22px] md:text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] mb-1.5",
             "[text-shadow:0_2px_8px_rgba(0,0,0,0.6)]"
           )}
         >
           {title}
-        </h4>
+        </h3>
         <p className="text-[13px] opacity-85 text-cream-deep">{tag}</p>
         <span
           aria-hidden

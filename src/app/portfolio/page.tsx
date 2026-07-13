@@ -11,31 +11,19 @@ import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import { getAllPortfolioItems } from "@/lib/mongodb/portfolio";
 import { publicEnv } from "@/lib/env";
+import { buildMetadata } from "@/lib/seo";
+import { creativeWorkListLd, jsonLdScript } from "@/lib/structured-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const base = publicEnv.baseUrl;
   const t = await getTranslations("PortfolioPage.meta");
 
-  return {
+  return buildMetadata({
     title: t("title"),
     description: t("description"),
-    alternates: {
-      canonical: `${base}/portfolio`,
-    },
-    openGraph: {
-      title: t("title"),
-      description: t("description"),
-      type: "website",
-      locale,
-      url: `${base}/portfolio`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("title"),
-      description: t("description"),
-    },
-  };
+    path: "/portfolio",
+    locale,
+  });
 }
 
 function PortfolioHero() {
@@ -143,12 +131,40 @@ export default async function PortfolioPage({
 }: {
   searchParams: Promise<Record<string, string>>;
 }) {
-  const [items, sp] = await Promise.all([getAllPortfolioItems(), searchParams]);
+  const [items, sp, locale] = await Promise.all([
+    getAllPortfolioItems(),
+    searchParams,
+    getLocale(),
+  ]);
   const initialFilter = sp.categoria ?? "all";
+  const loc = locale === "en" ? ("en" as const) : ("pt" as const);
+
+  const portfolioSchema =
+    items.length > 0
+      ? creativeWorkListLd({
+          url: `${publicEnv.baseUrl}/portfolio`,
+          name:
+            loc === "en"
+              ? "Portfolio — RedDune Solutions"
+              : "Portfólio — RedDune Solutions",
+          items: items.map((i) => ({
+            id: i.id,
+            name: i.title[loc],
+            url: i.url,
+            image: i.imageUrl,
+          })),
+        })
+      : null;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+      {portfolioSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(portfolioSchema) }}
+        />
+      )}
       <main id="main" className="flex-grow">
         <PortfolioHero />
         <PortfolioIntro />

@@ -3,10 +3,15 @@
   "eyebrow": "Repair · upgrade · diagnosis",
   "title": "Technical <em>support</em> that makes sense.",
   "lead": "We repair computers, laptops, consoles and peripherals. Always with a prior diagnosis and a transparent quote — we only move forward once you approve.",
+  "seo": {
+    "metaTitle": "Computer Repair in Fuseta, Algarve | RedDune Solutions",
+    "metaDescription": "Computer and laptop repair, cleaning, upgrades and custom PC builds in Fuseta and across the Algarve. Honest diagnosis and a clear quote before any work.",
+    "serviceName": "Computer & Laptop Repair"
+  },
   "overview": {
     "eyebrow": "Overview",
     "title": "From <em>diagnosis</em> to delivery — in record time.",
-    "lead": "When a device fails, you lose time, money and patience. Our mission is simple: hand back equipment working like new, in the shortest possible time, with a clear invoice and warranty included."
+    "lead": "When a device fails, you lose time, money and patience. Our mission is simple: hand back equipment working like new, in the shortest possible time, with a clear invoice and warranty included. We are based in Fuseta and cover the eastern Algarve — Olhão, Tavira, Faro and around — at the shop, at your home or by courier. We work on desktops, laptops, consoles and peripherals of any brand, and we always tell you, before touching anything, what we will do and what it costs."
   },
   "items": {
     "eyebrow": "Included services",
@@ -52,7 +57,7 @@
     { "value": "25€", "label": "Diagnosis", "sub": "deducted on repair" },
     { "value": "<48h", "label": "Rush", "sub": "25€ surcharge" },
     { "value": "0.80€/km", "label": "Call-out", "sub": "on-site visits" },
-    { "value": "90 days", "label": "Warranty", "sub": "on every repair" }
+    { "value": "30 days", "label": "Warranty", "sub": "on repair labour" }
   ],
   "faqs": {
     "eyebrow": "Frequently asked questions",
