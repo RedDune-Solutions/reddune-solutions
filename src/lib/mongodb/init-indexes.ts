@@ -79,6 +79,13 @@ async function doInit(): Promise<void> {
     db.collection("despesas").createIndex({ id: 1 }, { unique: true }),
     db.collection("despesas").createIndex({ data: -1 }),
     db.collection("despesas").createIndex({ projetoId: 1 }),
+
+    db.collection("notif_dismissidas").createIndex({ notifId: 1 }, { unique: true }),
+    // TTL 1 ano: purga dispensas antigas (o lead/comentário já foi tratado).
+    db.collection("notif_dismissidas").createIndex(
+      { at: 1 },
+      { expireAfterSeconds: 365 * 24 * 60 * 60, name: "notif_dismiss_ttl" }
+    ),
   ]);
 }
 

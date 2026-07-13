@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
-import { safeFetch } from "@/lib/safe-fetch";
+import { safeFetch, safeJsonPost } from "@/lib/safe-fetch";
 
 type NotificationItem = {
   id: string;
@@ -28,30 +28,6 @@ type NotificationsPayload = {
 /** Intervalo de polling — refresca o feed em segundo plano (60s). */
 const POLL_MS = 60_000;
 
-// Notificações dispensadas (client-side): as notificações são derivadas de
-// leads/comentários/audit, não há colecção própria, por isso "eliminar" é
-// esconder localmente. Guardado por dispositivo; cap para não crescer sem fim.
-const DISMISSED_KEY = "painel.notif.dismissed";
-const DISMISSED_CAP = 300;
-
-function readDismissed(): string[] {
-  try {
-    const raw = localStorage.getItem(DISMISSED_KEY);
-    const arr = raw ? (JSON.parse(raw) as unknown) : [];
-    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeDismissed(ids: string[]) {
-  try {
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify(ids.slice(-DISMISSED_CAP)));
-  } catch {
-    // ignore
-  }
-}
-
 function fmtRelative(iso: string): string {
   const then = Date.parse(iso);
   if (Number.isNaN(then)) return "";
@@ -69,21 +45,22 @@ function fmtRelative(iso: string): string {
  * NotificationsBell — sino real (in-app) da Topbar.
  *
  * Fetch a /api/notifications no mount e a cada 60s. Cada item traz `unread`
- * (lead novo ou comentário por ler = novo; audit = histórico). O feed marca os
- * novos com um ponto e permite dispensar cada um (esconde localmente, não toca
- * na BD). O badge reflecte os por-tratar menos os que foram dispensados.
+ * (lead novo / comentário por ler = novo; audit = histórico) e ganha um ponto.
+ * Dispensar é GLOBAL (utilizador único, vários dispositivos): POST ao servidor
+ * que esconde a notificação em todo o lado (não toca no lead/comentário/audit).
+ * O badge vem do servidor, já sem as dispensadas.
  */
 export function NotificationsBell() {
   const [data, setData] = useState<NotificationsPayload | null>(null);
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    setDismissed(new Set(readDismissed()));
-  }, []);
+  // Esconde optimisticamente enquanto o POST + reload não chega (snappy).
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     const res = await safeFetch<NotificationsPayload>("/api/notifications");
-    if (res.ok) setData(res.data);
+    if (res.ok) {
+      setData(res.data);
+      setHidden(new Set()); // o servidor já filtra as dispensadas
+    }
   }, []);
 
   useEffect(() => {
@@ -95,30 +72,24 @@ export function NotificationsBell() {
   const allItems = useMemo(() => data?.items ?? [], [data]);
   const serverUnread = data?.unread ?? 0;
 
-  // Itens visíveis = não dispensados. Badge = por-tratar do servidor menos os
-  // itens por-tratar que o utilizador já dispensou (e ainda estão no feed).
-  const visibleItems = allItems.filter((i) => !dismissed.has(i.id));
-  const dismissedUnreadShown = allItems.filter((i) => i.unread && dismissed.has(i.id)).length;
-  const badge = Math.max(0, serverUnread - dismissedUnreadShown);
+  const visibleItems = allItems.filter((i) => !hidden.has(i.id));
+  const hiddenUnread = allItems.filter((i) => i.unread && hidden.has(i.id)).length;
+  const badge = Math.max(0, serverUnread - hiddenUnread);
   const hasBadge = badge > 0;
 
-  function dismiss(id: string) {
-    setDismissed((prev) => {
-      const next = new Set(prev);
-      next.add(id);
-      writeDismissed([...next]);
-      return next;
-    });
-  }
-
-  function dismissAll() {
-    setDismissed((prev) => {
-      const next = new Set(prev);
-      for (const i of visibleItems) next.add(i.id);
-      writeDismissed([...next]);
-      return next;
-    });
-  }
+  const dispensar = useCallback(
+    async (ids: string[]) => {
+      if (ids.length === 0) return;
+      setHidden((prev) => {
+        const next = new Set(prev);
+        for (const id of ids) next.add(id);
+        return next;
+      });
+      const res = await safeJsonPost("/api/notifications/dismiss", { ids });
+      if (res.ok) load();
+    },
+    [load]
+  );
 
   const ariaLabel = hasBadge ? `Notificações, ${badge} por tratar` : "Notificações";
 
@@ -142,7 +113,7 @@ export function NotificationsBell() {
           {visibleItems.length > 0 && (
             <button
               type="button"
-              onClick={dismissAll}
+              onClick={() => dispensar(visibleItems.map((i) => i.id))}
               className="text-[11px] font-medium text-ink-soft hover:text-ember transition-colors"
             >
               Limpar
@@ -215,7 +186,7 @@ export function NotificationsBell() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    dismiss(item.id);
+                    dispensar([item.id]);
                   }}
                   aria-label="Dispensar notificação"
                   title="Dispensar"

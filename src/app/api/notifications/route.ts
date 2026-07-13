@@ -1,10 +1,8 @@
-import { getLeadsNovosRecentes, countLeadsNovos } from "@/lib/mongodb/leads";
+import { getLeadsNovosRecentes } from "@/lib/mongodb/leads";
 import { getRecentAuditEntries } from "@/lib/mongodb/mutation-audit";
-import {
-  countComentariosNaoLidos,
-  getComentariosNaoLidosRecentes,
-} from "@/lib/mongodb/portal";
+import { getComentariosNaoLidosRecentes } from "@/lib/mongodb/portal";
 import { getProjetoTitulosByIds } from "@/lib/mongodb/projetos";
+import { getDismissedNotifIds } from "@/lib/mongodb/notif-dismissed";
 import { SUBJECT_LABELS } from "@/lib/validation";
 import { apiOk, apiError, withAuth } from "@/lib/api";
 
@@ -24,9 +22,11 @@ export const dynamic = "force-dynamic";
  *             e ordenados por timestamp desc, cada um com href de destino.
  */
 
-const MAX_LEADS = 8;
+// Limites altos nos "por tratar" (lead/comentário) para o badge, calculado a
+// partir dos items não-dispensados, ser fiável mesmo com vários pendentes.
+const MAX_LEADS = 50;
 const MAX_AUDIT = 8;
-const MAX_COMENTARIOS = 8;
+const MAX_COMENTARIOS = 50;
 const MAX_ITEMS = 12;
 
 const OP_VERB: Record<string, string> = {
@@ -81,15 +81,12 @@ function pickLabel(obj: unknown): string | undefined {
 
 export const GET = withAuth(async () => {
   try {
-    const [leadsNovos, comentariosNaoLidos, leads, audit, comentarios] = await Promise.all([
-      countLeadsNovos(),
-      countComentariosNaoLidos(),
+    const [leads, audit, comentarios, dismissed] = await Promise.all([
       getLeadsNovosRecentes(MAX_LEADS),
       getRecentAuditEntries(MAX_AUDIT),
       getComentariosNaoLidosRecentes(MAX_COMENTARIOS),
+      getDismissedNotifIds(),
     ]);
-    // Badge = tudo o que está por tratar: leads novos + comentários por ler.
-    const unread = leadsNovos + comentariosNaoLidos;
 
     const titulos = await getProjetoTitulosByIds([
       ...new Set(comentarios.map((c) => c.projetoId)),
@@ -141,7 +138,14 @@ export const GET = withAuth(async () => {
       unread: true,
     }));
 
-    const items = [...leadItems, ...auditItems, ...comentarioItems]
+    // Esconde os dispensados (global) ANTES de contar/cortar.
+    const naoDispensados = [...leadItems, ...auditItems, ...comentarioItems].filter(
+      (i) => !dismissed.has(i.id)
+    );
+    // Badge = por-tratar (unread) que sobram depois de dispensar.
+    const unread = naoDispensados.filter((i) => i.unread).length;
+
+    const items = naoDispensados
       .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
       .slice(0, MAX_ITEMS);
 
