@@ -18,6 +18,16 @@ const nextConfig: NextConfig = {
         destination: "/servicos",
         permanent: true,
       },
+      // Slug inválido de serviço → hub. Em produção o loading.tsx faz
+      // streaming e o 200 sai antes do notFound() (soft-404); este redirect
+      // resolve no edge, antes do render. permanent:false — se um dia houver
+      // slug novo, os browsers/Google não ficam com 308 cacheado.
+      {
+        source:
+          "/servicos/:slug((?!assistencia-tecnica$|web-digital$|software-recuperacao$).*)",
+        destination: "/servicos",
+        permanent: false,
+      },
     ];
   },
 
