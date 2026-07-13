@@ -60,24 +60,18 @@ export function PagamentosSection({ projetoId, pagamentos, valorEstimado, projet
     return null;
   })();
 
-  async function quickPay(v: number) {
+  // Atalho = pré-preencher o formulário (valor + hoje + último método usado)
+  // em vez de registar às escuras — permite confirmar/trocar o método e pôr
+  // observações, exactamente como um pagamento manual.
+  function quickPay(v: number) {
     if (!Number.isFinite(v) || v <= 0) return;
-    setSaving(true);
+    setValor(String(Math.round(v * 100) / 100));
+    setData(todayIso());
+    setMetodo(ultimoMetodo ?? "");
+    setNotas("");
     setError(null);
-    const res = await safeJsonPost("/api/pagamentos/upsert", {
-      projetoId,
-      valor: Math.round(v * 100) / 100,
-      data: todayIso(),
-      metodo: ultimoMetodo,
-      notas: null,
-    });
-    setSaving(false);
-    if (!res.ok) {
-      setError(res.error);
-      toast({ title: "Erro a registar pagamento", description: res.error, variant: "destructive" });
-      return;
-    }
-    startTransition(() => router.refresh());
+    setAdding(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
   }
 
   const entradaValor =
