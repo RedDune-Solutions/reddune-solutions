@@ -107,8 +107,8 @@ export default async function RelatoriosPage() {
   const donut = [
     { l: "Em curso", v: projetos.filter((p) => STATUS_GROUPS.ativo.includes(p.status)).length, c: "var(--ember)" },
     { l: "Próximos", v: projetos.filter((p) => STATUS_GROUPS.proximo.includes(p.status)).length, c: "var(--apricot)" },
-    { l: "Em espera", v: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length, c: "#c89b6a" },
-    { l: "Prontos", v: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length, c: "var(--dune)" },
+    { l: "A aguardar", v: projetos.filter((p) => STATUS_GROUPS.aguarda.includes(p.status)).length, c: "#c89b6a" },
+    { l: "Finalizado", v: projetos.filter((p) => STATUS_GROUPS.pronto.includes(p.status)).length, c: "var(--dune)" },
   ];
   const donutTotal = donut.reduce((s, d) => s + d.v, 0);
   const donutVisiveis = donut.filter((d) => d.v > 0);

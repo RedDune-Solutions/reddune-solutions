@@ -373,11 +373,11 @@ export default async function PainelOverviewPage({
           <div className="kpi-num">{counts.proximos}</div>
         </div>
         <div className="kpi">
-          <div className="kpi-label">Em espera</div>
+          <div className="kpi-label">A aguardar</div>
           <div className="kpi-num">{counts.aguarda}</div>
         </div>
         <div className="kpi">
-          <div className="kpi-label">Prontos</div>
+          <div className="kpi-label">Finalizado</div>
           <div className="kpi-num">{counts.pronto}</div>
         </div>
         <div className="kpi accent">

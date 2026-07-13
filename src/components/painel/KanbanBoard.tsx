@@ -54,7 +54,7 @@ function kcTag(projeto: Projeto): string | null {
 
 /**
  * Colunas principais do kanban (protótipo: 4 colunas fixas).
- * "Em espera" agrega os dois estados aguardando-* (STATUS_GROUPS.aguarda).
+ * "A aguardar" corresponde ao estado aguardando (STATUS_GROUPS.aguarda).
  */
 type KanbanColumnDef = {
   id: string;
@@ -89,7 +89,7 @@ const MAIN_COLUMNS: KanbanColumnDef[] = [
   },
   {
     id: "col:pronto",
-    label: "Prontos",
+    label: "Finalizado",
     dot: "var(--dune)",
     statuses: STATUS_GROUPS.pronto,
     dropStatus: "terminado",
@@ -139,7 +139,7 @@ const EXTRA_SECTIONS: ExtraSection[] = [
   },
   {
     id: "sec:arquivo",
-    label: "Arquivo",
+    label: "Fechado",
     dot: "var(--ink-mute)",
     statuses: ["fechado"],
     dropStatus: "fechado",

@@ -86,7 +86,7 @@ export default async function ClienteDetailPage({ params }: { params: Params }) 
           <div className="kpi-num">{projetos.length}</div>
         </div>
         <div className="k">
-          <div className="kpi-label">Em curso / espera</div>
+          <div className="kpi-label">Em curso / a aguardar</div>
           <div className="kpi-num">{active.length}</div>
         </div>
         <div className="k">

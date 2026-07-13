@@ -27,9 +27,9 @@ function projectosLabel(a: Agg | undefined): string | null {
   if (!a || a.total === 0) return null;
   if (a.ativos > 0) return `${a.ativos} activo${a.ativos === 1 ? "" : "s"}`;
   if (a.proximos > 0) return `${a.proximos} próximo${a.proximos === 1 ? "" : "s"}`;
-  if (a.espera > 0) return `${a.espera} em espera`;
-  if (a.prontos > 0) return `${a.prontos} pronto${a.prontos === 1 ? "" : "s"}`;
-  return `${a.total} no arquivo`;
+  if (a.espera > 0) return `${a.espera} a aguardar`;
+  if (a.prontos > 0) return `${a.prontos} finalizado${a.prontos === 1 ? "" : "s"}`;
+  return `${a.total} fechado${a.total === 1 ? "" : "s"}`;
 }
 
 /** Preenche a célula toda com o link — linha clicável sem JS (margens negativas anulam o padding do td). */
