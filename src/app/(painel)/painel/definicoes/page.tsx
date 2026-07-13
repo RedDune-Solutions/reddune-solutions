@@ -5,13 +5,15 @@ import { ProjetoTiposCustomEditor } from "@/components/painel/ProjetoTiposCustom
 import { CompanyProfileForm } from "@/components/painel/CompanyProfileForm";
 import { PushOptIn } from "@/components/painel/PushOptIn";
 import { getAllProjetoTiposCustom } from "@/lib/mongodb/projeto-tipos-custom";
+import { getBaseTiposRemovidos } from "@/lib/mongodb/projeto-tipos-config";
 import { getCompanySettings } from "@/lib/mongodb/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function DefinicoesPage() {
-  const [tiposCustom, companySettings] = await Promise.all([
+  const [tiposCustom, baseRemovidos, companySettings] = await Promise.all([
     getAllProjetoTiposCustom(),
+    getBaseTiposRemovidos(),
     getCompanySettings(),
   ]);
 
@@ -33,8 +35,8 @@ export default async function DefinicoesPage() {
 
       <div className="set">
         <h3>Tipos de serviço</h3>
-        <p>Os tipos disponíveis ao criar um projecto. Podes adicionar mais quando precisares.</p>
-        <ProjetoTiposCustomEditor tipos={tiposCustom} />
+        <p>Os tipos disponíveis ao criar um projecto. Adiciona ou remove aqui — só aqui.</p>
+        <ProjetoTiposCustomEditor tipos={tiposCustom} baseRemovidos={baseRemovidos} />
       </div>
 
       <div className="set">

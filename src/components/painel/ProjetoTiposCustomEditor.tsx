@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, X } from "lucide-react";
+import { Plus, Loader2, X, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SERVICO_SLUG, SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
-import { CATEGORIA_TIPOS, PROJETO_TIPO_LABEL } from "@/types/projeto";
+import { CATEGORIA_TIPOS, PROJETO_TIPO_LABEL, type ProjetoTipo } from "@/types/projeto";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,18 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
   tipos: ProjetoTipoCustom[];
+  baseRemovidos: string[];
+};
+
+const chipBtn: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  padding: 1,
+  borderRadius: 999,
+  background: "none",
+  border: 0,
+  color: "inherit",
+  cursor: "pointer",
 };
 
 function toSlug(label: string): string {
@@ -33,11 +45,12 @@ function toSlug(label: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export function ProjetoTiposCustomEditor({ tipos }: Props) {
+export function ProjetoTiposCustomEditor({ tipos, baseRemovidos }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
   const [, startTransition] = useTransition();
+  const removidos = new Set(baseRemovidos);
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState("");
   const [categoria, setCategoria] = useState<ServicoSlug | "">("");
@@ -89,45 +102,76 @@ export function ProjetoTiposCustomEditor({ tipos }: Props) {
     startTransition(() => router.refresh());
   }
 
-  const porCategoria = SERVICO_SLUG.map((slug) => ({
-    slug,
-    label: SERVICO_SLUG_LABEL[slug],
-    base: CATEGORIA_TIPOS[slug],
-    custom: tipos.filter((t) => t.categoria === slug),
-  }));
+  // Tipos base: remover = esconder do picker (não apaga; reversível). Repor
+  // trá-lo de volta. Projectos que já o usam mantêm o nome.
+  async function toggleBase(slug: ProjetoTipo, removido: boolean) {
+    const res = await safeJsonPost("/api/projeto-tipos-base", { slug, removido });
+    if (!res.ok) {
+      toast({ title: "Erro a alterar tipo", description: res.error, variant: "destructive" });
+      return;
+    }
+    startTransition(() => router.refresh());
+  }
+
+  const porCategoria = SERVICO_SLUG.map((slug) => {
+    const base = CATEGORIA_TIPOS[slug];
+    return {
+      slug,
+      label: SERVICO_SLUG_LABEL[slug],
+      baseActivos: base.filter((t) => !removidos.has(t)),
+      baseRemovidos: base.filter((t) => removidos.has(t)),
+      custom: tipos.filter((t) => t.categoria === slug),
+    };
+  });
 
   return (
     <div className="space-y-4">
-      {porCategoria.map(({ slug, label: catLabel, base, custom }) => (
+      {porCategoria.map(({ slug, label: catLabel, baseActivos, baseRemovidos: baseOff, custom }) => (
         <div key={slug}>
           <p className="plabel">{catLabel}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {/* Tipos base — do sistema, não podem ser apagados */}
-            {base.map((t) => (
-              <span key={t} title="Tipo base do sistema" className="chip">
+            {/* Tipos base activos — removíveis (esconde do picker) */}
+            {baseActivos.map((t) => (
+              <span key={t} className="chip on">
                 {PROJETO_TIPO_LABEL[t]}
+                <button
+                  type="button"
+                  onClick={() => toggleBase(t, true)}
+                  style={chipBtn}
+                  aria-label={`Remover ${PROJETO_TIPO_LABEL[t]}`}
+                  title="Remover do picker"
+                >
+                  <X className="h-3 w-3" aria-hidden="true" />
+                </button>
               </span>
             ))}
-            {/* Tipos personalizados — com apagar */}
+            {/* Tipos personalizados — apagar (permanente) */}
             {custom.map((t) => (
               <span key={t.id} className="chip on">
                 {t.label}
                 <button
                   type="button"
                   onClick={() => remove(t.id, t.label)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    padding: 1,
-                    borderRadius: 999,
-                    background: "none",
-                    border: 0,
-                    color: "inherit",
-                    cursor: "pointer",
-                  }}
+                  style={chipBtn}
                   aria-label={`Apagar ${t.label}`}
+                  title="Apagar tipo personalizado"
                 >
                   <X className="h-3 w-3" aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+            {/* Tipos base removidos — repor */}
+            {baseOff.map((t) => (
+              <span key={t} className="chip" style={{ opacity: 0.55 }}>
+                {PROJETO_TIPO_LABEL[t]}
+                <button
+                  type="button"
+                  onClick={() => toggleBase(t, false)}
+                  style={chipBtn}
+                  aria-label={`Repor ${PROJETO_TIPO_LABEL[t]}`}
+                  title="Repor no picker"
+                >
+                  <RotateCcw className="h-3 w-3" aria-hidden="true" />
                 </button>
               </span>
             ))}

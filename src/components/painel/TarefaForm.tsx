@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, UserPlus, Plus, X, Wand2 } from "lucide-react";
+import { Loader2, UserPlus, Wand2 } from "lucide-react";
 import type { ProjetoTipoCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ import {
 import { SERVICO_SLUG_LABEL, type ServicoSlug } from "@/types/servico";
 import type { Cliente } from "@/types/cliente";
 import { ClienteQuickForm } from "./ClienteQuickForm";
-import { safeFetch, safeJsonPost, safeDelete } from "@/lib/safe-fetch";
+import { safeFetch, safeJsonPost } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
@@ -72,21 +72,23 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         : []
   );
   const [customTipos, setCustomTipos] = useState<ProjetoTipoCustom[]>([]);
+  // Tipos base removidos nas Definições — escondidos do picker (mas mantidos
+  // se já estiverem seleccionados neste projecto).
+  const [baseRemovidos, setBaseRemovidos] = useState<string[]>([]);
   const [categoria, setCategoria] = useState<ServicoSlug | null>(projeto?.categoria ?? null);
   const [prazo, setPrazo] = useState(projeto?.prazo ?? "");
   const [garantiaAte, setGarantiaAte] = useState(projeto?.garantiaAte ?? "");
   const [proximaAccao, setProximaAccao] = useState(projeto?.proximaAccao ?? "");
   const [notasResumo, setNotasResumo] = useState(projeto?.notasResumo ?? "");
-  const [addingCat, setAddingCat] = useState<ServicoSlug | null>(null);
-  const [newTipoLabel, setNewTipoLabel] = useState("");
-  const [savingTipo, setSavingTipo] = useState(false);
-  const newTipoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
-    safeFetch<ProjetoTipoCustom[]>("/api/projeto-tipos-custom").then((custom) => {
-      if (cancelled) return;
-      if (custom.ok && Array.isArray(custom.data)) setCustomTipos(custom.data);
+    safeFetch<{ custom: ProjetoTipoCustom[]; baseRemovidos: string[] }>(
+      "/api/projeto-tipos-custom"
+    ).then((res) => {
+      if (cancelled || !res.ok) return;
+      if (Array.isArray(res.data.custom)) setCustomTipos(res.data.custom);
+      if (Array.isArray(res.data.baseRemovidos)) setBaseRemovidos(res.data.baseRemovidos);
     });
     return () => { cancelled = true; };
   }, []);
@@ -102,37 +104,6 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         setCategoria(auto);
       }
     }
-  }
-
-  async function saveCustomTipo(cat: ServicoSlug) {
-    const label = newTipoLabel.trim();
-    if (!label) return;
-    setSavingTipo(true);
-    const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const res = await safeJsonPost<ProjetoTipoCustom>("/api/projeto-tipos-custom/upsert", {
-      slug,
-      label,
-      categoria: cat,
-    });
-    setSavingTipo(false);
-    if (!res.ok) {
-      toast({ title: "Erro a criar tipo", description: res.error, variant: "destructive" });
-      return;
-    }
-    setCustomTipos((prev) => [...prev, res.data]);
-    setTipos((prev) => [...prev, res.data.slug]);
-    setNewTipoLabel("");
-    setAddingCat(null);
-  }
-
-  async function deleteCustomTipo(tipo: ProjetoTipoCustom) {
-    const res = await safeDelete(`/api/projeto-tipos-custom/${tipo.id}`);
-    if (!res.ok) {
-      toast({ title: "Erro a apagar tipo", description: res.error, variant: "destructive" });
-      return;
-    }
-    setCustomTipos((prev) => prev.filter((c) => c.id !== tipo.id));
-    setTipos((prev) => prev.filter((s) => s !== tipo.slug));
   }
 
   function handleClienteCreated(c: Cliente) {
@@ -294,121 +265,57 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
         </div>
       </div>
 
-      {/* Tipos — chips compactos em linha única por categoria */}
+      {/* Tipos — só selecção. Adicionar/remover tipos é em Definições. */}
       <div className="space-y-1.5">
         <Label>Serviço / Tipo</Label>
         <div className="rounded-md border border-border bg-muted/30 p-2.5 space-y-2">
           {(Object.keys(CATEGORIA_TIPOS) as ServicoSlug[]).map((cat) => {
-            const baseTipos = CATEGORIA_TIPOS[cat];
+            // Tipos base: esconde os removidos nas Definições, mas mantém os que
+            // este projecto já tem seleccionados (para se poderem tirar).
+            const baseTipos = CATEGORIA_TIPOS[cat].filter(
+              (t) => !baseRemovidos.includes(t) || tipos.includes(t)
+            );
             const extraTipos = customTipos.filter((c) => c.categoria === cat);
-            const isAddingHere = addingCat === cat;
+            if (baseTipos.length === 0 && extraTipos.length === 0) return null;
+            const chipCls = (active: boolean) =>
+              "text-[11px] px-2 py-0.5 rounded-full border transition-colors " +
+              (active
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground");
             return (
               <div key={cat} className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground w-24 shrink-0">
                   {SERVICO_SLUG_LABEL[cat]}
                 </span>
-                {/* Base tipos */}
-                {baseTipos.map((t) => {
-                  const active = tipos.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      disabled={isBusy}
-                      onClick={() => toggleTipo(t, cat)}
-                      className={
-                        "text-[11px] px-2 py-0.5 rounded-full border transition-colors " +
-                        (active
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
-                      }
-                    >
-                      {PROJETO_TIPO_LABEL[t] ?? t}
-                    </button>
-                  );
-                })}
-                {/* Custom tipos — com botão × para eliminar */}
-                {extraTipos.map((c) => {
-                  const active = tipos.includes(c.slug);
-                  return (
-                    <span key={c.id} className="inline-flex items-center gap-0.5">
-                      <button
-                        type="button"
-                        disabled={isBusy}
-                        onClick={() => toggleTipo(c.slug, cat)}
-                        className={
-                          "text-[11px] px-2 py-0.5 rounded-l-full border-y border-l transition-colors " +
-                          (active
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground")
-                        }
-                      >
-                        {c.label}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isBusy}
-                        onClick={() => deleteCustomTipo(c)}
-                        title="Eliminar tipo"
-                        className={
-                          "text-[10px] px-1 py-0.5 rounded-r-full border-y border-r transition-colors " +
-                          (active
-                            ? "bg-primary text-primary-foreground border-primary hover:bg-red-500 hover:border-red-500"
-                            : "bg-background text-muted-foreground border-border hover:bg-red-50 hover:text-red-600 hover:border-red-300")
-                        }
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </span>
-                  );
-                })}
-                {/* Botão + ou input inline */}
-                {isAddingHere ? (
-                  <span className="inline-flex items-center gap-1">
-                    <input
-                      ref={newTipoInputRef}
-                      autoFocus
-                      type="text"
-                      value={newTipoLabel}
-                      onChange={(e) => setNewTipoLabel(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") { e.preventDefault(); saveCustomTipo(cat); }
-                        if (e.key === "Escape") { setAddingCat(null); setNewTipoLabel(""); }
-                      }}
-                      placeholder="Novo tipo…"
-                      className="text-[11px] h-6 px-2 rounded-full border border-primary/50 bg-background outline-none w-28"
-                    />
-                    <button
-                      type="button"
-                      disabled={savingTipo || !newTipoLabel.trim()}
-                      onClick={() => saveCustomTipo(cat)}
-                      className="text-[10px] h-6 px-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50"
-                    >
-                      {savingTipo ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : "OK"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setAddingCat(null); setNewTipoLabel(""); }}
-                      className="text-[10px] h-6 w-6 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-2.5 w-2.5" />
-                    </button>
-                  </span>
-                ) : (
+                {baseTipos.map((t) => (
                   <button
+                    key={t}
                     type="button"
                     disabled={isBusy}
-                    onClick={() => { setAddingCat(cat); setNewTipoLabel(""); }}
-                    title="Adicionar tipo personalizado"
-                    className="text-[10px] h-5 w-5 flex items-center justify-center rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary/60 hover:text-primary transition-colors"
+                    onClick={() => toggleTipo(t, cat)}
+                    className={chipCls(tipos.includes(t))}
                   >
-                    <Plus className="h-2.5 w-2.5" />
+                    {PROJETO_TIPO_LABEL[t] ?? t}
                   </button>
-                )}
+                ))}
+                {extraTipos.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => toggleTipo(c.slug, cat)}
+                    className={chipCls(tipos.includes(c.slug))}
+                  >
+                    {c.label}
+                  </button>
+                ))}
               </div>
             );
           })}
         </div>
+        <p className="text-[11px] text-muted-foreground">
+          Para adicionar ou remover tipos, vai a Definições · Tipos de serviço.
+        </p>
       </div>
 
       {/* Cliente + Prazo */}
