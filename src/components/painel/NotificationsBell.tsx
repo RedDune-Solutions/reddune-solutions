@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bell, FileText, UserPlus, MessageSquare, X } from "lucide-react";
+import { Bell, UserPlus, MessageSquare, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,7 +12,7 @@ import { safeFetch, safeJsonPost } from "@/lib/safe-fetch";
 
 type NotificationItem = {
   id: string;
-  type: "lead" | "audit" | "comment";
+  type: "lead" | "comment";
   title: string;
   description: string;
   href: string;
@@ -143,22 +143,14 @@ export function NotificationsBell() {
                     aria-hidden="true"
                     className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                     style={{
-                      background:
-                        item.type === "lead" || item.type === "comment"
-                          ? "rgba(214, 66, 42, 0.12)"
-                          : "var(--cream-deep, #efe3cd)",
-                      color:
-                        item.type === "lead" || item.type === "comment"
-                          ? "var(--ember, #d6422a)"
-                          : "var(--ink-mute, #8a7a63)",
+                      background: "rgba(214, 66, 42, 0.12)",
+                      color: "var(--ember, #d6422a)",
                     }}
                   >
                     {item.type === "lead" ? (
                       <UserPlus size={14} />
-                    ) : item.type === "comment" ? (
-                      <MessageSquare size={14} />
                     ) : (
-                      <FileText size={14} />
+                      <MessageSquare size={14} />
                     )}
                   </span>
                   <span className="min-w-0 flex-1">
