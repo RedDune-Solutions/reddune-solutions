@@ -37,7 +37,7 @@ const COLLAPSE_KEY = "painel.kanban.collapsedColumns";
 const COLLAPSE_SECS_KEY = "painel.kanban.collapsedSections";
 
 /** Estados finais: sem acção rápida "Concluir". */
-const DONE_STATUSES: ProjetoStatus[] = ["terminado", "fechado", "cancelado"];
+const DONE_STATUSES: ProjetoStatus[] = ["terminado", "fechado"];
 
 /** Tag abreviada do rodapé do card (protótipo: Web / Assist. / Software). */
 const KC_TAG: Record<ServicoSlug, string> = {
@@ -82,10 +82,10 @@ const MAIN_COLUMNS: KanbanColumnDef[] = [
   },
   {
     id: "col:aguarda",
-    label: "Em espera",
+    label: "A aguardar",
     dot: "#c89b6a",
     statuses: STATUS_GROUPS.aguarda,
-    dropStatus: "aguardando-cliente",
+    dropStatus: "aguardando",
   },
   {
     id: "col:pronto",
@@ -141,7 +141,7 @@ const EXTRA_SECTIONS: ExtraSection[] = [
     id: "sec:arquivo",
     label: "Arquivo",
     dot: "var(--ink-mute)",
-    statuses: ["fechado", "cancelado"],
+    statuses: ["fechado"],
     dropStatus: "fechado",
   },
 ];
@@ -671,8 +671,7 @@ function statusPill(status: ProjetoStatus): { className: string; style?: CSSProp
         className: "pill",
         style: { background: "rgba(224,122,63,.16)", color: "#c2560e" },
       };
-    case "aguardando-cliente":
-    case "aguardando-encomenda":
+    case "aguardando":
       return {
         className: "pill",
         style: { background: "rgba(200,155,106,.20)", color: "#8a6414" },

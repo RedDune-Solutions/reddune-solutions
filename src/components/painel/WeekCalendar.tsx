@@ -23,11 +23,9 @@ const STATUS_DOT: Record<ProjetoStatus, string> = {
   "ideia-cliente": "bg-amber-400",
   proximo: "bg-apricot",
   "em-curso": "bg-ember",
-  "aguardando-cliente": "bg-amber-300",
-  "aguardando-encomenda": "bg-amber-400",
+  aguardando: "bg-amber-400",
   terminado: "bg-amber-500",
   fechado: "bg-emerald-600",
-  cancelado: "bg-ink-mute/60",
 };
 
 function isoFromDate(d: Date): string {

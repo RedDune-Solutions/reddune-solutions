@@ -43,8 +43,7 @@ export function TarefaCard({ projeto, className }: Props) {
     !!projeto.prazo &&
     new Date(projeto.prazo) < new Date() &&
     projeto.status !== "fechado" &&
-    projeto.status !== "terminado" &&
-    projeto.status !== "cancelado";
+    projeto.status !== "terminado";
 
   const categoria = projeto.categoria ? SERVICO_SLUG_LABEL[projeto.categoria] : null;
   const tipo = projeto.tipo ? PROJETO_TIPO_LABEL[projeto.tipo as ProjetoTipo] ?? projeto.tipo : null;

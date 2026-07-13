@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/select";
 import {
   STATUS_LABELS,
-  PROJETO_STATUS,
+  PROJETO_STATUS_FLUXO,
   PROJETO_TIPO_LABEL,
   CATEGORIA_TIPOS,
   TIPO_TO_CATEGORIA,
+  isProjetoIdeia,
   type Projeto,
   type ProjetoStatus,
 } from "@/types/projeto";
@@ -49,6 +50,17 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
   const [clientesList, setClientesList] = useState<Cliente[]>(clientes);
   const [showQuickClient, setShowQuickClient] = useState(false);
   const [status, setStatus] = useState<ProjetoStatus>(projeto?.status ?? "proximo");
+  const isIdeia = isProjetoIdeia(status);
+  // Guarda o último estado de fluxo para repor quando se desmarca "Ideia".
+  const prevFluxoRef = useRef<ProjetoStatus>(isIdeia ? "proximo" : status);
+  function setIdeia(tipo: "ideia-interna" | "ideia-cliente" | null) {
+    if (tipo === null) {
+      setStatus(prevFluxoRef.current);
+    } else {
+      if (!isProjetoIdeia(status)) prevFluxoRef.current = status;
+      setStatus(tipo);
+    }
+  }
   const [tipos, setTipos] = useState<string[]>(
     projeto?.tipos && projeto.tipos.length > 0
       ? projeto.tipos
@@ -180,14 +192,44 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
 
       <div className="space-y-1">
         <Label>Estado *</Label>
-        <Select value={status} onValueChange={(v) => setStatus(v as ProjetoStatus)} disabled={isBusy}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Select
+          value={isIdeia ? undefined : status}
+          onValueChange={(v) => setStatus(v as ProjetoStatus)}
+          disabled={isBusy || isIdeia}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={isIdeia ? "— (marcado como ideia)" : "Escolhe o estado"} />
+          </SelectTrigger>
           <SelectContent>
-            {PROJETO_STATUS.map((s) => (
+            {PROJETO_STATUS_FLUXO.map((s) => (
               <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {/* Ideias: fora do fluxo. Marcar uma desliga o estado acima; o kanban
+            (arrastar para as secções de Ideias) mexe no mesmo campo. */}
+        <div className="flex flex-wrap gap-4 pt-1.5">
+          <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
+            <input
+              type="checkbox"
+              className="accent-ember"
+              checked={status === "ideia-interna"}
+              onChange={(e) => setIdeia(e.target.checked ? "ideia-interna" : null)}
+              disabled={isBusy}
+            />
+            Ideia interna
+          </label>
+          <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
+            <input
+              type="checkbox"
+              className="accent-ember"
+              checked={status === "ideia-cliente"}
+              onChange={(e) => setIdeia(e.target.checked ? "ideia-cliente" : null)}
+              disabled={isBusy}
+            />
+            Ideia de cliente
+          </label>
+        </div>
       </div>
 
       {/* Tipos — chips compactos em linha única por categoria */}

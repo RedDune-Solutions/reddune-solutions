@@ -437,8 +437,7 @@
 .pnl .badge.ideia { background: #e8e0d0; color: #5b4a3a; }
 .pnl .badge.proximo { background: rgba(224,122,63,.16); color: #c2560e; }
 .pnl .badge.curso { background: rgba(214, 66, 42, 0.10); color: var(--ember); }
-.pnl .badge.aguarda-cliente { background: rgba(200,155,106,.20); color: #8a6414; }
-.pnl .badge.aguarda-encomenda { background: rgba(200,155,106,.20); color: #8a6414; }
+.pnl .badge.aguarda { background: rgba(200,155,106,.20); color: #8a6414; }
 .pnl .badge.terminado { background: rgba(122,138,92,.18); color: var(--dune); }
 .pnl .badge.fechado { background: rgba(122,138,92,.14); color: var(--dune); }
 .pnl .badge.cancelado { background: #e8d8d4; color: #6e3a2a; }

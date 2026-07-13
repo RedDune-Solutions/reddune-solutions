@@ -19,8 +19,7 @@ const moveBtnStyle: React.CSSProperties = {
 export const KANBAN_DEFAULT_COLUMNS: ProjetoStatus[] = [
   "em-curso",
   "proximo",
-  "aguardando-cliente",
-  "aguardando-encomenda",
+  "aguardando",
   "terminado",
 ];
 
@@ -30,8 +29,10 @@ export function readKanbanOrder(): ProjetoStatus[] {
   try {
     const raw = localStorage.getItem(KANBAN_ORDER_KEY);
     if (!raw) return KANBAN_DEFAULT_COLUMNS;
-    const parsed = JSON.parse(raw) as ProjetoStatus[];
-    // ensure all default columns are present (handles new columns added later)
+    const valid = new Set(KANBAN_DEFAULT_COLUMNS);
+    // Filtra estados obsoletos de localStorage antigo (ex.: aguardando-cliente)
+    // e garante que todas as colunas por defeito estão presentes.
+    const parsed = (JSON.parse(raw) as ProjetoStatus[]).filter((c) => valid.has(c));
     const set = new Set(parsed);
     const missing = KANBAN_DEFAULT_COLUMNS.filter((c) => !set.has(c));
     return [...parsed, ...missing];

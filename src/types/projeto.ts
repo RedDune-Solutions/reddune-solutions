@@ -3,11 +3,9 @@ export const PROJETO_STATUS = [
   "ideia-cliente",
   "proximo",
   "em-curso",
-  "aguardando-cliente",
-  "aguardando-encomenda",
+  "aguardando",
   "terminado",
   "fechado",
-  "cancelado",
 ] as const;
 
 export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
@@ -15,14 +13,24 @@ export type ProjetoStatus = (typeof PROJETO_STATUS)[number];
 export const STATUS_LABELS: Record<ProjetoStatus, string> = {
   "ideia-interna": "Ideia (interna)",
   "ideia-cliente": "Ideia (cliente)",
-  proximo: "Próximo",
+  proximo: "Próximos",
   "em-curso": "Em curso",
-  "aguardando-cliente": "Aguarda cliente",
-  "aguardando-encomenda": "Aguarda encomenda",
-  terminado: "Terminado",
+  aguardando: "A aguardar",
+  terminado: "Finalizado",
   fechado: "Fechado",
-  cancelado: "Cancelado",
 };
+
+// Estados do FLUXO de trabalho — os que aparecem no dropdown de estado do form.
+// As Ideias (ideia-*) não estão aqui: são marcadas por checkbox, que desliga o
+// dropdown (ver TarefaForm). São mutuamente exclusivas — um projecto tem UM
+// status.
+export const PROJETO_STATUS_FLUXO: ProjetoStatus[] = [
+  "proximo",
+  "em-curso",
+  "aguardando",
+  "terminado",
+  "fechado",
+];
 
 // Estados de projeto cujos cartões de tarefas são visíveis em /painel/tarefas.
 // Tem de cobrir TODOS os estados em que o NovaTarefaGlobalButton permite criar
@@ -31,28 +39,30 @@ export const STATUS_LABELS: Record<ProjetoStatus, string> = {
 export const TAREFAS_VISIVEIS_STATUSES: ProjetoStatus[] = [
   "em-curso",
   "proximo",
-  "aguardando-cliente",
-  "aguardando-encomenda",
+  "aguardando",
   "terminado",
 ];
 
 // Fonte ÚNICA de "projecto activo" — usada pelo badge da sidebar/bottomnav E
 // pelo título de /painel/projetos, para os números baterem certo (antes o badge
-// contava em-curso/proximo e o título contava tudo menos fechado/cancelado).
+// contava em-curso/proximo e o título contava tudo menos fechado).
 export const PROJETO_ATIVO_STATUSES: ProjetoStatus[] = ["em-curso", "proximo"];
 export function isProjetoAtivo(status: ProjetoStatus): boolean {
   return PROJETO_ATIVO_STATUSES.includes(status);
 }
 
+/** true = o projecto é uma ideia (interna ou de cliente), não está no fluxo. */
+export function isProjetoIdeia(status: ProjetoStatus): boolean {
+  return status === "ideia-interna" || status === "ideia-cliente";
+}
+
 export const STATUS_GROUPS = {
   ativo: ["em-curso"] as ProjetoStatus[],
   proximo: ["proximo"] as ProjetoStatus[],
-  aguarda: ["aguardando-cliente", "aguardando-encomenda"] as ProjetoStatus[],
-  aguardaCliente: ["aguardando-cliente"] as ProjetoStatus[],
-  aguardaEncomenda: ["aguardando-encomenda"] as ProjetoStatus[],
+  aguarda: ["aguardando"] as ProjetoStatus[],
   pronto: ["terminado"] as ProjetoStatus[],
-  arquivo: ["fechado", "cancelado"] as ProjetoStatus[],
-  comprometido: ["em-curso", "aguardando-encomenda", "terminado"] as ProjetoStatus[],
+  arquivo: ["fechado"] as ProjetoStatus[],
+  comprometido: ["em-curso", "aguardando", "terminado"] as ProjetoStatus[],
   ideias: ["ideia-interna", "ideia-cliente"] as ProjetoStatus[],
   ideiasInternas: ["ideia-interna"] as ProjetoStatus[],
   ideiasCliente: ["ideia-cliente"] as ProjetoStatus[],

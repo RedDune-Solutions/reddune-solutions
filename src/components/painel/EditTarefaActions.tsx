@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/select";
 import {
   STATUS_LABELS,
-  PROJETO_STATUS,
+  PROJETO_STATUS_FLUXO,
+  isProjetoIdeia,
   type Projeto,
   type ProjetoStatus,
 } from "@/types/projeto";
@@ -65,21 +66,43 @@ export function EditTarefaActions({ projeto }: Props) {
             Mudar estado
           </Label>
           <Select
-            value={projeto.status}
+            value={isProjetoIdeia(projeto.status) ? undefined : projeto.status}
             onValueChange={(v) => submitEdit("status", v)}
-            disabled={pending}
+            disabled={pending || isProjetoIdeia(projeto.status)}
           >
             <SelectTrigger className="w-[200px] bg-white/70 border-dune-deep/15 rounded-btn focus:ring-ember">
-              <SelectValue />
+              <SelectValue placeholder={isProjetoIdeia(projeto.status) ? "— (é uma ideia)" : "Estado"} />
             </SelectTrigger>
             <SelectContent>
-              {PROJETO_STATUS.map((s) => (
+              {PROJETO_STATUS_FLUXO.map((s) => (
                 <SelectItem key={s} value={s}>
                   {STATUS_LABELS[s as ProjetoStatus]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <div className="flex flex-wrap gap-4 pt-1">
+            <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
+              <input
+                type="checkbox"
+                className="accent-ember"
+                checked={projeto.status === "ideia-interna"}
+                onChange={(e) => submitEdit("status", e.target.checked ? "ideia-interna" : "proximo")}
+                disabled={pending}
+              />
+              Ideia interna
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
+              <input
+                type="checkbox"
+                className="accent-ember"
+                checked={projeto.status === "ideia-cliente"}
+                onChange={(e) => submitEdit("status", e.target.checked ? "ideia-cliente" : "proximo")}
+                disabled={pending}
+              />
+              Ideia de cliente
+            </label>
+          </div>
         </div>
 
         <div className="space-y-1">

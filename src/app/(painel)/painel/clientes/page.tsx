@@ -67,7 +67,7 @@ export default async function ClientesPage() {
     if (
       STATUS_GROUPS.ativo.includes(p.status) ||
       STATUS_GROUPS.proximo.includes(p.status) ||
-      STATUS_GROUPS.aguardaEncomenda.includes(p.status) ||
+      STATUS_GROUPS.aguarda.includes(p.status) ||
       STATUS_GROUPS.pronto.includes(p.status)
     ) {
       a.trabalhoAtivo += 1;

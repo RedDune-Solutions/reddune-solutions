@@ -10,11 +10,9 @@ const STATUS_TO_DESIGN: Record<ProjetoStatus, string> = {
   "ideia-cliente": "ideia",
   proximo: "proximo",
   "em-curso": "curso",
-  "aguardando-cliente": "aguarda-cliente",
-  "aguardando-encomenda": "aguarda-encomenda",
+  aguardando: "aguarda",
   terminado: "terminado",
   fechado: "fechado",
-  cancelado: "cancelado",
 };
 
 export function StatusBadge({

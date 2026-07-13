@@ -47,11 +47,9 @@ export const oasisStatusColors = {
   "ideia-cliente": "#f59e0b",  // amber-500
   "em-curso": "#d6422a",   // ember
   proximo: "#e89968",       // apricot
-  "aguardando-cliente": "#f3c79b",   // peach (claro, tentativo)
-  "aguardando-encomenda": "#e89968", // apricot (mais saturado, compromisso)
+  aguardando: "#e89968",    // apricot
   terminado: "#f59e0b",     // amber-500 (alerta — falta pagar)
   fechado: "#059669",       // emerald-600 (pago)
-  cancelado: "#8c7563",     // ink-mute
 } as const;
 
 export type OasisStatusKey = keyof typeof oasisStatusColors;

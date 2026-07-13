@@ -24,11 +24,9 @@ type Props = {
 const STATUS_PRIORITY: Record<ProjetoStatus, number> = {
   "em-curso": 0,
   proximo: 1,
-  "aguardando-cliente": 2,
-  "aguardando-encomenda": 2,
+  aguardando: 2,
   terminado: 3,
   fechado: 4,
-  cancelado: 5,
   "ideia-interna": 5,
   "ideia-cliente": 5,
 };
