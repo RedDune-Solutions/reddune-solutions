@@ -21,15 +21,20 @@ export const linhaSchema = z.object({
   ),
 });
 
+// ATENÇÃO ao contrato do upsert parcial (/api/projetos/upsert): campo AUSENTE
+// tem de sair do parse como `undefined` (a rota preserva o valor existente);
+// só `null`/"" explícitos apagam. NUNCA converter undefined→null aqui — foi o
+// bug que fazia "Guardar custos" apagar cliente/responsável/tipo/etc.
+// (ver validation-projeto.test.ts).
 export const projetoSchema = z.object({
   id: z.string().min(1).max(128),
   titulo: z.string().min(1).max(300),
-  clienteId: z.string().max(128).nullish().transform((v) => v ?? null),
-  clienteNome: z.string().max(300).nullish().transform((v) => v ?? null),
-  proximaAccao: z.string().max(500).nullish().transform((v) => v ?? null),
+  clienteId: z.string().max(128).nullish(),
+  clienteNome: z.string().max(300).nullish(),
+  proximaAccao: z.string().max(500).nullish(),
   status: z.enum(PROJETO_STATUS),
-  categoria: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(SERVICO_SLUG).nullable()),
-  tipo: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_TIPO).nullable()),
+  categoria: z.preprocess((v) => (v === "" ? null : v), z.enum(SERVICO_SLUG).nullish()),
+  tipo: z.preprocess((v) => (v === "" ? null : v), z.enum(PROJETO_TIPO).nullish()),
   tipos: z.array(z.string()).nullish(),
   hardware: z
     .object({
@@ -39,14 +44,14 @@ export const projetoSchema = z.object({
       acessoriosEntregues: z.string().max(500).optional(),
     })
     .nullish(),
-  responsavel: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_RESPONSAVEL).nullable()),
+  responsavel: z.preprocess((v) => (v === "" ? null : v), z.enum(PROJETO_RESPONSAVEL).nullish()),
   prazo: z.string().nullish(),
   dataCriado: z.string().nullish(),
   dataFechado: z.string().nullish(),
   valorEstimado: z.number().finite().nullish(),
   valorPago: z.number().finite().nullish(),
   metodoPagamento: z.string().max(100).nullish(),
-  local: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.enum(PROJETO_LOCAL).nullable()),
+  local: z.preprocess((v) => (v === "" ? null : v), z.enum(PROJETO_LOCAL).nullish()),
   notasResumo: z.string().max(500).nullish(),
   bodyMd: z.string().max(50000).nullish(),
   linhas: z.array(linhaSchema).nullish(),
