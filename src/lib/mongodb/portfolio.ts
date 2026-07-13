@@ -29,6 +29,7 @@ function mapDoc(doc: WithId<Document>): PortfolioItem | null {
     url: doc.url,
     categoria: isCategoria(doc.categoria) ? doc.categoria : null,
     destaqueLanding: doc.destaqueLanding === true,
+    escondido: doc.escondido === true,
     createdAt:
       doc.createdAt instanceof Date ? doc.createdAt.toISOString() : undefined,
   };
@@ -39,10 +40,15 @@ async function getCollection() {
   return client.db(DB_NAME).collection(COLLECTION);
 }
 
-export async function getAllPortfolioItems(): Promise<PortfolioItem[]> {
+export async function getAllPortfolioItems(
+  opts?: { includeHidden?: boolean },
+): Promise<PortfolioItem[]> {
   try {
     const col = await getCollection();
-    const docs = await col.find({}).sort({ destaqueLanding: -1, createdAt: -1 }).toArray();
+    // Por defeito o site público não vê itens escondidos/arquivados;
+    // o painel pede includeHidden: true.
+    const filter = opts?.includeHidden ? {} : { escondido: { $ne: true } };
+    const docs = await col.find(filter).sort({ destaqueLanding: -1, createdAt: -1 }).toArray();
     return docs.map(mapDoc).filter((p): p is PortfolioItem => p !== null);
   } catch (error) {
     console.error("getAllPortfolioItems error:", error);
@@ -58,7 +64,7 @@ export async function getDestaquesLanding(): Promise<PortfolioItem[]> {
   try {
     const col = await getCollection();
     const docs = await col
-      .find({ destaqueLanding: true })
+      .find({ destaqueLanding: true, escondido: { $ne: true } })
       .sort({ createdAt: -1 })
       .toArray();
     const seen = new Set<string>();
@@ -89,7 +95,9 @@ export async function getPortfolioItemById(id: string): Promise<PortfolioItem | 
   }
 }
 
-type PortfolioInput = Omit<PortfolioItem, "id" | "createdAt"> & { id?: string };
+// `escondido` fica de fora de propósito: é gerido só pelo toggle dedicado
+// (setPortfolioEscondido); o upsert do formulário nunca o escreve nem apaga.
+type PortfolioInput = Omit<PortfolioItem, "id" | "createdAt" | "escondido"> & { id?: string };
 
 export async function upsertPortfolioItem(input: PortfolioInput): Promise<string> {
   const col = await getCollection();
@@ -123,6 +131,23 @@ export async function upsertPortfolioItem(input: PortfolioInput): Promise<string
   }
 
   return savedId;
+}
+
+/**
+ * Toggle dedicado de visibilidade — NUNCA passa pelo upsert do formulário
+ * (que faz $set do doc inteiro e apagaria o campo em cada gravação).
+ */
+export async function setPortfolioEscondido(
+  id: string,
+  escondido: boolean,
+): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const col = await getCollection();
+  const result = await col.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { escondido } },
+  );
+  return result.matchedCount > 0;
 }
 
 export async function deletePortfolioItem(id: string): Promise<boolean> {

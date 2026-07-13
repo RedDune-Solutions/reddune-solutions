@@ -43,6 +43,17 @@ export async function safeJsonPost<T = unknown>(
   });
 }
 
+export async function safeJsonPatch<T = unknown>(
+  url: string,
+  body: unknown
+): Promise<SafeFetchResult<T>> {
+  return safeFetch<T>(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function safeDelete<T = unknown>(url: string): Promise<SafeFetchResult<T>> {
   return safeFetch<T>(url, { method: "DELETE" });
 }

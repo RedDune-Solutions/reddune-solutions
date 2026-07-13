@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Eye, Trash2, Briefcase, Globe, Loader2 } from "lucide-react";
+import { Plus, Eye, EyeOff, ExternalLink, Trash2, Briefcase, Globe, Loader2 } from "lucide-react";
 import { PORTFOLIO_CATEGORIA_LABEL } from "@/types/portfolio";
 import { SERVICO_SLUG } from "@/types/servico";
 import {
@@ -17,7 +17,7 @@ import {
 import { Topbar } from "@/components/painel/Topbar";
 import { PortfolioForm } from "./PortfolioForm";
 import type { PortfolioItem, PortfolioCategoria } from "@/types/portfolio";
-import { safeDelete } from "@/lib/safe-fetch";
+import { safeDelete, safeJsonPatch } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
@@ -25,7 +25,7 @@ type Props = {
   items: PortfolioItem[];
 };
 
-type Filter = "all" | PortfolioCategoria | "destaque";
+type Filter = "all" | PortfolioCategoria | "destaque" | "escondidos";
 
 export function PortfolioClient({ items }: Props) {
   const router = useRouter();
@@ -37,11 +37,12 @@ export function PortfolioClient({ items }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: items.length, destaque: 0 };
+    const c: Record<string, number> = { all: items.length, destaque: 0, escondidos: 0 };
     for (const s of SERVICO_SLUG) c[s] = 0;
     for (const it of items) {
       if (it.categoria) c[it.categoria] = (c[it.categoria] ?? 0) + 1;
       if (it.destaqueLanding) c.destaque += 1;
+      if (it.escondido) c.escondidos += 1;
     }
     return c;
   }, [items]);
@@ -49,8 +50,28 @@ export function PortfolioClient({ items }: Props) {
   const filtered = useMemo(() => {
     if (filter === "all") return items;
     if (filter === "destaque") return items.filter((i) => i.destaqueLanding);
+    if (filter === "escondidos") return items.filter((i) => i.escondido);
     return items.filter((i) => i.categoria === filter);
   }, [items, filter]);
+
+  async function toggleEscondido(item: PortfolioItem, e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setBusyId(item.id);
+    const res = await safeJsonPatch(`/api/portfolio/${encodeURIComponent(item.id)}`, {
+      escondido: !item.escondido,
+    });
+    setBusyId(null);
+    if (!res.ok) {
+      toast({ title: "Erro a alterar visibilidade", description: res.error, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: item.escondido ? "Trabalho visível no site" : "Trabalho escondido do site",
+      variant: "success",
+    });
+    startTransition(() => router.refresh());
+  }
 
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.preventDefault();
@@ -119,6 +140,7 @@ export function PortfolioClient({ items }: Props) {
           </button>
         ))}
         {tab("destaque", "Destaques", counts.destaque)}
+        {tab("escondidos", "Escondidos", counts.escondidos)}
       </div>
 
       {filtered.length === 0 ? (
@@ -132,7 +154,7 @@ export function PortfolioClient({ items }: Props) {
           {filtered.map((item) => (
             <div key={item.id} className="port group" style={{ position: "relative" }}>
               <Link href={`/painel/portfolio/${item.id}`} className="block">
-                <div className="ph">
+                <div className="ph" style={item.escondido ? { opacity: 0.45 } : undefined}>
                   {item.imageUrl ? (
                     <Image
                       src={item.imageUrl}
@@ -144,11 +166,24 @@ export function PortfolioClient({ items }: Props) {
                   ) : (
                     "[ imagem trabalho ]"
                   )}
-                  {item.destaqueLanding && (
-                    <span className="pill warm" style={{ position: "absolute", top: 8, left: 8 }}>
-                      Destaque
-                    </span>
-                  )}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    {item.destaqueLanding && <span className="pill warm">Destaque</span>}
+                    {item.escondido && (
+                      <span className="pill" style={{ background: "var(--ink)", color: "var(--cream)" }}>
+                        Escondido
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="pb">
                   <div className="pt">{item.categoria ? PORTFOLIO_CATEGORIA_LABEL[item.categoria] : "Sem categoria"}</div>
@@ -156,9 +191,32 @@ export function PortfolioClient({ items }: Props) {
                 </div>
               </Link>
               <div
-                className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                className={
+                  item.escondido
+                    ? "transition-opacity"
+                    : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                }
                 style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 6 }}
               >
+                <button
+                  type="button"
+                  onClick={(e) => toggleEscondido(item, e)}
+                  disabled={busyId === item.id}
+                  className="icon-btn"
+                  style={{ background: "var(--cream)" }}
+                  aria-label={
+                    item.escondido
+                      ? `Mostrar ${item.title.pt} no site`
+                      : `Esconder ${item.title.pt} do site`
+                  }
+                  title={item.escondido ? "Mostrar no site" : "Esconder do site"}
+                >
+                  {item.escondido ? (
+                    <EyeOff className="ic" aria-hidden="true" />
+                  ) : (
+                    <Eye className="ic" aria-hidden="true" />
+                  )}
+                </button>
                 {item.url && (
                   <a
                     href={item.url}
@@ -166,9 +224,10 @@ export function PortfolioClient({ items }: Props) {
                     rel="noopener noreferrer"
                     className="icon-btn"
                     style={{ background: "var(--cream)" }}
-                    aria-label={`Ver ${item.title.pt} no site`}
+                    aria-label={`Abrir o site de ${item.title.pt}`}
+                    title="Abrir o site do trabalho"
                   >
-                    <Eye className="ic" aria-hidden="true" />
+                    <ExternalLink className="ic" aria-hidden="true" />
                   </a>
                 )}
                 <button

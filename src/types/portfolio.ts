@@ -15,5 +15,7 @@ export type PortfolioItem = {
   url: string;
   categoria: PortfolioCategoria | null;
   destaqueLanding: boolean;
+  /** true = arquivado/escondido do site público (landing + /portfolio). */
+  escondido: boolean;
   createdAt?: string;
 };
