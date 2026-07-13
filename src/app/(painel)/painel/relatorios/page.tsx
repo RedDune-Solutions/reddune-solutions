@@ -6,6 +6,7 @@ import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { Topbar } from "@/components/painel/Topbar";
 import { DespesasSection } from "@/components/painel/DespesasSection";
 import { DespesaFormSheet } from "@/components/painel/DespesaFormSheet";
+import { DualLineChart } from "@/components/painel/DualLineChart";
 import { STATUS_GROUPS, TIPO_TO_CATEGORIA } from "@/types/projeto";
 import { DESPESA_CATEGORIA_LABEL, DESPESA_CATEGORIA_ORDER } from "@/types/despesa";
 import type { Pagamento } from "@/types/pagamento";
@@ -20,75 +21,8 @@ function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }
 
-function fmtAxis(v: number): string {
-  if (v >= 1000) return `${(v / 1000).toLocaleString("pt-PT", { maximumFractionDigits: 1 })}k`;
-  return String(Math.round(v));
-}
-
 function fmtEuro(v: number): string {
   return `${Math.round(v).toLocaleString("pt-PT")} €`;
-}
-
-// ---- Gráfico SVG "Receita vs Gastos" (geometria do protótipo, linhas 786-800) ----
-
-/** Receita (linha #d6422a cheia + área gradiente + pontos) vs Gastos (#b0793f tracejada). */
-function DualLineChart({ data }: { data: { l: string; rec: number; gas: number }[] }) {
-  const w = 700;
-  const h = 220;
-  const x0 = 56; // primeiro ponto
-  const x1 = 680; // último ponto
-  const yBase = 180; // linha do 0
-  const yTop = 40; // linha do máximo
-  const maxData = Math.max(...data.map((d) => Math.max(d.rec, d.gas)), 0);
-  const max = Math.max(1, maxData);
-  const step = data.length > 1 ? (x1 - x0) / (data.length - 1) : 0;
-  const x = (i: number) => x0 + i * step;
-  const y = (v: number) => yBase - (v / max) * (yBase - yTop);
-  const recPts = data.map((d, i) => `${x(i)},${y(d.rec)}`).join(" ");
-  const gasPts = data.map((d, i) => `${x(i)},${y(d.gas)}`).join(" ");
-  const areaPts = `${recPts} ${x(data.length - 1)},${yBase} ${x(0)},${yBase}`;
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Gráfico de receita e gastos mensais">
-      <defs>
-        <linearGradient id="rev-area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#d6422a" stopOpacity=".20" />
-          <stop offset="100%" stopColor="#d6422a" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <line x1="46" y1={yBase} x2="690" y2={yBase} stroke="rgba(90,14,14,.14)" />
-      <line x1="46" y1="110" x2="690" y2="110" stroke="rgba(90,14,14,.06)" />
-      <line x1="46" y1={yTop} x2="690" y2={yTop} stroke="rgba(90,14,14,.06)" />
-      <text x="40" y={yBase + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="#8c7563">0</text>
-      {maxData > 0 && (
-        <>
-          <text x="40" y="114" textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="#8c7563">{fmtAxis(max / 2)}</text>
-          <text x="40" y={yTop + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="#8c7563">{fmtAxis(max)}</text>
-        </>
-      )}
-      <polygon points={areaPts} fill="url(#rev-area)" />
-      <polyline points={recPts} fill="none" stroke="#d6422a" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-      <g fill="#d6422a">
-        {data.map((d, i) =>
-          i === data.length - 1 ? (
-            <circle key={i} cx={x(i)} cy={y(d.rec)} r="4.5" stroke="#faf4e3" strokeWidth="2" />
-          ) : (
-            <circle key={i} cx={x(i)} cy={y(d.rec)} r="3.5" />
-          )
-        )}
-      </g>
-      <polyline points={gasPts} fill="none" stroke="#b0793f" strokeWidth="2" strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round" />
-      <g fill="#b0793f">
-        {data.map((d, i) => (
-          <circle key={i} cx={x(i)} cy={y(d.gas)} r="3" />
-        ))}
-      </g>
-      <g fontFamily="var(--font-mono)" fontSize="10" fill="#8c7563" textAnchor="middle">
-        {data.map((d, i) => (
-          <text key={i} x={x(i)} y="206">{d.l}</text>
-        ))}
-      </g>
-    </svg>
-  );
 }
 
 export default async function RelatoriosPage() {
