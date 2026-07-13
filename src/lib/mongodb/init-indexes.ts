@@ -17,6 +17,12 @@ async function doInit(): Promise<void> {
       { "portal.tokenHash": 1 },
       { unique: true, partialFilterExpression: { "portal.tokenHash": { $type: "string" } } }
     ),
+    // Código de referência único (safety net; a geração já é atómica via
+    // contador). Parcial: só documentos com ref string entram no índice.
+    db.collection("projetos").createIndex(
+      { ref: 1 },
+      { unique: true, partialFilterExpression: { ref: { $type: "string" } } }
+    ),
 
     db.collection("portal_comentarios").createIndex({ id: 1 }, { unique: true }),
     db.collection("portal_comentarios").createIndex({ projetoId: 1, criadoEm: -1 }),

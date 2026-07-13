@@ -75,12 +75,12 @@ export async function POST(request: Request) {
     categoriaFinal = TIPO_TO_CATEGORIA[tipoFinal];
   }
 
-  // Código de referência: gerado UMA vez ao criar (max do prefixo + 1);
-  // estável — preserva o existente em updates, nunca regenera.
-  let refFinal = pick("ref", null);
-  if (!input.id && !refFinal) {
-    refFinal = await nextRefForPrefix(refPrefixForCategoria(categoriaFinal));
-  }
+  // Código de referência: server-controlled e IMUTÁVEL. Gera atomicamente no
+  // insert (quando não existe doc, mesmo que o payload traga um id órfão);
+  // preserva o existente no update. Nunca aceita `ref` vindo do cliente.
+  const refFinal = existing
+    ? existing.ref ?? null
+    : await nextRefForPrefix(refPrefixForCategoria(categoriaFinal));
 
   const statusFinal = input.status ?? existing?.status ?? "proximo";
   const wasOpen = existing && existing.status !== "terminado" && existing.status !== "fechado";

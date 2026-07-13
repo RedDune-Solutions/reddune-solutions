@@ -442,7 +442,6 @@
 .pnl .badge.aguarda { background: rgba(200,155,106,.20); color: #8a6414; }
 .pnl .badge.terminado { background: rgba(122,138,92,.18); color: var(--dune); }
 .pnl .badge.fechado { background: rgba(122,138,92,.14); color: var(--dune); }
-.pnl .badge.cancelado { background: #e8d8d4; color: #6e3a2a; }
 .pnl .badge.divida { background: rgba(214, 66, 42, 0.14); color: var(--dune); }
 .pnl .form-row { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); }
 .pnl .form-row.three { grid-template-columns: repeat(3, 1fr); }

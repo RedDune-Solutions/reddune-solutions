@@ -151,11 +151,18 @@ export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props)
       tipoLabel =
         tipoSlug === "web"
           ? "Website"
-          : PROJETO_TIPO_LABEL[tipoSlug as ProjetoTipo] ?? tipoSlug;
+          : PROJETO_TIPO_LABEL[tipoSlug as ProjetoTipo] ??
+            customTipos.find((c) => c.slug === tipoSlug)?.label ??
+            tipoSlug;
     }
     const objeto = projeto?.hardware?.modelo?.trim() ?? "";
-    const cliente =
-      clientesList.find((c) => c.id === clienteId)?.nome ?? projeto?.clienteNome ?? "";
+    // Cliente vazio -> sem cliente. Só recorre ao clienteNome do projecto se o
+    // cliente seleccionado for o mesmo do projecto (evita meter no título um
+    // cliente que foi removido/trocado).
+    const cliente = !clienteId
+      ? ""
+      : clientesList.find((c) => c.id === clienteId)?.nome ??
+        (clienteId === projeto?.clienteId ? projeto?.clienteNome ?? "" : "");
     const esquerda = [tipoLabel, objeto].filter(Boolean).join(" ");
     if (!esquerda) return cliente;
     return cliente ? `${esquerda} — ${cliente}` : esquerda;

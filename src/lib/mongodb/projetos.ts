@@ -21,20 +21,22 @@ export async function getProjetoById(id: string): Promise<Projeto | null> {
 
 /**
  * Próximo código de referência para um prefixo (ex.: "AT" -> "AT-0043").
- * Máximo sequencial existente do prefixo + 1, 4 dígitos com zeros à esquerda.
+ * Contador ATÓMICO por prefixo (findOneAndUpdate $inc) — sem race de
+ * read-modify-write, monotónico, e não depende de fazer parse de texto (por
+ * isso sobrevive a >9999). O contador é semeado com o máximo existente na
+ * migração retroactiva.
  */
 export async function nextRefForPrefix(prefix: string): Promise<string> {
   const db = await getDb();
-  const docs = await db
-    .collection<Projeto>(COLLECTION)
-    .find({ ref: { $regex: `^${prefix}-\\d{4}$` } }, { projection: { ref: 1, _id: 0 } })
-    .toArray();
-  let max = 0;
-  for (const d of docs) {
-    const m = /-(\d{4})$/.exec(d.ref ?? "");
-    if (m) max = Math.max(max, parseInt(m[1], 10));
-  }
-  return `${prefix}-${String(max + 1).padStart(4, "0")}`;
+  const doc = await db
+    .collection<{ _id: string; seq: number }>("counters")
+    .findOneAndUpdate(
+      { _id: `projeto-ref:${prefix}` },
+      { $inc: { seq: 1 } },
+      { upsert: true, returnDocument: "after" }
+    );
+  const seq = doc?.seq ?? 1;
+  return `${prefix}-${String(seq).padStart(4, "0")}`;
 }
 
 /** Projectos de um cliente. Usa o índice projetos.clienteId (antes filtrava em JS após getAllProjetos). */

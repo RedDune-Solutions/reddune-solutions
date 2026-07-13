@@ -28,9 +28,9 @@ export const linhaSchema = z.object({
 export const projetoSchema = z.object({
   id: z.string().min(1).max(128),
   titulo: z.string().min(1).max(300),
-  // Gerado no servidor ao criar; o form não o envia. Aceite (nullish) para o
-  // caso de round-trip, mas nunca é regenerado num update.
-  ref: z.string().max(32).nullish(),
+  // `ref` NÃO está no schema de propósito: é gerado e gerido só no servidor.
+  // z.object descarta chaves desconhecidas, por isso um `ref` no payload é
+  // ignorado (imutável do lado do cliente).
   clienteId: z.string().max(128).nullish(),
   clienteNome: z.string().max(300).nullish(),
   proximaAccao: z.string().max(500).nullish(),
