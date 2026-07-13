@@ -530,15 +530,15 @@
 }
 @media (max-width: 640px) {
   .pnl .main { padding: 16px 14px 96px; }
-  .pnl .kanban { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 80vw; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  /* Colunas do kanban EMPILHADAS em telemóvel. O carrossel horizontal
+     anterior (colunas 80vw lado a lado com swipe) escondia colunas fora do
+     ecrã e lia-se como "não responsivo". */
+  .pnl .kanban { grid-template-columns: 1fr; }
   .pnl .tbl th, .pnl .tbl td { padding: 10px 10px; }
   .pnl .col-hide-sm { display: none !important; }
   .pnl .prod-grid, .pnl .port-grid { grid-template-columns: 1fr; }
   .pnl .greet { font-size: 21px; }
   .pnl .pd-money { gap: 18px; }
-}
-@media (max-width: 400px) {
-  .pnl .kanban { grid-auto-columns: 86vw; }
 }
 
 /* ---- Bottom nav (mobile) — mantido do painel actual ---- */
