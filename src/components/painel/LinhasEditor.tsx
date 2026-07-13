@@ -1,7 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { Plus, Trash2, Copy } from "lucide-react";
+import { Plus, Trash2, Copy, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
   LINHA_CATEGORIA,
@@ -148,7 +154,7 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   className="in-sm lpreco"
                   type="number"
                   inputMode="decimal"
-                  step="0.01"
+                  step="0.5"
                   min="0"
                   placeholder="€"
                   value={l.precoUnit}
@@ -156,60 +162,66 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   disabled={disabled}
                   aria-label="Preço unitário"
                 />
-                <span className="lsub">{subtotal.toFixed(2)}€</span>
-                <input
-                  type="checkbox"
-                  className="lchk"
-                  title="Gasto da empresa (dinheiro que saiu do teu bolso)"
-                  aria-label="Gasto da empresa"
-                  checked={!!l.gastoEmpresa}
-                  onChange={(e) =>
-                    updateLinha(l.id, {
-                      gastoEmpresa: e.target.checked,
-                      // Ao marcar, pré-preenche com hoje (regime de caixa:
-                      // normalmente compras quando registas). Editável.
-                      ...(e.target.checked && !l.data ? { data: hojeIso() } : {}),
-                    })
-                  }
-                  disabled={disabled}
-                />
-                <button
-                  type="button"
-                  className="icon-mini"
-                  onClick={() => duplicateLinha(l)}
-                  disabled={disabled}
-                  title="Duplicar linha"
-                  aria-label="Duplicar linha"
-                >
-                  <Copy aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className="icon-mini"
-                  onClick={() => removeLinha(l.id)}
-                  disabled={disabled}
-                  title="Remover linha"
-                  aria-label="Remover linha"
-                >
-                  <Trash2 aria-hidden="true" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="icon-mini lmenu"
+                      disabled={disabled}
+                      title="Acções da linha"
+                      aria-label="Acções da linha"
+                    >
+                      <MoreVertical aria-hidden="true" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => duplicateLinha(l)}>
+                      <Copy style={{ width: 13, height: 13, marginRight: 6 }} aria-hidden="true" />
+                      Duplicar linha
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => removeLinha(l.id)}
+                      style={{ color: "var(--ember)" }}
+                    >
+                      <Trash2 style={{ width: 13, height: 13, marginRight: 6 }} aria-hidden="true" />
+                      Remover linha
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-                {/* Data do gasto — só interessa para linhas gasto-da-empresa
-                    (regime de caixa: o gasto conta no mês em que pagaste). */}
-                {l.gastoEmpresa && (
-                  <div className="ldata">
-                    <label htmlFor={`linha-data-${l.id}`}>Data do gasto</label>
+                {/* Sub-linha fixa: gasto da empresa (com label visível), data
+                    do gasto (regime de caixa) e subtotal. */}
+                <div className="ldata">
+                  <label className="lgasto">
                     <input
-                      id={`linha-data-${l.id}`}
+                      type="checkbox"
+                      className="lchk"
+                      checked={!!l.gastoEmpresa}
+                      onChange={(e) =>
+                        updateLinha(l.id, {
+                          gastoEmpresa: e.target.checked,
+                          // Ao marcar, pré-preenche com hoje (regime de caixa:
+                          // normalmente compras quando registas). Editável.
+                          ...(e.target.checked && !l.data ? { data: hojeIso() } : {}),
+                        })
+                      }
+                      disabled={disabled}
+                    />
+                    Gasto da empresa
+                  </label>
+                  {l.gastoEmpresa && (
+                    <input
                       className="in-sm"
                       type="date"
                       value={l.data ?? ""}
                       onChange={(e) => updateLinha(l.id, { data: e.target.value || null })}
                       disabled={disabled}
+                      title="Data em que pagaste (vazio = conta no mês do projecto)"
+                      aria-label="Data do gasto"
                     />
-                    <span className="lhint">vazio = conta no mês do projecto</span>
-                  </div>
-                )}
+                  )}
+                  <span className="lsub">{subtotal.toFixed(2)}€</span>
+                </div>
               </div>
             );
           })}
