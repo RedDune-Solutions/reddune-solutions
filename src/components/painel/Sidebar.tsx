@@ -15,20 +15,12 @@ import { cn } from "@/lib/utils";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import {
   PAINEL_NAV_DEFAULT,
+  PAINEL_CATEGORIAS,
   applyTabOrder,
   readTabOrder,
   TAB_ORDER_EVENT,
   type PainelNavItem,
 } from "@/lib/painel-nav";
-
-// Hrefs that belong to the "Conteúdo · Sistema" section (everything else = Principal).
-const SYSTEM_HREFS = new Set([
-  "/painel/precos",
-  "/painel/loja",
-  "/painel/portfolio",
-  "/painel/auditoria",
-  "/painel/definicoes",
-]);
 
 type Props = {
   user: { name?: string | null; email?: string | null };
@@ -69,9 +61,6 @@ export function Sidebar({ user, counts, collapsed = false, onToggleCollapsed }: 
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   const initial = (user.name ?? user.email ?? "?").slice(0, 1).toUpperCase();
-
-  const principal = nav.filter((n) => !SYSTEM_HREFS.has(n.href));
-  const sistema = nav.filter((n) => SYSTEM_HREFS.has(n.href));
 
   const renderItem = ({ href, label, Icon, exact }: PainelNavItem) => {
     const active = isActive(href, exact);
@@ -127,19 +116,18 @@ export function Sidebar({ user, counts, collapsed = false, onToggleCollapsed }: 
         </button>
       </div>
 
-      <div>
-        {!collapsed && <div className="side-section-label">Principal</div>}
-        <nav className="side-nav" aria-label="Navegação principal">
-          {principal.map(renderItem)}
-        </nav>
-      </div>
-
-      <div>
-        {!collapsed && <div className="side-section-label">Conteúdo · Sistema</div>}
-        <nav className="side-nav" aria-label="Conteúdo e sistema">
-          {sistema.map(renderItem)}
-        </nav>
-      </div>
+      {PAINEL_CATEGORIAS.map((cat) => {
+        const itens = nav.filter((n) => n.category === cat.id);
+        if (itens.length === 0) return null;
+        return (
+          <div key={cat.id}>
+            {!collapsed && <div className="side-section-label">{cat.label}</div>}
+            <nav className="side-nav" aria-label={cat.label}>
+              {itens.map(renderItem)}
+            </nav>
+          </div>
+        );
+      })}
 
       <div className="side-spacer" />
 

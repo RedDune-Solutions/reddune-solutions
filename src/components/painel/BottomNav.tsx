@@ -45,21 +45,26 @@ export function BottomNav({ counts }: { counts?: Record<string, number> }) {
   return (
     <nav className="pnl-bottomnav" aria-label="Navegação do painel">
       <div className="pnl-bottomnav__scroll" ref={scrollRef}>
-        {nav.map(({ href, label, Icon, exact }) => {
+        {nav.map((item, i) => {
+          const { href, label, Icon, exact } = item;
           const active = isActive(href, exact);
           const count = counts?.[href];
+          // Separador quando muda de categoria (reflecte os grupos na barra).
+          const newGroup = i > 0 && nav[i - 1]!.category !== item.category;
           return (
-            <Link
-              key={href}
-              href={href}
-              ref={active ? activeRef : undefined}
-              className={cn("pnl-bottomnav__item", active && "active")}
-              aria-current={active ? "page" : undefined}
-            >
-              {count != null && count > 0 && <span className="count">{count}</span>}
-              <Icon className="ic" aria-hidden="true" />
-              <span>{label}</span>
-            </Link>
+            <div key={href} className="contents">
+              {newGroup && <span className="pnl-bottomnav__sep" aria-hidden="true" />}
+              <Link
+                href={href}
+                ref={active ? activeRef : undefined}
+                className={cn("pnl-bottomnav__item", active && "active")}
+                aria-current={active ? "page" : undefined}
+              >
+                {count != null && count > 0 && <span className="count">{count}</span>}
+                <Icon className="ic" aria-hidden="true" />
+                <span>{label}</span>
+              </Link>
+            </div>
           );
         })}
       </div>

@@ -550,5 +550,7 @@
 .pnl .pnl-bottomnav__item.active { background: rgba(214, 66, 42, 0.22); color: #faf4e3; }
 .pnl .pnl-bottomnav__item.active .ic { color: var(--ember); }
 .pnl-bottomnav__item .count { position: absolute; top: 2px; right: 8px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; background: var(--ember); color: #faf4e3; font-size: 9px; line-height: 15px; text-align: center; }
+/* Separador entre categorias na barra inferior. */
+.pnl-bottomnav__sep { flex: 0 0 auto; align-self: center; width: 1px; height: 26px; margin: 0 4px; background: rgba(255, 255, 255, 0.12); }
 .pnl-bottomnav { display: none; }
 @media (max-width: 1023px) { .pnl-bottomnav { display: block; } }

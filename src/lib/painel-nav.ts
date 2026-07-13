@@ -16,42 +16,72 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type PainelCategoria = "principal" | "site" | "ferramentas";
+
 export type PainelNavItem = {
   href: string;
   label: string;
   Icon: LucideIcon;
   exact?: boolean;
+  category: PainelCategoria;
+};
+
+/** Categorias da navegação, na ordem em que aparecem. */
+export const PAINEL_CATEGORIAS: { id: PainelCategoria; label: string }[] = [
+  { id: "principal", label: "Principal" },
+  { id: "site", label: "Site público" },
+  { id: "ferramentas", label: "Ferramentas" },
+];
+
+const CAT_ORDER: Record<PainelCategoria, number> = {
+  principal: 0,
+  site: 1,
+  ferramentas: 2,
 };
 
 export const PAINEL_NAV_DEFAULT: PainelNavItem[] = [
-  { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true },
-  { href: "/painel/tarefas", label: "Tarefas", Icon: ListChecks },
-  { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban },
-  { href: "/painel/clientes", label: "Clientes", Icon: Users },
-  { href: "/painel/leads", label: "Leads", Icon: Inbox },
-  { href: "/painel/procurar", label: "Procurar", Icon: Search },
-  { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle },
-  { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays },
-  { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3 },
-  { href: "/painel/precos", label: "Serviços", Icon: Tag },
-  { href: "/painel/loja", label: "Loja", Icon: ShoppingBag },
-  { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase },
-  { href: "/painel/auditoria", label: "Auditoria", Icon: History },
-  { href: "/painel/definicoes", label: "Definições", Icon: Settings },
+  // Principal — trabalho do dia-a-dia.
+  { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true, category: "principal" },
+  { href: "/painel/tarefas", label: "Tarefas", Icon: ListChecks, category: "principal" },
+  { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban, category: "principal" },
+  { href: "/painel/clientes", label: "Clientes", Icon: Users, category: "principal" },
+  { href: "/painel/leads", label: "Leads", Icon: Inbox, category: "principal" },
+  { href: "/painel/dividas", label: "Dívidas", Icon: AlertTriangle, category: "principal" },
+  { href: "/painel/calendario", label: "Calendário", Icon: CalendarDays, category: "principal" },
+  // Site público — edição da landing / loja / portfólio.
+  { href: "/painel/precos", label: "Serviços", Icon: Tag, category: "site" },
+  { href: "/painel/loja", label: "Loja", Icon: ShoppingBag, category: "site" },
+  { href: "/painel/portfolio", label: "Portfólio", Icon: Briefcase, category: "site" },
+  // Ferramentas — relatórios, pesquisa, definições, auditoria.
+  { href: "/painel/relatorios", label: "Relatórios", Icon: BarChart3, category: "ferramentas" },
+  { href: "/painel/procurar", label: "Procurar", Icon: Search, category: "ferramentas" },
+  { href: "/painel/definicoes", label: "Definições", Icon: Settings, category: "ferramentas" },
+  { href: "/painel/auditoria", label: "Auditoria", Icon: History, category: "ferramentas" },
 ];
+
+/**
+ * Ordena por categoria (ordem fixa das categorias), preservando a ordem
+ * relativa dentro de cada categoria (Array.sort é estável). Garante que a
+ * ordem das tabs é sempre o reflexo das categorias.
+ */
+export function groupByCategoria(nav: PainelNavItem[]): PainelNavItem[] {
+  return [...nav].sort((a, b) => CAT_ORDER[a.category] - CAT_ORDER[b.category]);
+}
 
 export const TAB_ORDER_KEY = "painel.tabOrder";
 export const TAB_ORDER_EVENT = "painel:tabOrderChanged";
 
 /**
- * Aplica ordem custom (array de hrefs) ao NAV default. Itens não listados
- * ficam no fim na ordem default. Hrefs inválidos são ignorados.
+ * Aplica ordem custom (array de hrefs) ao NAV default e RE-AGRUPA por
+ * categoria — a ordem custom só reordena dentro de cada categoria; nunca
+ * mistura categorias. Itens não listados ficam no fim (dentro da sua
+ * categoria). Hrefs inválidos são ignorados.
  */
 export function applyTabOrder(
   order: string[] | null,
   nav: PainelNavItem[] = PAINEL_NAV_DEFAULT
 ): PainelNavItem[] {
-  if (!order || order.length === 0) return nav;
+  if (!order || order.length === 0) return groupByCategoria(nav);
   const byHref = new Map(nav.map((n) => [n.href, n]));
   const result: PainelNavItem[] = [];
   const seen = new Set<string>();
@@ -65,7 +95,7 @@ export function applyTabOrder(
   for (const item of nav) {
     if (!seen.has(item.href)) result.push(item);
   }
-  return result;
+  return groupByCategoria(result);
 }
 
 export function readTabOrder(): string[] | null {
