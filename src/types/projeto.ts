@@ -160,6 +160,9 @@ export interface ProjetoLinha {
   // comprou/pagou do bolso), não só o preço que o cliente paga. Alimenta os
   // relatórios de gastos. Default false (undefined trata-se como false).
   gastoEmpresa?: boolean;
+  // Data (yyyy-mm-dd) em que o gasto aconteceu — regime de caixa. Opcional:
+  // vazio/null cai no comportamento antigo (mês do dataCriado do projecto).
+  data?: string | null;
 }
 
 /** Total de gasto da empresa nas linhas de um projecto (só linhas marcadas). */

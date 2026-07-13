@@ -30,10 +30,14 @@ export type GastoEvent = {
 export function collectGastos(projetos: Projeto[], despesas: Despesa[]): GastoEvent[] {
   const events: GastoEvent[] = [];
   for (const p of projetos) {
-    const data = projetoGastoDate(p);
-    if (!data || !p.linhas) continue;
+    const fallback = projetoGastoDate(p);
+    if (!p.linhas) continue;
     for (const l of p.linhas) {
       if (!l.gastoEmpresa) continue;
+      // Regime de caixa: data própria da linha (quando o Iuri pagou) tem
+      // prioridade; sem data, cai no mês do projecto como antes.
+      const data = l.data ?? fallback;
+      if (!data) continue;
       events.push({
         data,
         valor: l.quantidade * l.precoUnit,

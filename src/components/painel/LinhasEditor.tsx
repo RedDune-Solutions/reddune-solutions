@@ -36,6 +36,13 @@ function newLinhaId(): string {
   return `l_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Data LOCAL de hoje (yyyy-mm-dd). Nunca toISOString: à meia-noite local
+// deslocaria para o dia anterior em UTC.
+function hojeIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function computeTotal(linhas: ProjetoLinha[]): number {
   return linhas.reduce((sum, l) => sum + l.quantidade * l.precoUnit, 0);
 }
@@ -156,7 +163,14 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                   title="Gasto da empresa (dinheiro que saiu do teu bolso)"
                   aria-label="Gasto da empresa"
                   checked={!!l.gastoEmpresa}
-                  onChange={(e) => updateLinha(l.id, { gastoEmpresa: e.target.checked })}
+                  onChange={(e) =>
+                    updateLinha(l.id, {
+                      gastoEmpresa: e.target.checked,
+                      // Ao marcar, pré-preenche com hoje (regime de caixa:
+                      // normalmente compras quando registas). Editável.
+                      ...(e.target.checked && !l.data ? { data: hojeIso() } : {}),
+                    })
+                  }
                   disabled={disabled}
                 />
                 <button
@@ -179,6 +193,46 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
                 >
                   <Trash2 aria-hidden="true" />
                 </button>
+
+                {/* Data do gasto — só interessa para linhas gasto-da-empresa
+                    (regime de caixa: o gasto conta no mês em que pagaste). */}
+                {l.gastoEmpresa && (
+                  <div
+                    style={{
+                      gridColumn: "1 / -1",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      paddingTop: 2,
+                    }}
+                  >
+                    <label
+                      htmlFor={`linha-data-${l.id}`}
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        letterSpacing: ".1em",
+                        color: "#8a5a24",
+                      }}
+                    >
+                      Data do gasto
+                    </label>
+                    <input
+                      id={`linha-data-${l.id}`}
+                      className="in-sm"
+                      type="date"
+                      style={{ width: 150 }}
+                      value={l.data ?? ""}
+                      onChange={(e) => updateLinha(l.id, { data: e.target.value || null })}
+                      disabled={disabled}
+                    />
+                    <span style={{ fontSize: 11, color: "var(--ink-mute)", fontStyle: "italic" }}>
+                      vazio = conta no mês do projecto
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}

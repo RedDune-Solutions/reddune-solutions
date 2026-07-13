@@ -15,6 +15,10 @@ export const linhaSchema = z.object({
   quantidade: z.number().finite().min(0),
   precoUnit: z.number().finite(),
   gastoEmpresa: z.boolean().optional(),
+  data: z.preprocess(
+    (v) => (v === "" || v === undefined ? null : v),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  ),
 });
 
 export const projetoSchema = z.object({
