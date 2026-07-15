@@ -51,12 +51,30 @@ export function DualLineChart({ data }: { data: Point[] }) {
   const areaPts = `${recPts} ${x(serie.length - 1)},${yBase} ${x(0)},${yBase}`;
 
   // Tooltip: caixa ancorada acima do ponto mais alto do mês, sem sair do svg.
+  // A largura é MEDIDA pelo conteúdo — com largura fixa, valores de 4 dígitos
+  // pintavam texto fora da caixa e o bordo do svg cortava o Lucro.
   const tip = hover !== null ? serie[hover] : null;
-  const tipW = 148;
-  const tipH = 66;
+  const tipEyebrow = tip ? `${tip.l}${modo === "acumulado" ? " · acumulado" : ""}` : "";
+  const tipLinhas = tip
+    ? [
+        `Receita ${fmtEuro(tip.rec)}`,
+        `Gastos ${fmtEuro(tip.gas)}`,
+        `Lucro ${fmtEuro(tip.rec - tip.gas)}`,
+      ]
+    : [];
+  // Larguras de avanço do mono a 10px (~6.2px/char) e do eyebrow a 9px com
+  // letter-spacing .12em (~6.6px/char). Aproximação com folga — não há como
+  // medir texto sem DOM, e sobrar uns px é melhor que cortar.
+  const tipW = Math.max(
+    132,
+    12 + tipEyebrow.length * 6.6 + 12,
+    ...tipLinhas.map((s) => 26 + s.length * 6.2 + 12)
+  );
+  const tipH = 82;
   const tipX = tip !== null && hover !== null ? Math.min(Math.max(x(hover) - tipW / 2, 8), w - tipW - 8) : 0;
   const tipYRaw = tip !== null && hover !== null ? Math.min(y(tip.rec), y(tip.gas)) - tipH - 12 : 0;
   const tipY = Math.max(4, tipYRaw);
+  const tipLucro = tip ? tip.rec - tip.gas : 0;
 
   return (
     <div>
@@ -164,7 +182,7 @@ export function DualLineChart({ data }: { data: Point[] }) {
           <g pointerEvents="none">
             <rect x={tipX} y={tipY} width={tipW} height={tipH} rx="10" fill="#2a1410" opacity="0.95" />
             <text x={tipX + 12} y={tipY + 18} fontFamily="var(--font-mono)" fontSize="9" fill="#e89968" style={{ textTransform: "uppercase", letterSpacing: ".12em" }}>
-              {tip.l}{modo === "acumulado" ? " · acumulado" : ""}
+              {tipEyebrow}
             </text>
             <circle cx={tipX + 16} cy={tipY + 31} r="3" fill="#d6422a" />
             <text x={tipX + 26} y={tipY + 35} fontFamily="var(--font-mono)" fontSize="10" fill="#faf4e3">
@@ -172,7 +190,24 @@ export function DualLineChart({ data }: { data: Point[] }) {
             </text>
             <circle cx={tipX + 16} cy={tipY + 46} r="3" fill="#b0793f" />
             <text x={tipX + 26} y={tipY + 50} fontFamily="var(--font-mono)" fontSize="10" fill="#faf4e3">
-              Gastos {fmtEuro(tip.gas)} · Lucro {fmtEuro(tip.rec - tip.gas)}
+              Gastos {fmtEuro(tip.gas)}
+            </text>
+            <line
+              x1={tipX + 12}
+              y1={tipY + 58}
+              x2={tipX + tipW - 12}
+              y2={tipY + 58}
+              stroke="rgba(247,238,219,.16)"
+            />
+            <text
+              x={tipX + 26}
+              y={tipY + 72}
+              fontFamily="var(--font-mono)"
+              fontSize="10"
+              fontWeight="700"
+              fill={tipLucro < 0 ? "#f08a6a" : "#faf4e3"}
+            >
+              Lucro {fmtEuro(tipLucro)}
             </text>
           </g>
         )}
