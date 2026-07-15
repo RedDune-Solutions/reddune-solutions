@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Users } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
@@ -42,6 +43,8 @@ function CellLink({ href, children }: { href: string; children: ReactNode }) {
 }
 
 export default async function ClientesPage() {
+  await requirePainelSession();
+
   const [clientes, projetos, pagamentos] = await Promise.all([
     getAllClientes(),
     getAllProjetos(),

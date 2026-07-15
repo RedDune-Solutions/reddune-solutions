@@ -7,10 +7,13 @@ import { PushOptIn } from "@/components/painel/PushOptIn";
 import { getAllProjetoTiposCustom } from "@/lib/mongodb/projeto-tipos-custom";
 import { getBaseTiposRemovidos } from "@/lib/mongodb/projeto-tipos-config";
 import { getCompanySettings } from "@/lib/mongodb/settings";
+import { requirePainelSession } from "@/lib/painel-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function DefinicoesPage() {
+  await requirePainelSession();
+
   const [tiposCustom, baseRemovidos, companySettings] = await Promise.all([
     getAllProjetoTiposCustom(),
     getBaseTiposRemovidos(),

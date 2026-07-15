@@ -3,6 +3,7 @@ import { Check, Mail, ChevronRight } from "lucide-react";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { Topbar } from "@/components/painel/Topbar";
 import type { Projeto } from "@/types/projeto";
 
@@ -38,6 +39,8 @@ export default async function DividasPage({
 }: {
   searchParams: Promise<{ f?: string }>;
 }) {
+  await requirePainelSession();
+
   const [allProjetos, pagamentos, clientes, params] = await Promise.all([
     getAllProjetos(),
     getAllPagamentos(),

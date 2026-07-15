@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Search, FolderKanban, Users, ListChecks } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
@@ -43,6 +44,8 @@ function SearchBig({ defaultValue }: { defaultValue: string }) {
 }
 
 export default async function ProcurarPage({ searchParams }: { searchParams: SearchParams }) {
+  await requirePainelSession();
+
   const params = await searchParams;
   const raw = (params.q ?? "").trim();
   const q = normPesquisa(raw);

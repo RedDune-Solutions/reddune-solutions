@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getPortfolioItemById } from "@/lib/mongodb/portfolio";
 import { Topbar } from "@/components/painel/Topbar";
 import { PortfolioForm } from "@/components/painel/PortfolioForm";
@@ -10,6 +11,8 @@ export const dynamic = "force-dynamic";
 type Params = Promise<{ id: string }>;
 
 export default async function PortfolioDetailPage({ params }: { params: Params }) {
+  await requirePainelSession();
+
   const { id } = await params;
   const item = await getPortfolioItemById(id);
   if (!item) notFound();

@@ -1,4 +1,5 @@
 import { Inbox } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllLeads } from "@/lib/mongodb/leads";
 import { Topbar } from "@/components/painel/Topbar";
 import { PushOptIn } from "@/components/painel/PushOptIn";
@@ -7,6 +8,8 @@ import { LeadsTable } from "@/components/painel/LeadsTable";
 export const dynamic = "force-dynamic";
 
 export default async function LeadsPage() {
+  await requirePainelSession();
+
   const leads = await getAllLeads();
   const novos = leads.filter((l) => l.estado === "novo").length;
   const emCurso = leads.filter(

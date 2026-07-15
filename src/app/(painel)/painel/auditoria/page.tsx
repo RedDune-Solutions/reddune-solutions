@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Topbar } from "@/components/painel/Topbar";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getRecentAuditEntries, type AuditEntry } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +109,8 @@ export default async function AuditoriaPage({
 }: {
   searchParams: Promise<{ op?: string }>;
 }) {
+  await requirePainelSession();
+
   const [all, params] = await Promise.all([getRecentAuditEntries(200), searchParams]);
   const opFilter: OpFilter =
     params.op === "create" || params.op === "update" || params.op === "delete"

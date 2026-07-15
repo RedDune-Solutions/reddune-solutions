@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllTarefas } from "@/lib/mongodb/tarefas";
 import { Topbar } from "@/components/painel/Topbar";
@@ -60,6 +61,8 @@ export default async function CalendarioPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requirePainelSession();
+
   const [projetos, tarefas, params] = await Promise.all([
     getAllProjetos(),
     getAllTarefas(),

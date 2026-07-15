@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FolderKanban, List } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { applyFilters } from "@/lib/filter-projetos";
@@ -40,6 +41,8 @@ function buildHref(base: Record<string, string | undefined>, patch: Record<strin
 }
 
 export default async function ProjetosPage({ searchParams }: { searchParams: SearchParams }) {
+  await requirePainelSession();
+
   const [allProjetos, clientes, params] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),

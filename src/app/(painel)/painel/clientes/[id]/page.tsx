@@ -10,6 +10,7 @@ import { InlineStatusSelect } from "@/components/painel/InlineStatusSelect";
 import { ClienteForm } from "@/components/painel/ClienteForm";
 import { STATUS_GROUPS } from "@/types/projeto";
 import { parseIsoDate } from "@/lib/dates";
+import { requirePainelSession } from "@/lib/painel-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ function fmtDate(iso: string | null | undefined): string {
 }
 
 export default async function ClienteDetailPage({ params }: { params: Params }) {
+  await requirePainelSession();
   const { id } = await params;
   const [cliente, projetos, pagamentos] = await Promise.all([
     getClienteById(id),

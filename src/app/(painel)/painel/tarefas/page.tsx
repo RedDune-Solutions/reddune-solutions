@@ -5,6 +5,7 @@ import { Topbar } from "@/components/painel/Topbar";
 import { TarefasPorProjeto } from "@/components/painel/TarefasPorProjeto";
 import { NovaTarefaGlobalButton } from "@/components/painel/NovaTarefaGlobalButton";
 import { TAREFAS_VISIVEIS_STATUSES } from "@/types/projeto";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,8 @@ export default async function TarefasPage({
 }: {
   searchParams: SearchParams;
 }) {
+  await requirePainelSession();
+
   const [allTarefasRaw, allProjetos, params] = await Promise.all([
     getAllTarefas(),
     getAllProjetos(),

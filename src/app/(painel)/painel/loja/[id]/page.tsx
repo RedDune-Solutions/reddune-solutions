@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getProductById } from "@/lib/mongodb/products";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { Topbar } from "@/components/painel/Topbar";
 import { ProductForm } from "@/components/painel/ProductForm";
 
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 type Params = Promise<{ id: string }>;
 
 export default async function ProdutoDetailPage({ params }: { params: Params }) {
+  await requirePainelSession();
   const { id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
