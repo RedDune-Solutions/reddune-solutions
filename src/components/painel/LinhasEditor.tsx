@@ -34,6 +34,9 @@ type Props = {
 const CAT_CLASS: Record<LinhaCategoria, string> = {
   peca: "cat-peca",
   "mao-obra": "cat-mao",
+  portes: "cat-portes",
+  deslocacao: "cat-desloc",
+  software: "cat-software",
   outro: "cat-outro",
 };
 
@@ -41,6 +44,9 @@ const CAT_CLASS: Record<LinhaCategoria, string> = {
 const CAT_CHIP_STYLE: Record<LinhaCategoria, React.CSSProperties> = {
   peca: { background: "rgba(224,122,63,.10)", color: "#c2560e" },
   "mao-obra": { background: "rgba(56,132,255,.08)", color: "#2563a8" },
+  portes: { background: "rgba(176,121,63,.14)", color: "#8a5a24" },
+  deslocacao: { background: "rgba(124,92,168,.10)", color: "#5b4285" },
+  software: { background: "rgba(31,111,122,.10)", color: "#1f6f7a" },
   outro: { background: "rgba(90,14,14,.05)", color: "var(--ink-soft)" },
 };
 
@@ -60,7 +66,12 @@ export function computeTotal(linhas: ProjetoLinha[]): number {
 }
 
 export function computeByCategoria(linhas: ProjetoLinha[]): Record<LinhaCategoria, number> {
-  const acc: Record<LinhaCategoria, number> = { peca: 0, "mao-obra": 0, outro: 0 };
+  // Construído a partir de LINHA_CATEGORIA — uma categoria nova não pode ficar
+  // com o balde por inicializar (daria NaN ao somar).
+  const acc = Object.fromEntries(LINHA_CATEGORIA.map((c) => [c, 0])) as Record<
+    LinhaCategoria,
+    number
+  >;
   for (const l of linhas) {
     acc[l.categoria] += l.quantidade * l.precoUnit;
   }
@@ -264,7 +275,7 @@ export function LinhasEditor({ linhas, onChange, disabled, gastoDespesas = 0 }: 
             )}
             {linhas.length > 0 && (
               <>
-                {(["peca", "mao-obra", "outro"] as LinhaCategoria[]).map((c) =>
+                {LINHA_CATEGORIA.map((c) =>
                   totals[c] > 0 ? (
                     <span key={c} className="tchip-cat" style={CAT_CHIP_STYLE[c]}>
                       {LINHA_CATEGORIA_LABEL[c]}: {totals[c].toFixed(2)}€

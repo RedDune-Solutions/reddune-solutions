@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import {
+  LINHA_CATEGORIA,
   LINHA_CATEGORIA_LABEL,
   type LinhaCategoria,
   type ProjetoLinha,
@@ -12,23 +13,29 @@ type Props = {
 const CATEGORIA_COLOR: Record<LinhaCategoria, string> = {
   peca: "bg-orange-500/10 text-orange-700 border-orange-500/30",
   "mao-obra": "bg-sky-500/10 text-sky-700 border-sky-500/30",
+  portes: "bg-amber-600/10 text-amber-800 border-amber-600/30",
+  deslocacao: "bg-violet-500/10 text-violet-700 border-violet-500/30",
+  software: "bg-teal-600/10 text-teal-800 border-teal-600/30",
   outro: "bg-slate-500/10 text-slate-700 border-slate-500/30",
 };
 
 export function LinhasBreakdown({ linhas }: Props) {
   const total = linhas.reduce((s, l) => s + l.quantidade * l.precoUnit, 0);
-  const byCat: Record<LinhaCategoria, number> = { peca: 0, "mao-obra": 0, outro: 0 };
+  // Baldes a partir de LINHA_CATEGORIA — acrescentar uma categoria não pode
+  // deixar aqui um `undefined` a rebentar na soma ou no push.
+  const byCat = Object.fromEntries(LINHA_CATEGORIA.map((c) => [c, 0])) as Record<
+    LinhaCategoria,
+    number
+  >;
   for (const l of linhas) byCat[l.categoria] += l.quantidade * l.precoUnit;
 
   // Group rows by categoria
-  const grouped: Record<LinhaCategoria, ProjetoLinha[]> = {
-    peca: [],
-    "mao-obra": [],
-    outro: [],
-  };
+  const grouped = Object.fromEntries(
+    LINHA_CATEGORIA.map((c) => [c, [] as ProjetoLinha[]])
+  ) as Record<LinhaCategoria, ProjetoLinha[]>;
   for (const l of linhas) grouped[l.categoria].push(l);
 
-  const categories: LinhaCategoria[] = ["peca", "mao-obra", "outro"];
+  const categories: readonly LinhaCategoria[] = LINHA_CATEGORIA;
 
   return (
     <div className="space-y-4">

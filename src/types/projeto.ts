@@ -142,12 +142,28 @@ export const CATEGORIA_TIPOS: Record<ServicoSlug, ProjetoTipo[]> = {
 export const PROJETO_LOCAL = ["oficina", "casa-cliente", "remoto"] as const;
 export type ProjetoLocal = (typeof PROJETO_LOCAL)[number];
 
-export const LINHA_CATEGORIA = ["peca", "mao-obra", "outro"] as const;
+// Categorias das linhas de custo. ATENÇÃO: isto é VISÍVEL PARA O CLIENTE — o
+// portal /p/[token] mostra o desdobramento por categoria (ver portal-dto.ts).
+// Por isso só entram aqui coisas que se cobram a um cliente; os custos internos
+// (ferramentas, stock, marketing) vivem nas categorias de despesa, que o cliente
+// não vê. `mao-obra` não tem equivalente nas despesas de propósito: o tempo do
+// Iuri não é dinheiro que saiu do bolso.
+export const LINHA_CATEGORIA = [
+  "peca",
+  "mao-obra",
+  "portes",
+  "deslocacao",
+  "software",
+  "outro",
+] as const;
 export type LinhaCategoria = (typeof LINHA_CATEGORIA)[number];
 
 export const LINHA_CATEGORIA_LABEL: Record<LinhaCategoria, string> = {
   peca: "Peça",
   "mao-obra": "Mão-de-obra",
+  portes: "Portes & envios",
+  deslocacao: "Deslocação",
+  software: "Software & licenças",
   outro: "Outro",
 };
 

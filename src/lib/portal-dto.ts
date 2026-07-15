@@ -58,8 +58,9 @@ export function toPortalProjeto(projeto: Projeto, pagamentos: Pagamento[]): Port
   // antes de fechar o orçamento — o cliente deve ver que o sinal foi registado).
   if (orcado != null || pago > 0) {
     const total = orcado ?? pago;
-    // Subtotais por categoria (Peça / Mão-de-obra / Outro) — sem quantidades,
-    // preços unitários nem descrições (as linhas revelam margens).
+    // Subtotais por categoria de linha (ver LINHA_CATEGORIA) — sem quantidades,
+    // preços unitários nem descrições (as linhas revelam margens). Construído a
+    // partir das linhas do projecto, por isso acompanha categorias novas.
     const porCategoria = new Map<LinhaCategoria, number>();
     for (const l of linhas) {
       porCategoria.set(l.categoria, (porCategoria.get(l.categoria) ?? 0) + l.quantidade * l.precoUnit);

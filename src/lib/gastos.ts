@@ -4,13 +4,25 @@
 //   2. Despesas manuais (colecção `despesas`) — têm data própria.
 // Funções puras sobre dados já carregados (sem DB) — usadas pelo dashboard e
 // pelos relatórios para os números baterem certo entre ecrãs.
-import { computeGastoEmpresa, type Projeto } from "@/types/projeto";
+import { computeGastoEmpresa, type LinhaCategoria, type Projeto } from "@/types/projeto";
 import { DESPESA_CATEGORIA, type Despesa, type DespesaCategoria } from "@/types/despesa";
 
-/** Mapeia a categoria da linha de custo para o balde de despesa dos relatórios. */
-export function linhaCatToDespesaCat(cat: "peca" | "mao-obra" | "outro"): DespesaCategoria {
-  if (cat === "peca") return "pecas";
-  return "outros"; // mão-de-obra e outro caem em "Outros"
+/**
+ * Mapeia a categoria da linha (visível ao cliente) para o balde de despesa dos
+ * relatórios (interno). `mao-obra` cai em "outros": marcada como gasto só faz
+ * sentido quando é trabalho subcontratado, e não há balde próprio para isso.
+ */
+const LINHA_TO_DESPESA: Record<LinhaCategoria, DespesaCategoria> = {
+  peca: "pecas",
+  portes: "portes",
+  deslocacao: "deslocacoes",
+  software: "software",
+  "mao-obra": "outros",
+  outro: "outros",
+};
+
+export function linhaCatToDespesaCat(cat: LinhaCategoria): DespesaCategoria {
+  return LINHA_TO_DESPESA[cat];
 }
 
 /** Data que atribui um gasto de linha de projecto a um mês (proxy: início do projecto). */
