@@ -289,7 +289,7 @@ export default async function RelatoriosPage({
         </div>
         {!temGastosMes ? (
           <p className="muted" style={{ fontSize: 13 }}>
-            Sem gastos registados este mês — marca linhas &quot;gasto da empresa&quot; nos projectos ou regista uma despesa.
+            Sem gastos registados este mês — marca ✓ &quot;Paguei do bolso&quot; nas linhas dos projectos, ou regista uma despesa.
           </p>
         ) : (
           <>

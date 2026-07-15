@@ -112,7 +112,7 @@ export function CustosCard({ projeto, despesas = [] }: Props) {
               textTransform: "none",
             }}
           >
-            ✓ = gasto da empresa
+            ✓ = paguei do meu bolso
           </span>
         </div>
         {dirty && (

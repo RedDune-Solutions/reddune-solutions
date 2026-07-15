@@ -26,11 +26,11 @@ type Props = {
 const VAZIO: Record<GastoFiltro, { titulo: string; desc: string }> = {
   todos: {
     titulo: "Sem gastos registados",
-    desc: 'Marca linhas de custo como "gasto da empresa" nos projectos ou regista uma despesa manual.',
+    desc: 'Marca ✓ "Paguei do bolso" nas linhas de custo dos projectos, ou regista uma despesa manual.',
   },
   linha: {
     titulo: "Sem gastos de projectos",
-    desc: 'Marca linhas de custo como "gasto da empresa" na secção Custos de um projecto.',
+    desc: 'Marca ✓ "Paguei do bolso" nas linhas da secção Custos de um projecto.',
   },
   manual: {
     titulo: "Sem despesas manuais",

@@ -124,8 +124,8 @@ export function LinhasEditor({ linhas, onChange, disabled, gastoDespesas = 0 }: 
   const gastoTotal = gastoLinhas + gastoDespesas;
   const tituloGasto =
     gastoDespesas > 0
-      ? `Linhas marcadas como gasto da empresa (${gastoLinhas.toFixed(2)}€) + despesas ligadas a este projecto (${gastoDespesas.toFixed(2)}€)`
-      : "Soma das linhas marcadas como gasto da empresa";
+      ? `Linhas que pagaste do bolso (${gastoLinhas.toFixed(2)}€) + despesas ligadas a este projecto (${gastoDespesas.toFixed(2)}€)`
+      : "Soma das linhas que pagaste do bolso (✓)";
 
   return (
     <div>
@@ -211,7 +211,7 @@ export function LinhasEditor({ linhas, onChange, disabled, gastoDespesas = 0 }: 
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Sub-linha fixa: gasto da empresa (com label visível), data
+                {/* Sub-linha fixa: paguei do bolso (com label visível), data
                     do gasto (regime de caixa) e subtotal. */}
                 <div className="ldata">
                   <label className="lgasto">
@@ -229,7 +229,7 @@ export function LinhasEditor({ linhas, onChange, disabled, gastoDespesas = 0 }: 
                       }
                       disabled={disabled}
                     />
-                    Gasto da empresa
+                    Paguei do bolso
                   </label>
                   {l.gastoEmpresa && (
                     <input
