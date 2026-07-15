@@ -10,7 +10,13 @@ import { DualLineChart } from "@/components/painel/DualLineChart";
 import { STATUS_GROUPS, TIPO_TO_CATEGORIA } from "@/types/projeto";
 import { DESPESA_CATEGORIA_LABEL, DESPESA_CATEGORIA_ORDER } from "@/types/despesa";
 import type { Pagamento } from "@/types/pagamento";
-import { collectGastos, sumGastosInMonth, gastosByCategoria, sortGastosDesc } from "@/lib/gastos";
+import {
+  collectGastos,
+  sumGastosInMonth,
+  gastosByCategoria,
+  sortGastosDesc,
+  gastoEmpresaDoProjeto,
+} from "@/lib/gastos";
 import { todayLisbonDate } from "@/lib/dates";
 import { requirePainelSession } from "@/lib/painel-auth";
 
@@ -129,14 +135,26 @@ export default async function RelatoriosPage({
   const donutBg =
     donutTotal > 0 ? `conic-gradient(${donutStops.join(", ")})` : "conic-gradient(rgba(90,14,14,.08) 0% 100%)";
 
-  // Top clientes por valor pago — todo o histórico (rótulo do card diz "todo o histórico").
-  const pagoPorCliente = new Map<string, number>();
+  // Top clientes por LUCRO — todo o histórico. Ordenar por valor pago engana
+  // quando as peças são passadas a preço de custo: um PC de 2045€ com 1884€ de
+  // componentes deixa 161€, uma app de 650€ sem peças deixa 650€. O gasto por
+  // cliente usa a mesma conta da ficha do projecto (gastoEmpresaDoProjeto).
+  const recPorCliente = new Map<string, number>();
   for (const pg of pagamentos as Pagamento[]) {
     if (!pg.clienteId || !pg.data) continue;
-    pagoPorCliente.set(pg.clienteId, (pagoPorCliente.get(pg.clienteId) ?? 0) + pg.valor);
+    recPorCliente.set(pg.clienteId, (recPorCliente.get(pg.clienteId) ?? 0) + pg.valor);
   }
-  const topClientes = [...pagoPorCliente.entries()]
-    .map(([id, v]) => ({ id, nome: clienteNome.get(id) ?? "(sem nome)", v }))
+  const gastoPorCliente = new Map<string, number>();
+  for (const p of projetos) {
+    if (!p.clienteId) continue;
+    const g = gastoEmpresaDoProjeto(p, despesas.filter((d) => d.projetoId === p.id));
+    if (g > 0) gastoPorCliente.set(p.clienteId, (gastoPorCliente.get(p.clienteId) ?? 0) + g);
+  }
+  const topClientes = [...recPorCliente.entries()]
+    .map(([id, rec]) => {
+      const gas = gastoPorCliente.get(id) ?? 0;
+      return { id, nome: clienteNome.get(id) ?? "(sem nome)", v: rec - gas, rec, gas };
+    })
     .sort((a, b) => b.v - a.v)
     .slice(0, 5);
   const topMax = Math.max(1, ...topClientes.map((x) => x.v));
@@ -179,12 +197,18 @@ export default async function RelatoriosPage({
           </div>
         </div>
         <div className="card">
-          <div className="card-head"><span className="card-title">Top clientes</span><span className="kpi-label">todo o histórico</span></div>
+          <div className="card-head"><span className="card-title">Top clientes</span><span className="kpi-label">por lucro · todo o histórico</span></div>
           {topClientes.length === 0 ? (
             <p className="muted" style={{ fontSize: 13 }}>Sem pagamentos registados.</p>
           ) : (
             topClientes.map((x) => (
-              <div key={x.id} className="bar-row">
+              <div
+                key={x.id}
+                className="bar-row"
+                title={`Recebido ${fmtEuro(x.rec)} − gasto da empresa ${fmtEuro(x.gas)}${
+                  x.rec > 0 ? ` · margem ${Math.round((x.v / x.rec) * 100)}%` : ""
+                }`}
+              >
                 <div className="bl">
                   <Link href={`/painel/clientes/${x.id}`} style={{ color: "inherit" }} className="hover:text-ember">{x.nome}</Link>
                   <b>{fmtEuro(x.v)}</b>
