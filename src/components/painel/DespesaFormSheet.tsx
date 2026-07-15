@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,8 +37,6 @@ export type ProjetoOption = { id: string; titulo: string };
 
 type SheetProps = {
   projetos: ProjetoOption[];
-  /** Trigger personalizado (ex.: botão pequeno num card). Default: botão primário "Registar despesa". */
-  trigger?: ReactNode;
   /** Controlo externo do sheet (ex.: NovoMenu). Sem esta prop gere o próprio estado. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -52,7 +50,6 @@ type SheetProps = {
  */
 export function DespesaFormSheet({
   projetos,
-  trigger,
   open: openProp,
   onOpenChange,
   hideTrigger = false,
@@ -69,12 +66,10 @@ export function DespesaFormSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       {!hideTrigger && (
         <SheetTrigger asChild>
-          {trigger ?? (
-            <button type="button" className="btn-primary">
-              <Plus className="ic" aria-hidden="true" />
-              Registar despesa
-            </button>
-          )}
+          <button type="button" className="btn-primary">
+            <Plus className="ic" aria-hidden="true" />
+            Registar despesa
+          </button>
         </SheetTrigger>
       )}
       <SheetContent side="right" className="flex flex-col p-0">

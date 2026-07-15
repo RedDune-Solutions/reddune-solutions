@@ -3,19 +3,19 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Plus, Receipt, Trash2 } from "lucide-react";
+import { ArrowRight, Receipt, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { safeDelete } from "@/lib/safe-fetch";
 import { DESPESA_CATEGORIA_LABEL, type Despesa } from "@/types/despesa";
-import { DespesaFormSheet, type ProjetoOption } from "./DespesaFormSheet";
+import type { ProjetoOption } from "./DespesaFormSheet";
 
 const MAX_VISIVEIS = 8;
 
 type Props = {
   /** Despesas manuais mais recentes (já ordenadas por data desc no loader). */
   despesas: Despesa[];
-  /** Projectos para o select do form e para mostrar o título quando ligada. */
+  /** Projectos para mostrar o título da despesa quando está ligada a um. */
   projetos: ProjetoOption[];
   /** Destino do "Ver tudo" — o log completo de gastos nos relatórios. */
   verTudoHref?: string;
@@ -35,7 +35,8 @@ function fmtEuro(v: number): string {
 
 /**
  * DespesasSection — card "Despesas recentes" da visão geral: últimas despesas
- * manuais com apagar (optimista) + botão para registar nova (DespesaFormSheet).
+ * manuais com apagar (optimista). Registar é só pelo botão "Novo" da Topbar
+ * (NovoMenu → Nova despesa) — uma entrada única, como projectos/clientes/tarefas.
  * Só mostra as manuais; o log completo (com os gastos de linhas de projecto)
  * vive nos relatórios — ver GastosLog.
  */
@@ -76,26 +77,15 @@ export function DespesasSection({ despesas, projetos, verTudoHref }: Props) {
     <div className="card">
       <div className="card-head">
         <span className="card-title">Despesas recentes</span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
-          <DespesaFormSheet
-            projetos={projetos}
-            trigger={
-              <button type="button" className="btn-ghost">
-                <Plus className="ic" style={{ width: 13, height: 13 }} aria-hidden="true" />
-                Registar
-              </button>
-            }
-          />
-          {verTudoHref && (
-            <Link className="link-more" href={verTudoHref}>
-              Ver tudo <ArrowRight className="ic" aria-hidden="true" />
-            </Link>
-          )}
-        </span>
+        {verTudoHref && (
+          <Link className="link-more" href={verTudoHref}>
+            Ver tudo <ArrowRight className="ic" aria-hidden="true" />
+          </Link>
+        )}
       </div>
       {visiveis.length === 0 ? (
         <p className="muted" style={{ fontSize: 13 }}>
-          Sem despesas manuais registadas. Usa &quot;Registar&quot; para adicionar a primeira.
+          Sem despesas manuais registadas. Regista a primeira no botão &quot;Novo&quot; aqui em cima.
         </p>
       ) : (
         visiveis.map((d) => {
