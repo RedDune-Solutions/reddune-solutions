@@ -4,14 +4,15 @@ import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
 import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { Topbar } from "@/components/painel/Topbar";
-import { DespesasSection } from "@/components/painel/DespesasSection";
+import { GastosLog, type GastoFiltro } from "@/components/painel/GastosLog";
 import { DespesaFormSheet } from "@/components/painel/DespesaFormSheet";
 import { DualLineChart } from "@/components/painel/DualLineChart";
 import { STATUS_GROUPS, TIPO_TO_CATEGORIA } from "@/types/projeto";
 import { DESPESA_CATEGORIA_LABEL, DESPESA_CATEGORIA_ORDER } from "@/types/despesa";
 import type { Pagamento } from "@/types/pagamento";
-import { collectGastos, sumGastosInMonth, gastosByCategoria } from "@/lib/gastos";
+import { collectGastos, sumGastosInMonth, gastosByCategoria, sortGastosDesc } from "@/lib/gastos";
 import { todayLisbonDate } from "@/lib/dates";
+import { requirePainelSession } from "@/lib/painel-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +26,19 @@ function fmtEuro(v: number): string {
   return `${Math.round(v).toLocaleString("pt-PT")} €`;
 }
 
-export default async function RelatoriosPage() {
-  const [projetos, clientes, pagamentos, despesas] = await Promise.all([
+export default async function RelatoriosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ g?: string }>;
+}) {
+  await requirePainelSession();
+
+  const [projetos, clientes, pagamentos, despesas, params] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
     getAllPagamentos(),
     getAllDespesas(),
+    searchParams,
   ]);
 
   const clienteNome = new Map(clientes.map((c) => [c.id, c.nome]));
@@ -137,7 +145,15 @@ export default async function RelatoriosPage() {
   const projetoOptions = [...projetos]
     .sort((a, b) => (b.dataCriado ?? "").localeCompare(a.dataCriado ?? ""))
     .map((p) => ({ id: p.id, titulo: p.titulo }));
-  const despesasRecentes = despesas.slice(0, 12);
+
+  // Log completo: despesas manuais + linhas de projecto marcadas gastoEmpresa.
+  const filtro: GastoFiltro =
+    params.g === "linha" || params.g === "manual" ? (params.g as GastoFiltro) : "todos";
+  const logTodos = sortGastosDesc(gastoEvents);
+  const logVisivel = filtro === "todos" ? logTodos : logTodos.filter((e) => e.fonte === filtro);
+  const logTotal = logVisivel.reduce((s, e) => s + e.valor, 0);
+  const nLinha = logTodos.filter((e) => e.fonte === "linha").length;
+  const nManual = logTodos.length - nLinha;
 
   return (
     <>
@@ -252,10 +268,38 @@ export default async function RelatoriosPage() {
         </div>
       </div>
 
-      {/* Despesas recentes (feature do handoff — não está no protótipo) */}
-      <div style={{ marginTop: 16 }}>
-        <DespesasSection despesas={despesasRecentes} projetos={projetoOptions} />
+      {/* Log de gastos — todas as fontes (manuais + linhas de projecto) */}
+      <div style={{ marginTop: 22 }}>
+        <div className="card-head">
+          <span className="card-title">Log de gastos</span>
+          <span className="kpi-label">
+            {logVisivel.length} {logVisivel.length === 1 ? "registo" : "registos"} · {fmtEuro(logTotal)}
+          </span>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <nav className="view-tabs" aria-label="Filtrar gastos por origem">
+            <GastoTab g="todos" cur={filtro} label="Todos" n={logTodos.length} />
+            <GastoTab g="linha" cur={filtro} label="De projectos" n={nLinha} />
+            <GastoTab g="manual" cur={filtro} label="Manuais" n={nManual} />
+          </nav>
+        </div>
+        <GastosLog events={logVisivel} projetos={projetoOptions} filtro={filtro} />
       </div>
     </>
+  );
+}
+
+function GastoTab({ g, cur, label, n }: { g: GastoFiltro; cur: GastoFiltro; label: string; n: number }) {
+  const href = g === "todos" ? "/painel/relatorios" : `/painel/relatorios?g=${g}`;
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      className={cur === g ? "on" : undefined}
+      aria-current={cur === g ? "true" : undefined}
+    >
+      {label}
+      <span className="num">{n}</span>
+    </Link>
   );
 }

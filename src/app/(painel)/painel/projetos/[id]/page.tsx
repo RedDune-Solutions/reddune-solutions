@@ -10,10 +10,12 @@ import {
   Pencil,
   type LucideIcon,
 } from "lucide-react";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { getProjetoById } from "@/lib/mongodb/projetos";
 import { getTarefasByProjeto } from "@/lib/mongodb/tarefas";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getPagamentosByProjeto } from "@/lib/mongodb/pagamentos";
+import { getDespesasByProjeto } from "@/lib/mongodb/despesas";
 import { PagamentosSection } from "@/components/painel/PagamentosSection";
 import { CustosCard } from "@/components/painel/CustosCard";
 import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
@@ -25,6 +27,7 @@ import { getComentariosByProjeto } from "@/lib/mongodb/portal";
 import { getSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
 import { HardwareSection } from "@/components/painel/HardwareSection";
 import { sanitizeArquivo } from "@/types/projeto";
+import { gastoEmpresaDoProjeto } from "@/lib/gastos";
 import { StatusBadge } from "@/components/painel/StatusBadge";
 import { todayLisbonYmd } from "@/lib/dates";
 
@@ -46,21 +49,25 @@ function formatDate(iso: string | null): string {
 }
 
 export default async function ProjetoDetalhePage({ params }: { params: Params }) {
+  await requirePainelSession();
   const { id } = await params;
-  const [projeto, tarefas, clientes, pagamentos, comentarios, sandboxes] = await Promise.all([
-    getProjetoById(id),
-    getTarefasByProjeto(id),
-    getAllClientes(),
-    getPagamentosByProjeto(id),
-    getComentariosByProjeto(id),
-    getSandboxesByProjeto(id),
-  ]);
+  const [projeto, tarefas, clientes, pagamentos, comentarios, sandboxes, despesas] =
+    await Promise.all([
+      getProjetoById(id),
+      getTarefasByProjeto(id),
+      getAllClientes(),
+      getPagamentosByProjeto(id),
+      getComentariosByProjeto(id),
+      getSandboxesByProjeto(id),
+      getDespesasByProjeto(id),
+    ]);
 
   if (!projeto) notFound();
 
   const totalTarefas = tarefas.length;
   const tarefasFeitas = tarefas.filter((t) => t.feita).length;
   const totalPago = pagamentos.reduce((s, p) => s + p.valor, 0);
+  const gastoEmpresa = gastoEmpresaDoProjeto(projeto, despesas);
 
   return (
     <>
@@ -74,7 +81,7 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
       </div>
 
       {/* Hero escuro — ficha do projecto: estado, dinheiro, progresso de pagamento */}
-      <ProjetoHero projeto={projeto} totalPago={totalPago} />
+      <ProjetoHero projeto={projeto} totalPago={totalPago} gastoEmpresa={gastoEmpresa} />
 
       <div className="detail-wrap">
         {/* ── Coluna principal ── */}
@@ -139,7 +146,7 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
           )}
 
           {/* Custos editável */}
-          <CustosCard projeto={projeto} />
+          <CustosCard projeto={projeto} despesas={despesas} />
         </div>
 
         {/* ── Aside ── */}
@@ -250,9 +257,21 @@ function diasNoSistema(dataCriadoIso: string | null): number | null {
   return Math.max(0, Math.round(ms / 86400000));
 }
 
-function ProjetoHero({ projeto, totalPago }: { projeto: import("@/types/projeto").Projeto; totalPago: number }) {
+function ProjetoHero({
+  projeto,
+  totalPago,
+  gastoEmpresa,
+}: {
+  projeto: import("@/types/projeto").Projeto;
+  totalPago: number;
+  gastoEmpresa: number;
+}) {
   const orcado = projeto.valorEstimado;
   const divida = orcado != null ? Math.max(0, orcado - totalPago) : 0;
+  // Lucro REALIZADO (regime de caixa): só conta o que já foi recebido. Enquanto
+  // houver dívida não é o lucro final do projecto — daí o "Em dívida" ao lado.
+  const lucro = totalPago - gastoEmpresa;
+  const temLucro = totalPago > 0 || gastoEmpresa > 0;
   const pct =
     orcado != null
       ? orcado > 0
@@ -303,6 +322,17 @@ function ProjetoHero({ projeto, totalPago }: { projeto: import("@/types/projeto"
           <div className="v">
             <div className="l">Em dívida</div>
             <div className={divida > 0 ? "n em" : "n"}>{money(divida)} €</div>
+          </div>
+        )}
+        {temLucro && (
+          <div
+            className="v"
+            title={`Recebido (${money(totalPago)} €) − gasto da empresa (${money(gastoEmpresa)} €: linhas marcadas ✓ + despesas ligadas)${
+              divida > 0 ? ". Ainda há valor por receber — não é o lucro final." : ""
+            }`}
+          >
+            <div className="l">Lucro</div>
+            <div className={lucro < 0 ? "n em" : "n"}>{money(lucro)} €</div>
           </div>
         )}
         {pct != null && (

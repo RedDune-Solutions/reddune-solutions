@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Receipt, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Plus, Receipt, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { safeDelete } from "@/lib/safe-fetch";
@@ -16,6 +17,8 @@ type Props = {
   despesas: Despesa[];
   /** Projectos para o select do form e para mostrar o título quando ligada. */
   projetos: ProjetoOption[];
+  /** Destino do "Ver tudo" — o log completo de gastos nos relatórios. */
+  verTudoHref?: string;
 };
 
 function fmtDate(iso: string): string {
@@ -31,10 +34,12 @@ function fmtEuro(v: number): string {
 }
 
 /**
- * DespesasSection — card "Despesas recentes" dos relatórios: últimas despesas
+ * DespesasSection — card "Despesas recentes" da visão geral: últimas despesas
  * manuais com apagar (optimista) + botão para registar nova (DespesaFormSheet).
+ * Só mostra as manuais; o log completo (com os gastos de linhas de projecto)
+ * vive nos relatórios — ver GastosLog.
  */
-export function DespesasSection({ despesas, projetos }: Props) {
+export function DespesasSection({ despesas, projetos, verTudoHref }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -71,15 +76,22 @@ export function DespesasSection({ despesas, projetos }: Props) {
     <div className="card">
       <div className="card-head">
         <span className="card-title">Despesas recentes</span>
-        <DespesaFormSheet
-          projetos={projetos}
-          trigger={
-            <button type="button" className="btn-ghost">
-              <Plus className="ic" style={{ width: 13, height: 13 }} aria-hidden="true" />
-              Registar
-            </button>
-          }
-        />
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+          <DespesaFormSheet
+            projetos={projetos}
+            trigger={
+              <button type="button" className="btn-ghost">
+                <Plus className="ic" style={{ width: 13, height: 13 }} aria-hidden="true" />
+                Registar
+              </button>
+            }
+          />
+          {verTudoHref && (
+            <Link className="link-more" href={verTudoHref}>
+              Ver tudo <ArrowRight className="ic" aria-hidden="true" />
+            </Link>
+          )}
+        </span>
       </div>
       {visiveis.length === 0 ? (
         <p className="muted" style={{ fontSize: 13 }}>

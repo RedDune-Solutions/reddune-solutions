@@ -22,6 +22,12 @@ type Props = {
   linhas: ProjetoLinha[];
   onChange: (linhas: ProjetoLinha[]) => void;
   disabled?: boolean;
+  /**
+   * Soma das despesas manuais ligadas a este projecto (colecção `despesas`).
+   * Entra no chip "Gasto empresa" para o número bater certo com os relatórios,
+   * que contam as duas fontes. Ver CustosCard.
+   */
+  gastoDespesas?: number;
 };
 
 /** Classe .lcat.cat-* do protótipo por categoria. */
@@ -61,7 +67,7 @@ export function computeByCategoria(linhas: ProjetoLinha[]): Record<LinhaCategori
   return acc;
 }
 
-export function LinhasEditor({ linhas, onChange, disabled }: Props) {
+export function LinhasEditor({ linhas, onChange, disabled, gastoDespesas = 0 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
 
   function updateLinha(id: string, patch: Partial<ProjetoLinha>) {
@@ -103,7 +109,12 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
 
   const total = computeTotal(linhas);
   const totals = computeByCategoria(linhas);
-  const gasto = computeGastoEmpresa(linhas);
+  const gastoLinhas = computeGastoEmpresa(linhas);
+  const gastoTotal = gastoLinhas + gastoDespesas;
+  const tituloGasto =
+    gastoDespesas > 0
+      ? `Linhas marcadas como gasto da empresa (${gastoLinhas.toFixed(2)}€) + despesas ligadas a este projecto (${gastoDespesas.toFixed(2)}€)`
+      : "Soma das linhas marcadas como gasto da empresa";
 
   return (
     <div>
@@ -244,24 +255,25 @@ export function LinhasEditor({ linhas, onChange, disabled }: Props) {
           Adicionar linha
         </button>
 
-        {linhas.length > 0 && (
+        {(linhas.length > 0 || gastoTotal > 0) && (
           <div className="ltot">
-            {gasto > 0 && (
-              <span
-                className="tchip-gasto"
-                title="Soma das linhas marcadas como gasto da empresa"
-              >
-                Gasto empresa: {gasto.toFixed(2)}€
+            {gastoTotal > 0 && (
+              <span className="tchip-gasto" title={tituloGasto}>
+                Gasto empresa: {gastoTotal.toFixed(2)}€
               </span>
             )}
-            {(["peca", "mao-obra", "outro"] as LinhaCategoria[]).map((c) =>
-              totals[c] > 0 ? (
-                <span key={c} className="tchip-cat" style={CAT_CHIP_STYLE[c]}>
-                  {LINHA_CATEGORIA_LABEL[c]}: {totals[c].toFixed(2)}€
-                </span>
-              ) : null
+            {linhas.length > 0 && (
+              <>
+                {(["peca", "mao-obra", "outro"] as LinhaCategoria[]).map((c) =>
+                  totals[c] > 0 ? (
+                    <span key={c} className="tchip-cat" style={CAT_CHIP_STYLE[c]}>
+                      {LINHA_CATEGORIA_LABEL[c]}: {totals[c].toFixed(2)}€
+                    </span>
+                  ) : null
+                )}
+                <b style={{ fontSize: 14, color: "var(--ink)" }}>Total: {total.toFixed(2)}€</b>
+              </>
             )}
-            <b style={{ fontSize: 14, color: "var(--ink)" }}>Total: {total.toFixed(2)}€</b>
           </div>
         )}
       </div>

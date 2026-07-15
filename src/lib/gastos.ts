@@ -4,7 +4,7 @@
 //   2. Despesas manuais (colecção `despesas`) — têm data própria.
 // Funções puras sobre dados já carregados (sem DB) — usadas pelo dashboard e
 // pelos relatórios para os números baterem certo entre ecrãs.
-import type { Projeto } from "@/types/projeto";
+import { computeGastoEmpresa, type Projeto } from "@/types/projeto";
 import type { Despesa, DespesaCategoria } from "@/types/despesa";
 
 /** Mapeia a categoria da linha de custo para o balde de despesa dos relatórios. */
@@ -19,7 +19,10 @@ export function projetoGastoDate(p: Projeto): string | null {
 }
 
 export type GastoEvent = {
+  /** Chave estável: id da despesa (manual) ou `<projetoId>:<linhaId>` (linha). */
+  id: string;
   data: string; // ISO
+  descricao: string;
   valor: number;
   categoria: DespesaCategoria;
   projetoId: string | null;
@@ -39,7 +42,9 @@ export function collectGastos(projetos: Projeto[], despesas: Despesa[]): GastoEv
       const data = l.data ?? fallback;
       if (!data) continue;
       events.push({
+        id: `${p.id}:${l.id}`,
         data,
+        descricao: l.descricao,
         valor: l.quantidade * l.precoUnit,
         categoria: linhaCatToDespesaCat(l.categoria),
         projetoId: p.id,
@@ -49,7 +54,9 @@ export function collectGastos(projetos: Projeto[], despesas: Despesa[]): GastoEv
   }
   for (const d of despesas) {
     events.push({
+      id: d.id,
       data: d.data,
+      descricao: d.descricao,
       valor: d.valor,
       categoria: d.categoria,
       projetoId: d.projetoId,
@@ -57,6 +64,32 @@ export function collectGastos(projetos: Projeto[], despesas: Despesa[]): GastoEv
     });
   }
   return events;
+}
+
+/**
+ * Gasto da empresa imputado a UM projecto, para toda a vida do projecto — as
+ * mesmas duas fontes que `collectGastos` conta nos relatórios (linhas ✓ +
+ * despesas ligadas). Usado pelo "Lucro" da ficha do projecto, para os dois
+ * ecrãs não darem respostas diferentes a "quanto gastei neste projecto".
+ *
+ * Nota: `collectGastos` ignora linhas sem data possível (linha sem `data` E
+ * projecto sem `dataCriado`/`dataFechado`), porque não as consegue pôr num mês.
+ * Aqui contam à mesma — o dinheiro saiu. Nesse caso raro a ficha fica acima do
+ * total mensal dos relatórios, e é a ficha que está certa.
+ */
+export function gastoEmpresaDoProjeto(
+  projeto: Projeto,
+  despesasDoProjeto: Despesa[]
+): number {
+  return (
+    computeGastoEmpresa(projeto.linhas) +
+    despesasDoProjeto.reduce((s, d) => s + d.valor, 0)
+  );
+}
+
+/** Ordena por data desc (mais recente primeiro); empate → manuais depois das linhas. */
+export function sortGastosDesc(events: GastoEvent[]): GastoEvent[] {
+  return [...events].sort((a, b) => b.data.localeCompare(a.data) || a.fonte.localeCompare(b.fonte));
 }
 
 export function monthKey(iso: string): string {

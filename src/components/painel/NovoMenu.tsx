@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Plus, FolderKanban, UserPlus, ListChecks } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, FolderKanban, UserPlus, ListChecks, Receipt } from "lucide-react";
 import { NovaTarefaButton } from "./NovaTarefaButton";
 import { NovoClienteButton } from "./NovoClienteButton";
 import { NovaTarefaGlobalButton } from "./NovaTarefaGlobalButton";
+import { DespesaFormSheet } from "./DespesaFormSheet";
 import type { Projeto } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
 
@@ -14,8 +15,8 @@ type Props = {
 };
 
 /**
- * Botão "Novo" do dashboard — dropdown com 3 acções (Novo projeto / Novo
- * cliente / Nova tarefa). Reutiliza os sheets existentes em modo controlado
+ * Botão "Novo" do dashboard — dropdown com 4 acções (Novo projeto / Novo
+ * cliente / Nova tarefa / Nova despesa). Reutiliza os sheets existentes em modo controlado
  * (`open` + `hideTrigger`), por isso os formulários são exactamente os de
  * produção. Fecha ao clicar fora e com Escape. Classes .novo-menu/.novo-pop
  * já existem em painel.css (handoff 2026-07).
@@ -25,7 +26,17 @@ export function NovoMenu({ projetos, clientes }: Props) {
   const [projetoOpen, setProjetoOpen] = useState(false);
   const [clienteOpen, setClienteOpen] = useState(false);
   const [tarefaOpen, setTarefaOpen] = useState(false);
+  const [despesaOpen, setDespesaOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // Mesma ordem do select de projecto dos relatórios: mais recentes primeiro.
+  const projetoOptions = useMemo(
+    () =>
+      [...projetos]
+        .sort((a, b) => (b.dataCriado ?? "").localeCompare(a.dataCriado ?? ""))
+        .map((p) => ({ id: p.id, titulo: p.titulo })),
+    [projetos]
+  );
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -77,6 +88,10 @@ export function NovoMenu({ projetos, clientes }: Props) {
             <ListChecks className="ic" aria-hidden="true" />
             Nova tarefa
           </button>
+          <button type="button" role="menuitem" onClick={() => pick(setDespesaOpen)}>
+            <Receipt className="ic" aria-hidden="true" />
+            Nova despesa
+          </button>
         </div>
       )}
 
@@ -84,6 +99,7 @@ export function NovoMenu({ projetos, clientes }: Props) {
       <NovaTarefaButton clientes={clientes} open={projetoOpen} onOpenChange={setProjetoOpen} hideTrigger />
       <NovoClienteButton open={clienteOpen} onOpenChange={setClienteOpen} hideTrigger />
       <NovaTarefaGlobalButton projetos={projetos} open={tarefaOpen} onOpenChange={setTarefaOpen} hideTrigger />
+      <DespesaFormSheet projetos={projetoOptions} open={despesaOpen} onOpenChange={setDespesaOpen} hideTrigger />
     </div>
   );
 }

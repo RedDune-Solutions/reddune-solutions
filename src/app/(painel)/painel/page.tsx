@@ -19,8 +19,10 @@ import { getAllTarefas } from "@/lib/mongodb/tarefas";
 import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { getRecentAuditEntries, type AuditEntry } from "@/lib/mongodb/mutation-audit";
 import { collectGastos, sumGastosInMonth } from "@/lib/gastos";
+import { requirePainelSession } from "@/lib/painel-auth";
 import { Topbar } from "@/components/painel/Topbar";
 import { NovoMenu } from "@/components/painel/NovoMenu";
+import { DespesasSection } from "@/components/painel/DespesasSection";
 import { STATUS_GROUPS, TAREFAS_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
 import {
   formatRelativeDay,
@@ -159,6 +161,8 @@ export default async function PainelOverviewPage({
 }: {
   searchParams: Promise<{ foco?: string }>;
 }) {
+  await requirePainelSession();
+
   const [projetos, clientes, pagamentos, tarefas, despesas, audit, params] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
@@ -298,6 +302,13 @@ export default async function PainelOverviewPage({
   const gastoEvents = collectGastos(projetos, despesas);
   const gastosMes = sumGastosInMonth(gastoEvents, mesActual);
   const lucroMes = ganhosMes - gastosMes;
+
+  // Card "Despesas recentes": só as manuais (as de linha vivem no projecto);
+  // o log completo das duas fontes está em /painel/relatorios.
+  const despesasRecentes = despesas.slice(0, 6);
+  const projetoOptions = [...projetos]
+    .sort((a, b) => (b.dataCriado ?? "").localeCompare(a.dataCriado ?? ""))
+    .map((p) => ({ id: p.id, titulo: p.titulo }));
 
   const concluidosMes = projetos.filter((p) => p.dataFechado?.startsWith(mesActual)).length;
   const novosClientesMes = clientes.filter((c) => c.criadoEm?.startsWith(mesActual)).length;
@@ -457,6 +468,15 @@ export default async function PainelOverviewPage({
             })
           )}
         </div>
+      </div>
+
+      {/* ---------- Despesas recentes (manuais) ---------- */}
+      <div style={{ marginTop: 16 }}>
+        <DespesasSection
+          despesas={despesasRecentes}
+          projetos={projetoOptions}
+          verTudoHref="/painel/relatorios"
+        />
       </div>
     </>
   );

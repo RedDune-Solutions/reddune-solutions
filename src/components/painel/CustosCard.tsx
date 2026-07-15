@@ -2,18 +2,34 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Euro } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Euro, Receipt } from "lucide-react";
 import { LinhasEditor, computeTotal } from "./LinhasEditor";
 import type { Projeto, ProjetoLinha } from "@/types/projeto";
+import { DESPESA_CATEGORIA_LABEL, type Despesa } from "@/types/despesa";
 import { parseMoney } from "@/lib/parse-number";
 import { safeJsonPost } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   projeto: Projeto;
+  /**
+   * Despesas manuais ligadas a este projecto (ex.: renovação de domínio).
+   * Somam ao chip "Gasto empresa" e são listadas por baixo das linhas —
+   * registam-se/apagam-se nos Relatórios, aqui são só leitura.
+   */
+  despesas?: Despesa[];
 };
 
-export function CustosCard({ projeto }: Props) {
+function fmtDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
+}
+
+export function CustosCard({ projeto, despesas = [] }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [, startTransition] = useTransition();
@@ -26,6 +42,8 @@ export function CustosCard({ projeto }: Props) {
   const [useLegacy, setUseLegacy] = useState(hasLegacy);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const gastoDespesas = despesas.reduce((s, d) => s + d.valor, 0);
 
   const dirty = useLegacy
     ? valorLegacy.trim() !== (projeto.valorEstimado != null ? String(projeto.valorEstimado) : "")
@@ -133,7 +151,51 @@ export function CustosCard({ projeto }: Props) {
           </button>
         </div>
       ) : (
-        <LinhasEditor linhas={linhas} onChange={setLinhas} disabled={saving} />
+        <LinhasEditor
+          linhas={linhas}
+          onChange={setLinhas}
+          disabled={saving}
+          gastoDespesas={gastoDespesas}
+        />
+      )}
+
+      {despesas.length > 0 && (
+        <div className="psub">
+          <p className="plabel">
+            <Receipt className="ic" aria-hidden="true" />
+            Despesas ligadas
+            <Link
+              className="link-more"
+              href="/painel/relatorios?g=manual"
+              style={{ marginLeft: "auto", textTransform: "none", letterSpacing: 0 }}
+            >
+              Gerir nos relatórios
+            </Link>
+          </p>
+          {despesas.map((d) => (
+            <div key={d.id} className="act">
+              <span className="a-ic">
+                <Receipt className="ic" aria-hidden="true" />
+              </span>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div className="who truncate">{d.descricao}</div>
+                <div className="muted truncate" style={{ fontSize: 11.5 }}>
+                  {DESPESA_CATEGORIA_LABEL[d.categoria]} · {fmtDate(d.data)}
+                </div>
+              </div>
+              <b
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 600,
+                  fontSize: 13.5,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {d.valor.toLocaleString("pt-PT", { maximumFractionDigits: 2 })} €
+              </b>
+            </div>
+          ))}
+        </div>
       )}
 
       {error && (

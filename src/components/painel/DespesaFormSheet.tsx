@@ -38,25 +38,44 @@ type SheetProps = {
   projetos: ProjetoOption[];
   /** Trigger personalizado (ex.: botão pequeno num card). Default: botão primário "Registar despesa". */
   trigger?: ReactNode;
+  /** Controlo externo do sheet (ex.: NovoMenu). Sem esta prop gere o próprio estado. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Esconde o trigger — o sheet passa a abrir apenas via `open` controlado. */
+  hideTrigger?: boolean;
 };
 
 /**
  * DespesaFormSheet — botão + Sheet lateral para registar uma despesa manual
  * da empresa (stock, domínios, licenças, marketing…). POST /api/despesas/upsert.
  */
-export function DespesaFormSheet({ projetos, trigger }: SheetProps) {
-  const [open, setOpen] = useState(false);
+export function DespesaFormSheet({
+  projetos,
+  trigger,
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
+}: SheetProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+
+  function setOpen(o: boolean) {
+    onOpenChange?.(o);
+    if (openProp === undefined) setInternalOpen(o);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {trigger ?? (
-          <button type="button" className="btn-primary">
-            <Plus className="ic" aria-hidden="true" />
-            Registar despesa
-          </button>
-        )}
-      </SheetTrigger>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          {trigger ?? (
+            <button type="button" className="btn-primary">
+              <Plus className="ic" aria-hidden="true" />
+              Registar despesa
+            </button>
+          )}
+        </SheetTrigger>
+      )}
       <SheetContent side="right" className="flex flex-col p-0">
         <SheetHeader>
           <SheetTitle>Registar despesa</SheetTitle>
