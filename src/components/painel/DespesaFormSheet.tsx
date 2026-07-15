@@ -23,6 +23,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  DESPESA_CATEGORIA_HINT,
   DESPESA_CATEGORIA_LABEL,
   DESPESA_CATEGORIA_ORDER,
   type DespesaCategoria,
@@ -175,12 +176,15 @@ function DespesaForm({ projetos, onSaved, onCancel }: FormProps) {
             </SelectTrigger>
             <SelectContent>
               {DESPESA_CATEGORIA_ORDER.map((c) => (
-                <SelectItem key={c} value={c}>
+                <SelectItem key={c} value={c} title={DESPESA_CATEGORIA_HINT[c]}>
                   {DESPESA_CATEGORIA_LABEL[c]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {categoria && (
+            <p className="text-[11px] text-muted-foreground">{DESPESA_CATEGORIA_HINT[categoria]}</p>
+          )}
         </div>
         <div className="space-y-1">
           <Label htmlFor="dv">Valor € *</Label>

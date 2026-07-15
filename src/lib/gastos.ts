@@ -5,7 +5,7 @@
 // Funções puras sobre dados já carregados (sem DB) — usadas pelo dashboard e
 // pelos relatórios para os números baterem certo entre ecrãs.
 import { computeGastoEmpresa, type Projeto } from "@/types/projeto";
-import type { Despesa, DespesaCategoria } from "@/types/despesa";
+import { DESPESA_CATEGORIA, type Despesa, type DespesaCategoria } from "@/types/despesa";
 
 /** Mapeia a categoria da linha de custo para o balde de despesa dos relatórios. */
 export function linhaCatToDespesaCat(cat: "peca" | "mao-obra" | "outro"): DespesaCategoria {
@@ -87,6 +87,24 @@ export function gastoEmpresaDoProjeto(
   );
 }
 
+/**
+ * Divide os gastos entre o que o cliente devolve e o que fica a custar à
+ * empresa. NÃO se infere da categoria (uma peça pode ser stock que já era teu;
+ * a categoria só diz o que a coisa é): infere-se de estar ligado a um projecto
+ * — se há projecto, há alguém a pagar aquilo de volta; se não há, é custo de
+ * ter a empresa aberta (ferramentas, domínios, deslocações…).
+ */
+export function splitRepassadoEmpresa(events: GastoEvent[], keys?: Set<string>) {
+  let repassado = 0;
+  let empresa = 0;
+  for (const e of events) {
+    if (keys && !keys.has(monthKey(e.data))) continue;
+    if (e.projetoId) repassado += e.valor;
+    else empresa += e.valor;
+  }
+  return { repassado, empresa };
+}
+
 /** Ordena por data desc (mais recente primeiro); empate → manuais depois das linhas. */
 export function sortGastosDesc(events: GastoEvent[]): GastoEvent[] {
   return [...events].sort((a, b) => b.data.localeCompare(a.data) || a.fonte.localeCompare(b.fonte));
@@ -111,14 +129,12 @@ export function gastosByCategoria(
   events: GastoEvent[],
   keys?: Set<string>
 ): Record<DespesaCategoria, number> {
-  const acc = {
-    stock: 0,
-    pecas: 0,
-    software: 0,
-    dominios: 0,
-    marketing: 0,
-    outros: 0,
-  } as Record<DespesaCategoria, number>;
+  // Construído a partir de DESPESA_CATEGORIA — acrescentar uma categoria nova
+  // ao tipo não pode deixar um balde por inicializar aqui.
+  const acc = Object.fromEntries(DESPESA_CATEGORIA.map((c) => [c, 0])) as Record<
+    DespesaCategoria,
+    number
+  >;
   for (const e of events) {
     if (keys && !keys.has(monthKey(e.data))) continue;
     acc[e.categoria] += e.valor;

@@ -5,7 +5,6 @@ import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
 import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { Topbar } from "@/components/painel/Topbar";
 import { GastosLog, type GastoFiltro } from "@/components/painel/GastosLog";
-import { DespesaFormSheet } from "@/components/painel/DespesaFormSheet";
 import { DualLineChart } from "@/components/painel/DualLineChart";
 import { STATUS_GROUPS, TIPO_TO_CATEGORIA } from "@/types/projeto";
 import { DESPESA_CATEGORIA_LABEL, DESPESA_CATEGORIA_ORDER } from "@/types/despesa";
@@ -16,6 +15,7 @@ import {
   gastosByCategoria,
   sortGastosDesc,
   gastoEmpresaDoProjeto,
+  splitRepassadoEmpresa,
 } from "@/lib/gastos";
 import { todayLisbonDate } from "@/lib/dates";
 import { requirePainelSession } from "@/lib/painel-auth";
@@ -81,11 +81,17 @@ export default async function RelatoriosPage({
   const gastosMes = gastosPorMes[gastosPorMes.length - 1];
   const lucroMes = receitaMes - gastosMes;
 
-  // Gastos por categoria (mês corrente) — 6 baldes, largura % do máximo
+  // Gastos por categoria (mês corrente) — largura % do máximo. Só mostra as
+  // categorias com valor: a lista tem 9 e a maioria fica a zero num mês normal.
   const catTotais = gastosByCategoria(gastoEvents, new Set([currentKey]));
-  const catRows = DESPESA_CATEGORIA_ORDER.map((c) => ({ c, v: catTotais[c] }));
+  const catRows = DESPESA_CATEGORIA_ORDER.map((c) => ({ c, v: catTotais[c] })).filter((r) => r.v > 0);
   const catMax = Math.max(1, ...catRows.map((r) => r.v));
-  const temGastosMes = catRows.some((r) => r.v > 0);
+  const temGastosMes = catRows.length > 0;
+  // O que o cliente devolve vs o que custa ter a empresa aberta (ver gastos.ts).
+  const { repassado: repassadoMes, empresa: empresaMes } = splitRepassadoEmpresa(
+    gastoEvents,
+    new Set([currentKey])
+  );
 
   // Barras empilhadas: contagem de projectos por categoria em cada mês
   const mbarCounts = new Map<string, { web: number; assist: number; soft: number }>();
@@ -159,7 +165,45 @@ export default async function RelatoriosPage({
     .slice(0, 5);
   const topMax = Math.max(1, ...topClientes.map((x) => x.v));
 
-  // Opções de projecto para o form de despesas (mais recentes primeiro).
+  // Lucro por tipo de trabalho — todo o histórico. Responde a "que trabalho
+  // compensa": montar PCs move muito dinheiro com margem curta, web/software
+  // move pouco e fica quase todo. Mesma conta do resto (gastoEmpresaDoProjeto).
+  const CAT_LABEL: Record<string, string> = {
+    "assistencia-tecnica": "Assistência técnica",
+    "web-digital": "Web & Digital",
+    "software-recuperacao": "Software & Recuperação",
+  };
+  const pagoPorProjeto = new Map<string, number>();
+  for (const pg of pagamentos as Pagamento[]) {
+    if (!pg.data) continue;
+    pagoPorProjeto.set(pg.projetoId, (pagoPorProjeto.get(pg.projetoId) ?? 0) + pg.valor);
+  }
+  const porTipo = new Map<string, { rec: number; gas: number; porReceber: number }>();
+  for (const p of projetos) {
+    const cat = p.categoria ?? (p.tipo ? TIPO_TO_CATEGORIA[p.tipo] : null);
+    if (!cat) continue;
+    const slot = porTipo.get(cat) ?? { rec: 0, gas: 0, porReceber: 0 };
+    const pago = pagoPorProjeto.get(p.id) ?? 0;
+    slot.rec += pago;
+    slot.gas += gastoEmpresaDoProjeto(p, despesas.filter((d) => d.projetoId === p.id));
+    // Sem isto o card mente: o hardware aparece negativo por estar POR PAGAR,
+    // não por dar prejuízo — e a conclusão seria deixar de o fazer.
+    slot.porReceber += Math.max(0, (p.valorEstimado ?? 0) - pago);
+    porTipo.set(cat, slot);
+  }
+  const tipoRows = [...porTipo.entries()]
+    .map(([cat, v]) => ({
+      cat,
+      label: CAT_LABEL[cat] ?? cat,
+      ...v,
+      lucro: v.rec - v.gas,
+      margem: v.rec > 0 ? Math.round(((v.rec - v.gas) / v.rec) * 100) : 0,
+    }))
+    .filter((r) => r.rec > 0 || r.gas > 0)
+    .sort((a, b) => b.lucro - a.lucro);
+  const tipoMax = Math.max(1, ...tipoRows.map((r) => r.lucro));
+
+  // Projectos para o log resolver o título de cada gasto (mais recentes primeiro).
   const projetoOptions = [...projetos]
     .sort((a, b) => (b.dataCriado ?? "").localeCompare(a.dataCriado ?? ""))
     .map((p) => ({ id: p.id, titulo: p.titulo }));
@@ -175,11 +219,9 @@ export default async function RelatoriosPage({
 
   return (
     <>
-      <Topbar
-        crumbs={["Relatórios"]}
-        titleHtml="Relatórios"
-        actions={<DespesaFormSheet projetos={projetoOptions} />}
-      />
+      {/* Sem acções: os relatórios são para ler. Registar despesa vive na visão
+          geral (botão Novo + card "Despesas recentes"). */}
+      <Topbar crumbs={["Relatórios"]} titleHtml="Relatórios" />
 
       {/* Pipeline actual + Top clientes */}
       <div className="rep-grid">
@@ -250,6 +292,21 @@ export default async function RelatoriosPage({
             Sem gastos registados este mês — marca linhas &quot;gasto da empresa&quot; nos projectos ou regista uma despesa.
           </p>
         ) : (
+          <>
+            {/* O corte que interessa: o que volta vs o que custa ter a empresa. */}
+            <div className="msum" style={{ marginBottom: 16 }}>
+              <div title="Gastos ligados a um projecto — o cliente paga-os de volta">
+                <div className="kpi-label">Repassado ao cliente</div>
+                <div className="m-num sm">{fmtEuro(repassadoMes)}</div>
+              </div>
+              <div title="Gastos sem projecto — o que custa ter a RedDune aberta">
+                <div className="kpi-label">Custo da empresa</div>
+                <div className={empresaMes > 0 ? "m-num sm neg" : "m-num sm"}>{fmtEuro(empresaMes)}</div>
+              </div>
+            </div>
+          </>
+        )}
+        {temGastosMes && (
           catRows.map((r) => (
             <div key={r.c} className="bar-row">
               <div className="bl">
@@ -257,6 +314,47 @@ export default async function RelatoriosPage({
               </div>
               <div className="bar-track">
                 <div className="bar-fill exp" style={{ width: r.v > 0 ? `${Math.max(4, Math.round((r.v / catMax) * 100))}%` : 0 }} />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Lucro por tipo de trabalho — onde o dinheiro fica mesmo */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-head">
+          <span className="card-title">Lucro por tipo de trabalho</span>
+          <span className="kpi-label">já recebido · todo o histórico</span>
+        </div>
+        {tipoRows.length === 0 ? (
+          <p className="muted" style={{ fontSize: 13 }}>Sem trabalhos com valores registados.</p>
+        ) : (
+          tipoRows.map((r) => (
+            <div
+              key={r.cat}
+              className="bar-row"
+              title={
+                `Recebido ${fmtEuro(r.rec)} − gasto ${fmtEuro(r.gas)}` +
+                (r.porReceber > 0
+                  ? `. Faltam receber ${fmtEuro(r.porReceber)} — o gasto já saiu, o dinheiro ainda não entrou.`
+                  : "")
+              }
+            >
+              <div className="bl">
+                <span>
+                  {r.label}{" "}
+                  <span className="muted" style={{ fontSize: 11.5 }}>
+                    {fmtEuro(r.rec)} recebidos · margem {r.margem}%
+                    {r.porReceber > 0 ? ` · ${fmtEuro(r.porReceber)} por receber` : ""}
+                  </span>
+                </span>
+                <b style={{ color: r.lucro < 0 ? "var(--ember)" : undefined }}>{fmtEuro(r.lucro)}</b>
+              </div>
+              <div className="bar-track">
+                <div
+                  className="bar-fill"
+                  style={{ width: `${Math.max(4, Math.round((Math.max(0, r.lucro) / tipoMax) * 100))}%` }}
+                />
               </div>
             </div>
           ))

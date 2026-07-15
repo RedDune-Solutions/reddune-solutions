@@ -34,7 +34,7 @@ const VAZIO: Record<GastoFiltro, { titulo: string; desc: string }> = {
   },
   manual: {
     titulo: "Sem despesas manuais",
-    desc: 'Usa "Registar despesa" para adicionar a primeira — stock, domínios, licenças, marketing…',
+    desc: 'Regista a primeira na visão geral — botão "Novo" → "Nova despesa", ou o card "Despesas recentes".',
   },
 };
 
