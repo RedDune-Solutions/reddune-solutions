@@ -28,9 +28,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function PortfolioHero() {
   const t = useTranslations("PortfolioPage.hero");
+  const tBc = useTranslations("Breadcrumb");
+  const tNav = useTranslations("Navigation");
   return (
     <PageHero
-      eyebrow={t("eyebrow")}
+      breadcrumb={[
+        { label: tBc("home"), href: "/" },
+        { label: tNav("portfolio"), href: "/portfolio" },
+      ]}
       title={t.rich("title", {
         accent: (chunks) => <em>{chunks}</em>,
       })}

@@ -54,6 +54,7 @@ function renderPrivacyTitle(raw: string): React.ReactNode {
 
 export default async function PrivacyPolicyPage() {
   const t = await getTranslations("PrivacyPolicyPage");
+  const tBc = await getTranslations("Breadcrumb");
 
   const section3Items = [
     t("section3Item1"),
@@ -130,7 +131,10 @@ export default async function PrivacyPolicyPage() {
       <Header />
       <main id="main" className="flex-grow">
         <PageHero
-          eyebrow="Privacidade · RGPD"
+          breadcrumb={[
+            { label: tBc("home"), href: "/" },
+            { label: tBc("privacyPolicy"), href: "/politica-privacidade" },
+          ]}
           title={renderPrivacyTitle(t("title"))}
           description={t("subtitle")}
         />

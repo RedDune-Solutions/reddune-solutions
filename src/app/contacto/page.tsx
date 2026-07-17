@@ -34,9 +34,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function ContactHero() {
   const t = useTranslations("HomePage.ContactSection");
+  const tBc = useTranslations("Breadcrumb");
   return (
     <PageHero
-      eyebrow={t.has("eyebrow") ? t("eyebrow") : "Resposta em < 24h · Fuseta, Algarve"}
+      breadcrumb={[
+        { label: tBc("home"), href: "/" },
+        { label: tBc("contact"), href: "/contacto" },
+      ]}
       title={t.rich("title", {
         accent: (chunks) => <em>{chunks}</em>,
       })}

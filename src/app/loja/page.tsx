@@ -35,9 +35,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function ShopHeroSection() {
   const t = useTranslations("ShopPage.hero");
+  const tBc = useTranslations("Breadcrumb");
+  const tNav = useTranslations("Navigation");
   return (
     <PageHero
-      eyebrow={t.has("eyebrow") ? t("eyebrow") : "Loja · catálogo"}
+      breadcrumb={[
+        { label: tBc("home"), href: "/" },
+        { label: tNav("shop"), href: "/loja" },
+      ]}
       title={t.rich("title", {
         accent: (chunks) => <em>{chunks}</em>,
       })}

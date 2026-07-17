@@ -1,11 +1,14 @@
 import { Sun } from "@/components/motion/Sun";
 import { Sparks } from "@/components/motion/Sparks";
+import { Breadcrumb, type Crumb } from "@/components/sections/Breadcrumb";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  eyebrow?: string;
   title: React.ReactNode;
   description?: React.ReactNode;
+  /** Breadcrumb dentro da pill do hero (substitui o antigo eyebrow). Todas as
+   *  páginas internas o passam; só a home não tem hero interno. Vazio = sem pill. */
+  breadcrumb?: Crumb[];
 };
 
 /**
@@ -20,7 +23,7 @@ type Props = {
  * The HTML inlines `style="min-height:auto;padding:180px 32px 60px;"` on the
  * hero section to suppress min-height: 100vh — same idea here via classes.
  */
-export function PageHero({ eyebrow, title, description }: Props) {
+export function PageHero({ title, description, breadcrumb }: Props) {
   return (
     <section
       className={cn(
@@ -37,7 +40,7 @@ export function PageHero({ eyebrow, title, description }: Props) {
       </div>
 
       <div className="relative z-[5] mx-auto w-full max-w-content text-center">
-        {eyebrow && (
+        {breadcrumb && breadcrumb.length > 0 && (
           <div
             className={cn(
               "hero-kicker inline-flex items-center gap-[10px]",
@@ -48,7 +51,7 @@ export function PageHero({ eyebrow, title, description }: Props) {
             )}
           >
             <span className="pulse" aria-hidden="true" />
-            {eyebrow}
+            <Breadcrumb items={breadcrumb} />
           </div>
         )}
 

@@ -9,7 +9,6 @@ import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/sections/PageHero";
 import { Reveal } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
-import { publicEnv } from "@/lib/env";
 import { waLink } from "@/lib/whatsapp";
 import {
   SERVICOS_SLUGS,
@@ -24,10 +23,10 @@ import { getTranslations } from "next-intl/server";
 import {
   serviceLd,
   faqPageLd,
-  breadcrumbLd,
   jsonLdScript,
 } from "@/lib/structured-data";
 import { buildMetadata } from "@/lib/seo";
+import type { Crumb } from "@/components/sections/Breadcrumb";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -248,7 +247,9 @@ function ServicoStatsRow({ stats }: { stats: ServiceContent["stats"] }) {
           className={cn(
             "relative grid gap-8 overflow-hidden",
             "grid-cols-2",
-            stats.length === 3 ? "md:grid-cols-3" : "md:grid-cols-4",
+            // 4 colunas só a partir de lg: a md (768px) cada célula fica com
+            // ~130px e o valor não cabe.
+            stats.length === 3 ? "md:grid-cols-3" : "lg:grid-cols-4",
             "rounded-card bg-ink text-cream",
             "px-10 py-[60px]",
           )}
@@ -263,21 +264,36 @@ function ServicoStatsRow({ stats }: { stats: ServiceContent["stats"] }) {
             }}
           />
           {stats.map((stat) => (
-            <div key={stat.label} className="relative z-[1]">
-              <div
-                className={cn(
-                  "font-display font-bold tracking-[-0.03em]",
-                  "text-[clamp(40px,5vw,68px)] leading-[0.95]",
-                  "bg-clip-text text-transparent",
+            <div key={stat.label} className="relative z-[1] min-w-0">
+              {/* Valor + unidade: a unidade vive num span irmão (não filho) —
+                  o gradiente usa WebkitTextFillColor:transparent, que os filhos
+                  herdariam e tornaria a unidade invisível. */}
+              <div className="flex flex-wrap items-baseline gap-x-[2px]">
+                <span
+                  className={cn(
+                    "font-display font-bold tracking-[-0.03em]",
+                    "text-[clamp(40px,5vw,68px)] leading-[0.95]",
+                    "bg-clip-text text-transparent",
+                  )}
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, var(--cream) 0%, var(--apricot) 70%, var(--ember) 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  {stat.value}
+                </span>
+                {stat.valueSuffix && (
+                  <span
+                    className={cn(
+                      "font-display font-bold tracking-[-0.02em] text-apricot",
+                      "text-[clamp(20px,2.6vw,36px)] leading-[0.95]",
+                    )}
+                  >
+                    {stat.valueSuffix}
+                  </span>
                 )}
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, var(--cream) 0%, var(--apricot) 70%, var(--ember) 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {stat.value}
               </div>
               <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.18em] text-apricot">
                 {stat.label}
@@ -352,14 +368,22 @@ export default async function ServicoSlugPage({ params }: PageProps) {
         )
       : null;
 
-  const isPt = locale !== "en";
   const tServ = await getTranslations("ServicosPage");
+  const tBc = await getTranslations("Breadcrumb");
+  const tNav = await getTranslations("Navigation");
   const outrosSlugs = SERVICOS_SLUGS.filter((s) => s !== typedSlug);
-  const breadcrumbSchema = breadcrumbLd([
-    { name: isPt ? "Início" : "Home", url: publicEnv.baseUrl },
-    { name: isPt ? "Serviços" : "Services", url: `${publicEnv.baseUrl}/servicos` },
-    { name: content.seo.serviceName, url: `${publicEnv.baseUrl}/servicos/${typedSlug}` },
-  ]);
+  const crumbs: Crumb[] = [
+    { label: tBc("home"), href: "/" },
+    { label: tNav("services"), href: "/servicos" },
+    // Visível: label curto (cabe na pill em mobile). JSON-LD: nome completo (SEO).
+    // href na página actual serve o JSON-LD (posição canónica); o visual não faz
+    // link no último item.
+    {
+      label: tServ(`slugLabel.${typedSlug}`),
+      ldName: content.seo.serviceName,
+      href: `/servicos/${typedSlug}`,
+    },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -368,10 +392,6 @@ export default async function ServicoSlugPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(serviceSchema) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbSchema) }}
-      />
       {faqSchema && (
         <script
           type="application/ld+json"
@@ -379,31 +399,8 @@ export default async function ServicoSlugPage({ params }: PageProps) {
         />
       )}
       <main id="main" className="flex-grow">
-        {/* Breadcrumb visível — espelha o BreadcrumbList JSON-LD */}
-        <nav
-          aria-label={isPt ? "Navegação estrutural" : "Breadcrumb"}
-          className="mx-auto w-full max-w-content px-8 pt-7 -mb-4"
-        >
-          <ol className="flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-ink-soft">
-            <li>
-              <Link href="/" className="transition-colors hover:text-ember">
-                {isPt ? "Início" : "Home"}
-              </Link>
-            </li>
-            <li aria-hidden="true">·</li>
-            <li>
-              <Link href="/servicos" className="transition-colors hover:text-ember">
-                {isPt ? "Serviços" : "Services"}
-              </Link>
-            </li>
-            <li aria-hidden="true">·</li>
-            <li aria-current="page" className="font-medium text-dune-deep">
-              {content.seo.serviceName}
-            </li>
-          </ol>
-        </nav>
         <PageHero
-          eyebrow={content.eyebrow}
+          breadcrumb={crumbs}
           title={renderRich(content.title)}
           description={content.lead}
         />
@@ -521,8 +518,11 @@ export default async function ServicoSlugPage({ params }: PageProps) {
                   <div className="mt-5 pt-5 border-t border-dashed border-dune-deep/15">
                     <span
                       className={cn(
-                        "font-mono text-[12px] uppercase tracking-[0.12em] text-ink-soft",
+                        "block font-mono text-[12px] leading-[1.8] uppercase tracking-[0.12em] text-ink-soft",
+                        // <b> = o número. Ver contrato em types/servico.ts.
+                        // nowrap: um intervalo nunca parte a meio ("200€ a" / "300€").
                         "[&_b]:font-display [&_b]:font-bold [&_b]:not-italic [&_b]:text-ember [&_b]:text-[15px]",
+                        "[&_b]:whitespace-nowrap",
                       )}
                     >
                       {renderRich(item.price)}

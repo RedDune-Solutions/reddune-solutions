@@ -91,6 +91,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FaqPage() {
   const t = await getTranslations("FaqPage");
+  const tBc = await getTranslations("Breadcrumb");
+  const tNav = await getTranslations("Navigation");
 
   const itemsRaw = t.raw("items");
   const items: FaqItem[] = Array.isArray(itemsRaw)
@@ -115,7 +117,10 @@ export default async function FaqPage() {
       )}
       <main id="main" className="flex-grow">
         <PageHero
-          eyebrow={t("eyebrow")}
+          breadcrumb={[
+            { label: tBc("home"), href: "/" },
+            { label: tNav("faq"), href: "/faq" },
+          ]}
           title={t("title")}
           description={t("subtitle")}
         />

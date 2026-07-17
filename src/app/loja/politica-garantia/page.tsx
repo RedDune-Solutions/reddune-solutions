@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/sections/PageHero";
+import type { Crumb } from "@/components/sections/Breadcrumb";
 import { Reveal } from "@/components/motion/Reveal";
 import { ClosingCTA } from "@/components/sections/ClosingCTA";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -22,13 +23,20 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function WarrantyPolicyPage() {
   const t = await getTranslations("WarrantyPolicyPage");
+  const tBc = await getTranslations("Breadcrumb");
+  const tNav = await getTranslations("Navigation");
+  const crumbs: Crumb[] = [
+    { label: tBc("home"), href: "/" },
+    { label: tNav("shop"), href: "/loja" },
+    { label: tBc("warrantyPolicy"), href: "/loja/politica-garantia" },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main id="main" className="flex-grow">
         <PageHero
-          eyebrow="Loja · políticas"
+          breadcrumb={crumbs}
           title={
             <>
               {t("title").split(/\s(?=[^\s]+$)/).map((part, i, arr) =>

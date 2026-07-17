@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/sections/PageHero";
+import type { Crumb } from "@/components/sections/Breadcrumb";
 import { Reveal } from "@/components/motion/Reveal";
 import { ClosingCTA } from "@/components/sections/ClosingCTA";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -57,6 +58,13 @@ function renderPolicyBody(html: string): React.ReactNode {
 
 export default async function ReturnPolicyPage() {
   const t = await getTranslations("ReturnPolicyPage");
+  const tBc = await getTranslations("Breadcrumb");
+  const tNav = await getTranslations("Navigation");
+  const crumbs: Crumb[] = [
+    { label: tBc("home"), href: "/" },
+    { label: tNav("shop"), href: "/loja" },
+    { label: tBc("returnPolicy"), href: "/loja/politica-devolucao" },
+  ];
   const sectionsRaw = t.raw("sections");
   const sections = Array.isArray(sectionsRaw)
     ? (sectionsRaw as PolicySection[])
@@ -67,7 +75,7 @@ export default async function ReturnPolicyPage() {
       <Header />
       <main id="main" className="flex-grow">
         <PageHero
-          eyebrow={t("eyebrow")}
+          breadcrumb={crumbs}
           title={t.rich("title", {
             em: (chunks) => <em>{chunks}</em>,
           })}

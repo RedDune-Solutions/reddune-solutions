@@ -47,3 +47,5 @@ firestore-debug.log
 # extracted/temp tarballs
 *.tgz
 /package/
+# Backups locais da BD (migrações) — nunca versionar
+.backups/

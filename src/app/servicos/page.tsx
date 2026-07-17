@@ -283,9 +283,14 @@ function ProcessStepsRow() {
 
 function ServicosHero() {
   const t = useTranslations("ServicosPage.hub.hero");
+  const tBc = useTranslations("Breadcrumb");
+  const tNav = useTranslations("Navigation");
   return (
     <PageHero
-      eyebrow={t("eyebrow")}
+      breadcrumb={[
+        { label: tBc("home"), href: "/" },
+        { label: tNav("services"), href: "/servicos" },
+      ]}
       title={t.rich("title", {
         accent: (chunks) => <em>{chunks}</em>,
       })}
