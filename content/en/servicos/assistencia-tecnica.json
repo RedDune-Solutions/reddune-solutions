@@ -54,10 +54,30 @@
     "noteCtaMessage": "Hi! I'd like a quote."
   },
   "stats": [
-    { "value": "25€", "label": "Diagnosis", "sub": "deducted on repair" },
-    { "value": "<48h", "label": "Rush", "sub": "25€ surcharge" },
-    { "value": "0.80€/km", "label": "Call-out", "sub": "on-site visits" },
-    { "value": "30 days", "label": "Warranty", "sub": "on repair labour" }
+    {
+      "value": "25",
+      "valueSuffix": "€",
+      "label": "Diagnosis",
+      "sub": "deducted on repair"
+    },
+    {
+      "value": "<48",
+      "valueSuffix": "h",
+      "label": "Rush",
+      "sub": "25€ surcharge"
+    },
+    {
+      "value": "0.80",
+      "valueSuffix": "€/km",
+      "label": "Call-out",
+      "sub": "on-site visits"
+    },
+    {
+      "value": "30",
+      "valueSuffix": "days",
+      "label": "Warranty",
+      "sub": "on repair labour"
+    }
   ],
   "faqs": {
     "eyebrow": "Frequently asked questions",

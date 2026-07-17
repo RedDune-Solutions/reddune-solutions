@@ -91,10 +91,22 @@ const DEFAULT_PRICE_LABELS_PT: PriceLabels = {
   onRequest: "Sob consulta",
 };
 
-function fmtRange(min: number, max: number | null | undefined, desde: boolean | undefined, labels: PriceLabels): string {
-  if (max != null && max > min) return `${min}€ ${labels.to} ${max}€`;
-  if (desde) return `${labels.from} ${min}€`;
-  return `${min}€`;
+/**
+ * Preço com `<b>` À VOLTA DO NÚMERO — e só do número.
+ *
+ * CONTRATO (design-handoff `.svc .meta-row .price b`): `<b>` = valor monetário
+ * (ember, font-display, 15px). Rótulos ("Torre", "desde") ficam fora: mono 12px,
+ * ink-soft. É a mesma regra que `content/{locale}/servicos/*.json` escreve à mão
+ * ("Desktop <b>20–30€</b>") — sem isto, as duas fontes desenham o preço de
+ * maneira diferente e a linha toda fica laranja.
+ *
+ * O conector ("a") fica DENTRO do `<b>`: o intervalo é um só token, e um "a"
+ * cinzento entre dois números display abana a linha de base.
+ */
+function fmtRangeRich(min: number, max: number | null | undefined, desde: boolean | undefined, labels: PriceLabels): string {
+  if (max != null && max > min) return `<b>${min}€ ${labels.to} ${max}€</b>`;
+  if (desde) return `${labels.from} <b>${min}€</b>`;
+  return `<b>${min}€</b>`;
 }
 
 /**
@@ -113,18 +125,27 @@ export function formatPreco(
 
   if (s.variantes && s.variantes.length > 0) {
     return s.variantes
-      .map((v) => `<b>${variantePrecoLabel(v, locale)} ${fmtRange(v.preco, v.precoMax, s.precoDesde, labels)}</b>`)
+      .map((v) => {
+        const label = variantePrecoLabel(v, locale).trim();
+        const valor = fmtRangeRich(v.preco, v.precoMax, s.precoDesde, labels);
+        return label ? `${label} ${valor}` : valor;
+      })
       .join(" · ") + nota;
   }
 
   if (s.precoBase != null) {
-    return `<b>${fmtRange(s.precoBase, s.precoMax, s.precoDesde, labels)}</b>${nota}`;
+    return `${fmtRangeRich(s.precoBase, s.precoMax, s.precoDesde, labels)}${nota}`;
   }
 
+  // Legacy: texto livre do admin. Passa cru — não dá para adivinhar onde está o
+  // valor, por isso fica todo em ink-soft. Linhas ainda neste ramo não traduzem
+  // se `precoTextoI18n.en` estiver vazio; ver painel.
   const precoTextoLocalized = pickLocalized(s.precoTextoI18n, s.precoTexto, locale);
   if (precoTextoLocalized.trim()) {
-    return precoTextoLocalized;
+    return `${precoTextoLocalized.trim()}${nota}`;
   }
 
-  return labels.onRequest;
+  // "Sob consulta" é o token de valor desta linha — logo vai em <b>, como o
+  // "<b>sob orçamento</b>" que os JSON escrevem à mão.
+  return `<b>${labels.onRequest}</b>${nota}`;
 }

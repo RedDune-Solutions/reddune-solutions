@@ -60,21 +60,28 @@ export async function POST(request: Request) {
     orphanUrl = existing.imageUrl;
   }
 
+  // Campos de texto: `??` não servia — mandar `null` para LIMPAR caía no
+  // `existing` e ressuscitava o valor antigo (impossível apagar uma nota, uma
+  // tradução EN ou o `precoTexto` legacy). `undefined` = não mexer, `null` =
+  // limpar — o mesmo contrato que `variantes`/`precoBase`/`imageUrl` acima.
+  const keep = <T,>(sent: T | null | undefined, atual: T | null | undefined): T | null =>
+    sent !== undefined ? (sent ?? null) : (atual ?? null);
+
   const servico: Servico = {
     id,
     slug: input.slug,
     titulo: input.titulo,
-    tituloI18n: input.tituloI18n ?? existing?.tituloI18n ?? null,
-    descricao: input.descricao ?? existing?.descricao ?? null,
-    descricaoI18n: input.descricaoI18n ?? existing?.descricaoI18n ?? null,
+    tituloI18n: keep(input.tituloI18n, existing?.tituloI18n),
+    descricao: keep(input.descricao, existing?.descricao),
+    descricaoI18n: keep(input.descricaoI18n, existing?.descricaoI18n),
     precoBase: variantes && variantes.length > 0 ? null : precoBase,
     precoMax: variantes && variantes.length > 0 ? null : precoMax,
     precoDesde,
     variantes: variantes && variantes.length > 0 ? variantes : null,
-    precoTexto: input.precoTexto ?? existing?.precoTexto ?? null,
-    precoTextoI18n: input.precoTextoI18n ?? existing?.precoTextoI18n ?? null,
-    nota: input.nota ?? existing?.nota ?? null,
-    notaI18n: input.notaI18n ?? existing?.notaI18n ?? null,
+    precoTexto: keep(input.precoTexto, existing?.precoTexto),
+    precoTextoI18n: keep(input.precoTextoI18n, existing?.precoTextoI18n),
+    nota: keep(input.nota, existing?.nota),
+    notaI18n: keep(input.notaI18n, existing?.notaI18n),
     imageUrl,
     ordem,
     ativo: input.ativo ?? existing?.ativo ?? true,

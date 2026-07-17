@@ -314,6 +314,10 @@ export function ServicosEditor({ servicos }: Props) {
             : precoMax != null && Number.isFinite(precoMax) ? precoMax : null,
         precoDesde: !variantesPayload && d.precoDesde,
         variantes: variantesPayload,
+        // Larga o `precoTexto` legacy: não é editável aqui, não traduz e ganhava
+        // precedência ao "Sob consulta". Guardar a linha migra-a. Ver aviso no card.
+        precoTexto: null,
+        precoTextoI18n: null,
         nota: d.nota.trim() || null,
         imageUrl: d.imageUrl.trim() || null,
         ordem: d.ordem,
@@ -418,6 +422,24 @@ export function ServicosEditor({ servicos }: Props) {
             <span className="font-medium">Tem variantes</span>
             <span className="text-muted-foreground">(ex: desktop / portátil / consola)</span>
           </label>
+
+          {d.precoTexto.trim() && (
+            <div className="rounded border border-amber-500/40 bg-amber-500/10 p-2 text-xs space-y-1">
+              <p className="font-semibold text-amber-700 dark:text-amber-400">
+                Preço antigo (não traduz para inglês)
+              </p>
+              <p className="text-foreground/80">
+                Esta linha ainda mostra o texto livre{" "}
+                <span className="font-mono font-semibold">«{d.precoTexto.trim()}»</span>, que fica
+                sempre em português e sem o número a laranja.
+              </p>
+              <p className="text-foreground/80">
+                <strong>Ao guardar, este texto é apagado.</strong> Preenche o preço (ou deixa vazio
+                para dar <em>Sob consulta</em> / <em>On request</em>) e mete o resto na Nota PT + Nota
+                EN aqui em baixo.
+              </p>
+            </div>
+          )}
 
           {!d.temVariantes ? (
             <div className="grid grid-cols-12 gap-2">

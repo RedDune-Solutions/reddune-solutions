@@ -54,9 +54,24 @@
     "noteCtaMessage": "Hi! I need a quote."
   },
   "stats": [
-    { "value": "35€", "label": "Format", "sub": "from, without backup" },
-    { "value": "48h", "label": "Diagnosis", "sub": "for failing drives" },
-    { "value": "0€", "label": "No data", "sub": "no data, no cost" }
+    {
+      "value": "35",
+      "valueSuffix": "€",
+      "label": "Format",
+      "sub": "from, without backup"
+    },
+    {
+      "value": "48",
+      "valueSuffix": "h",
+      "label": "Diagnosis",
+      "sub": "for failing drives"
+    },
+    {
+      "value": "0",
+      "valueSuffix": "€",
+      "label": "No data",
+      "sub": "no data, no cost"
+    }
   ],
   "faqs": {
     "eyebrow": "Frequently asked questions",

@@ -54,10 +54,30 @@
     "noteCtaMessage": "Olá! Quero um orçamento."
   },
   "stats": [
-    { "value": "25€", "label": "Diagnóstico", "sub": "abatido se reparares" },
-    { "value": "<48h", "label": "Urgência", "sub": "taxa de 25€" },
-    { "value": "0,80€/km", "label": "Deslocação", "sub": "ao domicílio" },
-    { "value": "30 dias", "label": "Garantia", "sub": "na mão-de-obra das reparações" }
+    {
+      "value": "25",
+      "valueSuffix": "€",
+      "label": "Diagnóstico",
+      "sub": "abatido se reparares"
+    },
+    {
+      "value": "<48",
+      "valueSuffix": "h",
+      "label": "Urgência",
+      "sub": "taxa de 25€"
+    },
+    {
+      "value": "0,80",
+      "valueSuffix": "€/km",
+      "label": "Deslocação",
+      "sub": "ao domicílio"
+    },
+    {
+      "value": "30",
+      "valueSuffix": "dias",
+      "label": "Garantia",
+      "sub": "na mão-de-obra das reparações"
+    }
   ],
   "faqs": {
     "eyebrow": "Perguntas frequentes",

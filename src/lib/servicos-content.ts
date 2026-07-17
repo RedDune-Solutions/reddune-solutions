@@ -17,6 +17,12 @@ export type ServiceListItem = {
 
 export type ServiceStat = {
   value: string;
+  /**
+   * Unidade do valor ("€", "€/km", "dias"), renderizada mais pequena e em
+   * apricot — como o `<small>` do `.stat-cell .n` do design original. Separar
+   * a unidade evita que valores longos ("0,80€/km") rebentem a coluna.
+   */
+  valueSuffix?: string;
   label: string;
   sub?: string;
 };

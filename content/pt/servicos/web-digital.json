@@ -54,10 +54,30 @@
     "noteCtaMessage": "Olá! Quero conversar sobre um projeto."
   },
   "stats": [
-    { "value": "200€+", "label": "Landing", "sub": "1 página" },
-    { "value": "500€+", "label": "Institucional", "sub": "até ~6 páginas" },
-    { "value": "1k€+", "label": "E-commerce", "sub": "loja online" },
-    { "value": "3k€+", "label": "À medida", "sub": "portal / app" }
+    {
+      "value": "200",
+      "valueSuffix": "€+",
+      "label": "Landing",
+      "sub": "1 página"
+    },
+    {
+      "value": "500",
+      "valueSuffix": "€+",
+      "label": "Institucional",
+      "sub": "até ~6 páginas"
+    },
+    {
+      "value": "1k",
+      "valueSuffix": "€+",
+      "label": "E-commerce",
+      "sub": "loja online"
+    },
+    {
+      "value": "3k",
+      "valueSuffix": "€+",
+      "label": "À medida",
+      "sub": "portal / app"
+    }
   ],
   "faqs": {
     "eyebrow": "Perguntas frequentes",

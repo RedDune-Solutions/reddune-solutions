@@ -54,9 +54,24 @@
     "noteCtaMessage": "Olá! Preciso de um orçamento."
   },
   "stats": [
-    { "value": "35€", "label": "Formatação", "sub": "a partir de, sem backup" },
-    { "value": "48h", "label": "Diagnóstico", "sub": "de discos com avaria" },
-    { "value": "0€", "label": "Sem dados", "sub": "sem dados, sem custo" }
+    {
+      "value": "35",
+      "valueSuffix": "€",
+      "label": "Formatação",
+      "sub": "a partir de, sem backup"
+    },
+    {
+      "value": "48",
+      "valueSuffix": "h",
+      "label": "Diagnóstico",
+      "sub": "de discos com avaria"
+    },
+    {
+      "value": "0",
+      "valueSuffix": "€",
+      "label": "Sem dados",
+      "sub": "sem dados, sem custo"
+    }
   ],
   "faqs": {
     "eyebrow": "Perguntas frequentes",
