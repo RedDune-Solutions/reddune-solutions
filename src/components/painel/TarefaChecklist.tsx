@@ -63,7 +63,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     if (!res.ok) {
       // Revert.
       setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, feita: tarefa.feita } : t)));
-      toast({ title: "Erro a actualizar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a actualizar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     startTransition(() => router.refresh());
@@ -90,8 +90,8 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
 
   async function deletarTarefa(id: string) {
     const ok = await confirm({
-      title: "Apagar tarefa?",
-      description: "Esta acção remove a tarefa. Não pode ser desfeita.",
+      title: "Apagar lembrete?",
+      description: "Esta acção remove o lembrete. Não pode ser desfeita.",
       confirmLabel: "Apagar",
       tone: "destructive",
     });
@@ -105,7 +105,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     if (!res.ok) {
       // Revert: repõe a tarefa.
       if (removida) setItems((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removida]));
-      toast({ title: "Erro a apagar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a apagar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     startTransition(() => router.refresh());
@@ -127,7 +127,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     });
     setAdding(false);
     if (!res.ok) {
-      toast({ title: "Erro a adicionar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a adicionar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     setNovoTitulo("");
@@ -145,7 +145,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     <div>
       {items.length === 0 && !showInput && (
         <p style={{ fontSize: 13, color: "var(--ink-mute)", margin: "0 0 8px" }}>
-          Sem tarefas ainda.
+          Sem lembretes ainda.
         </p>
       )}
 
@@ -170,7 +170,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
             style={{ flex: 1, minWidth: 180 }}
             value={novoTitulo}
             onChange={(e) => setNovoTitulo(e.target.value)}
-            placeholder="Nome da tarefa…"
+            placeholder="Nome do lembrete…"
             autoFocus
             maxLength={300}
             disabled={adding}
@@ -214,7 +214,7 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
           onClick={() => setShowInput(true)}
         >
           <Plus style={{ width: 13, height: 13 }} aria-hidden="true" />
-          Adicionar tarefa
+          Adicionar lembrete
         </button>
       )}
     </div>
@@ -250,7 +250,7 @@ function TarefaItem({
         className="check"
         onClick={onToggle}
         disabled={disabled}
-        aria-label={tarefa.feita ? "Marcar como não feita" : "Marcar como feita"}
+        aria-label={tarefa.feita ? "Marcar como não feito" : "Marcar como feito"}
       >
         {tarefa.feita && <Check aria-hidden="true" />}
       </button>
@@ -297,8 +297,8 @@ function TarefaItem({
         className="icon-mini"
         onClick={onDelete}
         disabled={disabled}
-        aria-label="Apagar tarefa"
-        title="Apagar tarefa"
+        aria-label="Apagar lembrete"
+        title="Apagar lembrete"
       >
         <Trash2 aria-hidden="true" />
       </button>

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   const ok = await patchTarefa(parsed.data.tarefaId, parsed.data.patch);
   if (!ok) {
-    return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
+    return NextResponse.json({ error: "Lembrete não encontrado" }, { status: 404 });
   }
 
   await logMutation({

@@ -33,7 +33,7 @@ export function TarefaRowMenu({ projeto, variant = "default" }: Props) {
     e.preventDefault();
     const ok = await confirm({
       title: `Apagar "${projeto.titulo}"?`,
-      description: "Apaga o projecto e todas as tarefas associadas. Não pode ser desfeito.",
+      description: "Apaga o projecto e todos os lembretes associados. Não pode ser desfeito.",
       confirmLabel: "Apagar projecto",
       tone: "destructive",
     });

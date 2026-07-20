@@ -13,6 +13,14 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type TarefaFilter = "todas" | "hoje" | "semana" | "vencidas";
 
+// Nome do filtro tal como aparece nas tabs (masculino — lembretes).
+const FILTER_DISPLAY: Record<TarefaFilter, string> = {
+  todas: "Todos",
+  hoje: "Hoje",
+  semana: "Semana",
+  vencidas: "Vencidos",
+};
+
 type Props = {
   tarefas: Tarefa[];
   projetos: Projeto[];
@@ -137,7 +145,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
     if (!res.ok) {
       // Revert.
       setItems((prev) => prev.map((x) => (x.id === t.id ? { ...x, feita: t.feita } : x)));
-      toast({ title: "Erro a actualizar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a actualizar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     startTransition(() => router.refresh());
@@ -145,8 +153,8 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
 
   async function deleteTarefa(id: string) {
     const ok = await confirm({
-      title: "Apagar tarefa?",
-      description: "Esta acção remove a tarefa. Não pode ser desfeita.",
+      title: "Apagar lembrete?",
+      description: "Esta acção remove o lembrete. Não pode ser desfeita.",
       confirmLabel: "Apagar",
       tone: "destructive",
     });
@@ -160,7 +168,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
     if (!res.ok) {
       // Revert: repõe a tarefa.
       if (removida) setItems((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removida]));
-      toast({ title: "Erro a apagar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a apagar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     startTransition(() => router.refresh());
@@ -173,12 +181,12 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
           <AlertCircle style={{ width: 20, height: 20, display: "inline-block" }} aria-hidden="true" />
         </div>
         <div className="t">
-          {filter === "todas" ? "Tudo em dia" : "Sem tarefas"}
+          {filter === "todas" ? "Tudo em dia" : "Sem lembretes"}
         </div>
         <div className="desc">
           {filter === "todas"
-            ? "Sem tarefas pendentes."
-            : `Sem tarefas para o filtro "${filter}".`}
+            ? "Sem lembretes pendentes."
+            : `Sem lembretes para o filtro "${FILTER_DISPLAY[filter]}".`}
         </div>
       </div>
     );
@@ -220,7 +228,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
                     type="button"
                     onClick={() => toggleFeita(t)}
                     disabled={isBusy}
-                    aria-label={t.feita ? "Marcar por fazer" : "Marcar feita"}
+                    aria-label={t.feita ? "Marcar por fazer" : "Marcar feito"}
                     className="check"
                   >
                     {t.feita && <Check aria-hidden="true" />}
@@ -238,7 +246,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
                     type="button"
                     onClick={() => deleteTarefa(t.id)}
                     disabled={isBusy}
-                    aria-label="Apagar tarefa"
+                    aria-label="Apagar lembrete"
                     className="icon-mini opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 focus-visible:opacity-100 transition-opacity"
                   >
                     <Trash2 aria-hidden="true" />

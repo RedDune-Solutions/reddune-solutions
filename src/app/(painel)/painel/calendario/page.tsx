@@ -182,7 +182,7 @@ function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
   for (const t of tarefas) {
     const d = parseIsoDate(t.prazo ?? null);
     if (!d) continue;
-    entries.push({ id: `t-${t.id}`, href: `/painel/projetos/${t.projetoId}`, label: t.titulo, sub: "Tarefa", date: d, accionavel: !t.feita });
+    entries.push({ id: `t-${t.id}`, href: `/painel/projetos/${t.projetoId}`, label: t.titulo, sub: "Lembrete", date: d, accionavel: !t.feita });
   }
   const hoje = entries
     .filter((e) => e.accionavel && isToday(e.date.toISOString(), now))

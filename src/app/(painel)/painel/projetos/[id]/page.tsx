@@ -121,7 +121,7 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
           <section className="card">
             <div className="card-label">
               <ListChecks className="ic" aria-hidden="true" />
-              Tarefas
+              Lembretes
               {totalTarefas > 0 && (
                 <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-mute)" }}>
                   {tarefasFeitas}/{totalTarefas}

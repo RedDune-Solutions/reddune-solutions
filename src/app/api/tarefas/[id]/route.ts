@@ -25,7 +25,7 @@ export async function DELETE(
 
   const ok = await deleteTarefa(id);
   if (!ok) {
-    return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
+    return NextResponse.json({ error: "Lembrete não encontrado" }, { status: 404 });
   }
 
   await logMutation({

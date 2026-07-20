@@ -16,7 +16,7 @@ type Props = {
 
 /**
  * Botão "Novo" do dashboard — dropdown com 4 acções (Novo projeto / Novo
- * cliente / Nova tarefa / Nova despesa). Reutiliza os sheets existentes em modo controlado
+ * cliente / Novo lembrete / Nova despesa). Reutiliza os sheets existentes em modo controlado
  * (`open` + `hideTrigger`), por isso os formulários são exactamente os de
  * produção. Fecha ao clicar fora e com Escape. Classes .novo-menu/.novo-pop
  * já existem em painel.css (handoff 2026-07).
@@ -86,7 +86,7 @@ export function NovoMenu({ projetos, clientes }: Props) {
           </button>
           <button type="button" role="menuitem" onClick={() => pick(setTarefaOpen)}>
             <ListChecks className="ic" aria-hidden="true" />
-            Nova tarefa
+            Novo lembrete
           </button>
           <button type="button" role="menuitem" onClick={() => pick(setDespesaOpen)}>
             <Receipt className="ic" aria-hidden="true" />

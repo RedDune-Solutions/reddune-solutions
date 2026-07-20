@@ -77,7 +77,7 @@ export function QuickTarefaModal({
     setSaving(false);
     if (!res.ok) {
       setError(res.error);
-      toast({ title: "Erro a criar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a criar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     onOpenChange(false);
@@ -88,7 +88,7 @@ export function QuickTarefaModal({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Nova tarefa</SheetTitle>
+          <SheetTitle>Novo lembrete</SheetTitle>
         </SheetHeader>
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <div className="space-y-1">

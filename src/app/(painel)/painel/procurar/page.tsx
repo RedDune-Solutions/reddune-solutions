@@ -34,8 +34,8 @@ function SearchBig({ defaultValue }: { defaultValue: string }) {
       <input
         name="q"
         defaultValue={defaultValue}
-        placeholder="Projectos, clientes, tarefas…"
-        aria-label="Procurar projectos, clientes e tarefas"
+        placeholder="Projectos, clientes, lembretes…"
+        aria-label="Procurar projectos, clientes e lembretes"
         autoFocus
         autoComplete="off"
       />
@@ -112,7 +112,7 @@ export default async function ProcurarPage({ searchParams }: { searchParams: Sea
 
   if (tarefasHit.length > 0) {
     grupos.push({
-      titulo: "Tarefas",
+      titulo: "Lembretes",
       rows: tarefasHit.map((t) => {
         const proj = projetoById.get(t.projetoId);
         return (

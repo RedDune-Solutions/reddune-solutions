@@ -23,7 +23,7 @@ const COLL_META: Record<
 > = {
   projetos: { label: "Projecto", create: "criado", update: "editado", delete: "apagado" },
   clientes: { label: "Cliente", create: "criado", update: "editado", delete: "apagado" },
-  tarefas: { label: "Tarefa", create: "criada", update: "editada", delete: "apagada" },
+  tarefas: { label: "Lembrete", create: "criado", update: "editado", delete: "apagado" },
   pagamentos: { label: "Pagamento", create: "registado", update: "editado", delete: "apagado" },
   products: { label: "Produto", create: "criado", update: "editado", delete: "apagado" },
   portfolio: { label: "Trabalho", create: "criado", update: "editado", delete: "apagado" },

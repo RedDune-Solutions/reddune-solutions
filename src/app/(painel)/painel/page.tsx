@@ -40,14 +40,14 @@ export const dynamic = "force-dynamic";
 const COLL_LABEL: Record<string, string> = {
   projetos: "Projecto",
   clientes: "Cliente",
-  tarefas: "Tarefa",
+  tarefas: "Lembrete",
   pagamentos: "Pagamento",
   products: "Produto",
   portfolio: "Trabalho",
   servicos: "Serviço",
 };
 // Colecções com rótulo feminino (concordância do particípio: criada/editada/apagada).
-const COLL_FEM = new Set(["tarefas"]);
+const COLL_FEM = new Set<string>([]);
 const OP_PART: Record<string, string> = { create: "criad", update: "editad", delete: "apagad" };
 
 // Hora actual em Lisboa (o servidor Vercel corre em UTC — getHours() cru
@@ -82,7 +82,7 @@ function auditObj(e: AuditEntry): string {
   return `${COLL_LABEL[e.collection] ?? e.collection} · ${e.entityId.slice(0, 8)}`;
 }
 
-/** "Projecto criado" / "Tarefa editada" / "Pagamento apagado" … */
+/** "Projecto criado" / "Lembrete editado" / "Pagamento apagado" … */
 function auditWho(e: AuditEntry): string {
   const label = COLL_LABEL[e.collection] ?? e.collection;
   const part = OP_PART[e.op];

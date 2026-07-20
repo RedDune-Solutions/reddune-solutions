@@ -16,7 +16,7 @@ type GroupKey = keyof ProcurarResultados;
 const GROUPS: { key: GroupKey; label: string; Icon: typeof FolderKanban }[] = [
   { key: "projetos", label: "Projectos", Icon: FolderKanban },
   { key: "clientes", label: "Clientes", Icon: Users },
-  { key: "tarefas", label: "Tarefas", Icon: ListChecks },
+  { key: "tarefas", label: "Lembretes", Icon: ListChecks },
 ];
 
 const MIN_CHARS = 2;

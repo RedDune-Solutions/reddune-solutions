@@ -118,7 +118,7 @@ export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Prop
                     key={`t-${t.id}-${i}`}
                     href={`/painel/projetos/${t.projetoId}`}
                     className="cal-ev b"
-                    title={`Tarefa: ${t.titulo}`}
+                    title={`Lembrete: ${t.titulo}`}
                   >
                     {t.prazoHora ? `${t.prazoHora} · ` : ""}{t.titulo}
                   </Link>

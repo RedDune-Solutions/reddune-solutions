@@ -96,7 +96,7 @@ export function NovaTarefaGlobalButton({
     setSaving(false);
     if (!res.ok) {
       setError(res.error);
-      toast({ title: "Erro a criar tarefa", description: res.error, variant: "destructive" });
+      toast({ title: "Erro a criar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     setOpen(false);
@@ -109,13 +109,13 @@ export function NovaTarefaGlobalButton({
         <SheetTrigger asChild>
           <button type="button" className="btn-primary">
             <Plus className="ic" aria-hidden="true" />
-            Nova tarefa
+            Novo lembrete
           </button>
         </SheetTrigger>
       )}
       <SheetContent side="right" className="w-full sm:max-w-md p-6">
         <SheetHeader className="px-0">
-          <SheetTitle>Nova tarefa</SheetTitle>
+          <SheetTitle>Novo lembrete</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
@@ -200,7 +200,7 @@ export function NovaTarefaGlobalButton({
 
           <div className="flex items-center gap-2 pt-2">
             <Button type="submit" disabled={saving || !projetoId || !titulo.trim()} className="flex-1">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Criar tarefa"}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Criar lembrete"}
             </Button>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
               Cancelar

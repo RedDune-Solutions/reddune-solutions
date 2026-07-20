@@ -15,10 +15,10 @@ type TarefaFilter = "todas" | "hoje" | "semana" | "vencidas";
 type SearchParams = Promise<{ filter?: string; feitas?: string }>;
 
 const FILTER_LABELS: Record<TarefaFilter, string> = {
-  todas: "Todas",
+  todas: "Todos",
   hoje: "Hoje",
   semana: "Semana",
-  vencidas: "Vencidas",
+  vencidas: "Vencidos",
 };
 
 export default async function TarefasPage({
@@ -93,8 +93,8 @@ export default async function TarefasPage({
   return (
     <>
       <Topbar
-        crumbs={["Tarefas"]}
-        titleHtml={`${pendentes} <em>aberta${pendentes !== 1 ? "s" : ""}</em>`}
+        crumbs={["Lembretes"]}
+        titleHtml={`${pendentes} <em>aberto${pendentes !== 1 ? "s" : ""}</em>`}
         actions={
           <>
             <div className="view-tabs">
@@ -112,7 +112,7 @@ export default async function TarefasPage({
 
       <div className="chips" style={{ justifyContent: "flex-end" }}>
         <Link href={toggleFeitasUrl} className={cn("chip", showFeitas && "on")}>
-          Mostrar feitas
+          Mostrar feitos
         </Link>
       </div>
 
