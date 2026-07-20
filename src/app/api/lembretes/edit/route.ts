@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { patchTarefa, getTarefaProjetoId } from "@/lib/mongodb/tarefas";
+import { patchLembrete, getLembreteProjetoId } from "@/lib/mongodb/lembretes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
 
 const payloadSchema = z.object({
-  tarefaId: z.string().min(1),
+  lembreteId: z.string().min(1),
   patch: z.object({
     feita: z.boolean().optional(),
     titulo: z.string().min(1).max(300).optional(),
@@ -49,22 +49,22 @@ export async function POST(request: Request) {
 
   // Lê o projetoId antes do patch para revalidar a página do projeto (o patch
   // nunca altera o projetoId, por isso o valor lido continua válido).
-  const projetoId = await getTarefaProjetoId(parsed.data.tarefaId);
+  const projetoId = await getLembreteProjetoId(parsed.data.lembreteId);
 
-  const ok = await patchTarefa(parsed.data.tarefaId, parsed.data.patch);
+  const ok = await patchLembrete(parsed.data.lembreteId, parsed.data.patch);
   if (!ok) {
     return NextResponse.json({ error: "Lembrete não encontrado" }, { status: 404 });
   }
 
   await logMutation({
-    collection: "tarefas",
-    entityId: parsed.data.tarefaId,
+    collection: "lembretes",
+    entityId: parsed.data.lembreteId,
     op: "update",
     userEmail: session.user.email ?? null,
     after: parsed.data.patch,
   });
 
-  revalidatePath("/painel/tarefas");
+  revalidatePath("/painel/lembretes");
   revalidatePath("/painel/calendario");
   revalidatePath("/painel");
   if (projetoId) revalidatePath(`/painel/projetos/${projetoId}`);

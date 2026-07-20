@@ -296,7 +296,7 @@
 .pnl .pd-prog-bar span { display: block; height: 100%; border-radius: 100px; background: linear-gradient(90deg,var(--flame),var(--apricot)); }
 .pnl .pd-prog-l { font-family: var(--font-mono); font-size: 10.5px; color: rgba(247,238,219,.55); margin-top: 7px; }
 
-/* Tarefas list */
+/* Lembretes list */
 .pnl .task-group { margin-bottom: 20px; }
 .pnl .task-group h3 { font-family: var(--font-display); font-size: 15px; font-weight: 600; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; color: var(--ink); }
 .pnl .task-group h3 a { font-size: 12px; color: var(--ember); font-family: var(--font-body); font-weight: 500; }

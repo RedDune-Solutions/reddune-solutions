@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TAREFAS_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
+import { LEMBRETES_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
 import { safeJsonPost } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,10 +34,10 @@ type Props = {
 };
 
 // Selector oferece o mesmo conjunto de projetos cujos lembretes são visíveis
-// em /painel/tarefas — hoje TODOS os estados, incluindo fechados e ideias.
-const ACTIVE_STATUSES = TAREFAS_VISIVEIS_STATUSES;
+// em /painel/lembretes — hoje TODOS os estados, incluindo fechados e ideias.
+const ACTIVE_STATUSES = LEMBRETES_VISIVEIS_STATUSES;
 
-export function NovaTarefaGlobalButton({
+export function NovoLembreteGlobalButton({
   projetos,
   open: openProp,
   onOpenChange,
@@ -83,7 +83,7 @@ export function NovaTarefaGlobalButton({
     }
     setSaving(true);
     setError(null);
-    const res = await safeJsonPost("/api/tarefas/upsert", {
+    const res = await safeJsonPost("/api/lembretes/upsert", {
       projetoId,
       titulo: titulo.trim(),
       feita: false,

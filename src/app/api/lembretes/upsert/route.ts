@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth";
-import { upsertTarefa } from "@/lib/mongodb/tarefas";
+import { upsertLembrete } from "@/lib/mongodb/lembretes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
-import { tarefaInputSchema } from "@/lib/validation-projeto";
-import type { Tarefa } from "@/types/tarefa";
+import { lembreteInputSchema } from "@/lib/validation-projeto";
+import type { Lembrete } from "@/types/lembrete";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = tarefaInputSchema.safeParse(body);
+  const parsed = lembreteInputSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.issues },
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const id = input.id ?? randomUUID();
   const now = new Date().toISOString();
 
-  const tarefa: Tarefa = {
+  const lembrete: Lembrete = {
     id,
     projetoId: input.projetoId,
     titulo: input.titulo,
@@ -46,15 +46,15 @@ export async function POST(request: Request) {
     criadoEm: input.criadoEm ?? now,
   };
 
-  await upsertTarefa(tarefa);
+  await upsertLembrete(lembrete);
   await logMutation({
-    collection: "tarefas",
+    collection: "lembretes",
     entityId: id,
     op: input.id ? "update" : "create",
     userEmail: session.user.email ?? null,
-    after: tarefa,
+    after: lembrete,
   });
-  revalidatePath("/painel/tarefas");
+  revalidatePath("/painel/lembretes");
   revalidatePath("/painel/calendario");
   revalidatePath(`/painel/projetos/${input.projetoId}`);
   revalidatePath("/painel");

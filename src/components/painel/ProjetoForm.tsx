@@ -40,7 +40,7 @@ type Props = {
   onCancel?: () => void;
 };
 
-export function TarefaForm({ projeto, clientes = [], onSaved, onCancel }: Props) {
+export function ProjetoForm({ projeto, clientes = [], onSaved, onCancel }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();

@@ -22,7 +22,7 @@ export const STATUS_LABELS: Record<ProjetoStatus, string> = {
 
 // Estados do FLUXO de trabalho — os que aparecem no dropdown de estado do form.
 // As Ideias (ideia-*) não estão aqui: são marcadas por checkbox, que desliga o
-// dropdown (ver TarefaForm). São mutuamente exclusivas — um projecto tem UM
+// dropdown (ver ProjetoForm). São mutuamente exclusivas — um projecto tem UM
 // status.
 export const PROJETO_STATUS_FLUXO: ProjetoStatus[] = [
   "proximo",
@@ -34,8 +34,8 @@ export const PROJETO_STATUS_FLUXO: ProjetoStatus[] = [
 
 // Lembretes são visíveis para projectos em QUALQUER estado — um lembrete nunca
 // desaparece por o projecto fechar (follow-ups, garantias, ideias). O selector
-// do NovaTarefaGlobalButton oferece o mesmo conjunto que a página mostra.
-export const TAREFAS_VISIVEIS_STATUSES: ProjetoStatus[] = [...PROJETO_STATUS];
+// do NovoLembreteGlobalButton oferece o mesmo conjunto que a página mostra.
+export const LEMBRETES_VISIVEIS_STATUSES: ProjetoStatus[] = [...PROJETO_STATUS];
 
 // Fonte ÚNICA de "projecto activo" — usada pelo badge da sidebar/bottomnav E
 // pelo título de /painel/projetos, para os números baterem certo (antes o badge

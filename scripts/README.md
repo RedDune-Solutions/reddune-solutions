@@ -4,7 +4,10 @@
 
 Lê o vault Obsidian local, parseia os projectos (`tipo-doc: projeto`) das pastas
 `02_Projetos - Clientes/` e `03_Projetos - Internos/`, converte para o schema da dashboard,
-e envia snapshot via POST autenticado para `/api/tarefas`.
+e envia snapshot via POST autenticado para `/api/lembretes` (ex-`/api/tarefas`).
+
+> **LEGADO** — as pastas do vault e o endpoint mudaram desde que isto foi
+> escrito (o endpoint actual não aceita POST). Mantido como referência.
 
 **Princípios:**
 - Vault permanece local — só viaja snapshot curado

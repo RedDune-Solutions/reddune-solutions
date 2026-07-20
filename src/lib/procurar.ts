@@ -5,7 +5,7 @@ import {
   type ProjetoTipo,
 } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
-import type { Tarefa } from "@/types/tarefa";
+import type { Lembrete } from "@/types/lembrete";
 
 /**
  * Pesquisa global do painel — lógica pura partilhada entre a página
@@ -33,14 +33,14 @@ function clienteHaystack(c: Cliente): string {
   return normPesquisa([c.nome, c.email ?? "", c.telefone ?? "", c.nif ?? ""].join(" "));
 }
 
-function tarefaHaystack(t: Tarefa): string {
+function lembreteHaystack(t: Lembrete): string {
   return normPesquisa([t.titulo, t.notas ?? ""].join(" "));
 }
 
 export type ProcurarHits = {
   projetos: Projeto[];
   clientes: Cliente[];
-  tarefas: Tarefa[];
+  lembretes: Lembrete[];
 };
 
 /**
@@ -52,18 +52,18 @@ export function matchAll(
   q: string,
   projetos: Projeto[],
   clientes: Cliente[],
-  tarefas: Tarefa[]
+  lembretes: Lembrete[]
 ): ProcurarHits {
   const nq = normPesquisa(q.trim());
-  if (!nq) return { projetos: [], clientes: [], tarefas: [] };
+  if (!nq) return { projetos: [], clientes: [], lembretes: [] };
   return {
     projetos: projetos.filter((p) => projetoHaystack(p).includes(nq)),
     clientes: clientes.filter((c) => clienteHaystack(c).includes(nq)),
-    tarefas: tarefas.filter((t) => tarefaHaystack(t).includes(nq)),
+    lembretes: lembretes.filter((t) => lembreteHaystack(t).includes(nq)),
   };
 }
 
-export type ProcurarTipo = "projeto" | "cliente" | "tarefa";
+export type ProcurarTipo = "projeto" | "cliente" | "lembrete";
 
 /** Campos mínimos para render no dropdown inline (.gsearch-pop). */
 export type ProcurarResultado = {
@@ -71,14 +71,14 @@ export type ProcurarResultado = {
   titulo: string;
   sub: string | null;
   tipo: ProcurarTipo;
-  /** Destino de navegação (tarefa → projecto a que pertence). */
+  /** Destino de navegação (lembrete → projecto a que pertence). */
   href: string;
 };
 
 export type ProcurarResultados = {
   projetos: ProcurarResultado[];
   clientes: ProcurarResultado[];
-  tarefas: ProcurarResultado[];
+  lembretes: ProcurarResultado[];
 };
 
 /**
@@ -89,10 +89,10 @@ export function searchAll(
   q: string,
   projetos: Projeto[],
   clientes: Cliente[],
-  tarefas: Tarefa[],
+  lembretes: Lembrete[],
   limit?: number
 ): ProcurarResultados {
-  const hits = matchAll(q, projetos, clientes, tarefas);
+  const hits = matchAll(q, projetos, clientes, lembretes);
   const cap = <T,>(arr: T[]): T[] =>
     typeof limit === "number" && limit >= 0 ? arr.slice(0, limit) : arr;
   const projetoById = new Map(projetos.map((p) => [p.id, p]));
@@ -112,13 +112,13 @@ export function searchAll(
       tipo: "cliente" as const,
       href: `/painel/clientes/${c.id}`,
     })),
-    tarefas: cap(hits.tarefas).map((t) => {
+    lembretes: cap(hits.lembretes).map((t) => {
       const proj = projetoById.get(t.projetoId);
       return {
         id: t.id,
         titulo: t.titulo,
-        sub: `${proj?.titulo ?? "Projecto desconhecido"}${t.feita ? " · feita" : ""}`,
-        tipo: "tarefa" as const,
+        sub: `${proj?.titulo ?? "Projecto desconhecido"}${t.feita ? " · feito" : ""}`,
+        tipo: "lembrete" as const,
         href: `/painel/projetos/${t.projetoId}`,
       };
     }),

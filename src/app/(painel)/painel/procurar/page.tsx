@@ -4,7 +4,7 @@ import { Search, FolderKanban, Users, ListChecks } from "lucide-react";
 import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
-import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllLembretes } from "@/lib/mongodb/lembretes";
 import { Topbar } from "@/components/painel/Topbar";
 import { matchAll, normPesquisa } from "@/lib/procurar";
 import { STATUS_LABELS } from "@/types/projeto";
@@ -15,10 +15,10 @@ export const dynamic = "force-dynamic";
 type SearchParams = Promise<{ q?: string }>;
 
 function fmtPrazo(prazo: string | null, feita: boolean): string {
-  if (feita) return "feita";
+  if (feita) return "feito";
   if (!prazo) return "sem prazo";
   if (isToday(prazo)) return "hoje";
-  if (isOverdue(prazo)) return "atrasada";
+  if (isOverdue(prazo)) return "atrasado";
   try {
     return new Date(prazo).toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
   } catch {
@@ -60,28 +60,28 @@ export default async function ProcurarPage({ searchParams }: { searchParams: Sea
     );
   }
 
-  const [projetos, clientes, tarefas] = await Promise.all([
+  const [projetos, clientes, lembretes] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
-    getAllTarefas(),
+    getAllLembretes(),
   ]);
 
   const {
     projetos: projetosHit,
     clientes: clientesHit,
-    tarefas: tarefasHit,
-  } = matchAll(raw, projetos, clientes, tarefas);
+    lembretes: lembretesHit,
+  } = matchAll(raw, projetos, clientes, lembretes);
 
-  // Contexto por resultado: projecto da tarefa; primeiro projecto do cliente.
+  // Contexto por resultado: projecto do lembrete; primeiro projecto do cliente.
   const projetoById = new Map(projetos.map((p) => [p.id, p]));
   const projetoDoCliente = new Map<string, string>();
   for (const p of projetos) {
     if (p.clienteId && !projetoDoCliente.has(p.clienteId)) projetoDoCliente.set(p.clienteId, p.titulo);
   }
 
-  const total = projetosHit.length + clientesHit.length + tarefasHit.length;
+  const total = projetosHit.length + clientesHit.length + lembretesHit.length;
 
-  // Grupos com resultados, pela ordem do protótipo: Projectos → Clientes → Tarefas.
+  // Grupos com resultados, pela ordem do protótipo: Projectos → Clientes → Lembretes.
   const grupos: { titulo: string; rows: ReactNode[] }[] = [];
 
   if (projetosHit.length > 0) {
@@ -110,10 +110,10 @@ export default async function ProcurarPage({ searchParams }: { searchParams: Sea
     });
   }
 
-  if (tarefasHit.length > 0) {
+  if (lembretesHit.length > 0) {
     grupos.push({
       titulo: "Lembretes",
-      rows: tarefasHit.map((t) => {
+      rows: lembretesHit.map((t) => {
         const proj = projetoById.get(t.projetoId);
         return (
           <Link key={t.id} href={`/painel/projetos/${t.projetoId}`} className="res">

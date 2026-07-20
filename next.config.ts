@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
         destination: "/servicos",
         permanent: true,
       },
+      // Rename 2026-07-20: tarefas → lembretes. permanent:false — rota interna
+      // do painel, sem valor SEO; evita 308 cacheado se um dia voltar a mudar.
+      {
+        source: "/painel/tarefas",
+        destination: "/painel/lembretes",
+        permanent: false,
+      },
       // Slug inválido de serviço → hub. Em produção o loading.tsx faz
       // streaming e o 200 sai antes do notFound() (soft-404); este redirect
       // resolve no edge, antes do render. permanent:false — se um dia houver

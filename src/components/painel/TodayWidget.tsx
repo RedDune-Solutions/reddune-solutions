@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertCircle, CalendarClock, Clock, ArrowRight, type LucideIcon } from "lucide-react";
-import { TarefaCard } from "./TarefaCard";
+import { ProjetoCard } from "./ProjetoCard";
 import {
   isOverdue,
   isToday,
@@ -129,7 +129,7 @@ function Group({
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {items.map((projeto) => (
-          <TarefaCard key={projeto.id} projeto={projeto} />
+          <ProjetoCard key={projeto.id} projeto={projeto} />
         ))}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
-import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllLembretes } from "@/lib/mongodb/lembretes";
 import { searchAll, type ProcurarResultados } from "@/lib/procurar";
 import { apiOk, apiError, withAuth } from "@/lib/api";
 
@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 /** Máximo de resultados por grupo no dropdown inline da topbar. */
 const LIMIT_POR_GRUPO = 6;
 
-const VAZIO: ProcurarResultados = { projetos: [], clientes: [], tarefas: [] };
+const VAZIO: ProcurarResultados = { projetos: [], clientes: [], lembretes: [] };
 
 /**
- * GET /api/procurar?q=… — pesquisa global (projectos + clientes + tarefas)
+ * GET /api/procurar?q=… — pesquisa global (projectos + clientes + lembretes)
  * para o dropdown live da GlobalSearch. Sessão obrigatória (withAuth).
  */
 export const GET = withAuth(async (_session, request) => {
@@ -22,13 +22,13 @@ export const GET = withAuth(async (_session, request) => {
       return apiOk(VAZIO, { headers: { "Cache-Control": "no-store" } });
     }
 
-    const [projetos, clientes, tarefas] = await Promise.all([
+    const [projetos, clientes, lembretes] = await Promise.all([
       getAllProjetos(),
       getAllClientes(),
-      getAllTarefas(),
+      getAllLembretes(),
     ]);
 
-    const resultados = searchAll(q, projetos, clientes, tarefas, LIMIT_POR_GRUPO);
+    const resultados = searchAll(q, projetos, clientes, lembretes, LIMIT_POR_GRUPO);
     return apiOk(resultados, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("GET /api/procurar error:", error);

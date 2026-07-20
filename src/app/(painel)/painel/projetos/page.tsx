@@ -6,7 +6,7 @@ import { getAllClientes } from "@/lib/mongodb/clientes";
 import { applyFilters } from "@/lib/filter-projetos";
 import { Topbar } from "@/components/painel/Topbar";
 import { KanbanBoard, ProjetosTable } from "@/components/painel/KanbanBoard";
-import { NovaTarefaButton } from "@/components/painel/NovaTarefaButton";
+import { NovoProjetoButton } from "@/components/painel/NovoProjetoButton";
 import { PROJETO_STATUS, PROJETO_TIPO, isProjetoAtivo, type ProjetoStatus, type ProjetoTipo } from "@/types/projeto";
 import { SERVICO_SLUG, type ServicoSlug } from "@/types/servico";
 
@@ -106,7 +106,7 @@ export default async function ProjetosPage({ searchParams }: { searchParams: Sea
                 <List className="ic" aria-hidden="true" /> Lista
               </Link>
             </div>
-            <NovaTarefaButton clientes={clientes} />
+            <NovoProjetoButton clientes={clientes} />
           </>
         }
       />

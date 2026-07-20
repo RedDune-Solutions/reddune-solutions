@@ -5,16 +5,16 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Tarefa } from "@/types/tarefa";
+import type { Lembrete } from "@/types/lembrete";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
-type TarefaFilter = "todas" | "hoje" | "semana" | "vencidas";
+type LembreteFilter = "todas" | "hoje" | "semana" | "vencidas";
 
 // Nome do filtro tal como aparece nas tabs (masculino — lembretes).
-const FILTER_DISPLAY: Record<TarefaFilter, string> = {
+const FILTER_DISPLAY: Record<LembreteFilter, string> = {
   todas: "Todos",
   hoje: "Hoje",
   semana: "Semana",
@@ -22,9 +22,9 @@ const FILTER_DISPLAY: Record<TarefaFilter, string> = {
 };
 
 type Props = {
-  tarefas: Tarefa[];
+  lembretes: Lembrete[];
   projetos: Projeto[];
-  filter: TarefaFilter;
+  filter: LembreteFilter;
   showFeitas: boolean;
 };
 
@@ -47,7 +47,7 @@ function startOfDay(d: Date): Date {
   return x;
 }
 
-function applyTarefaFilter(t: Tarefa, filter: TarefaFilter): boolean {
+function applyLembreteFilter(t: Lembrete, filter: LembreteFilter): boolean {
   if (filter === "todas") return true;
   if (!t.prazo) return false;
   const prazo = startOfDay(new Date(t.prazo));
@@ -63,7 +63,7 @@ function applyTarefaFilter(t: Tarefa, filter: TarefaFilter): boolean {
 }
 
 // Prazo relativo à la protótipo: "hoje · 14:00" / "amanhã" / "quinta" / "12 jul" / "feito"
-function formatPrazoRel(t: Tarefa): string {
+function formatPrazoRel(t: Lembrete): string {
   if (t.feita) return "feito";
   if (!t.prazo) return "";
   const prazo = startOfDay(new Date(t.prazo));
@@ -89,7 +89,7 @@ function prazoStatus(iso: string | null): "vencida" | "hoje" | "futura" | null {
   return "futura";
 }
 
-export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Props) {
+export function LembretesPorProjeto({ lembretes, projetos, filter, showFeitas }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -97,21 +97,21 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
   const [busy, setBusy] = useState<string | null>(null);
   // Estado local optimista — reconciliado com as props quando o
   // router.refresh() traz dados novos do servidor.
-  const [items, setItems] = useState<Tarefa[]>(tarefas);
+  const [items, setItems] = useState<Lembrete[]>(lembretes);
 
   useEffect(() => {
-    setItems(tarefas);
-  }, [tarefas]);
+    setItems(lembretes);
+  }, [lembretes]);
 
-  // Filter tarefas by feita state + active filter
+  // Filter lembretes by feita state + active filter
   const filtered = items.filter((t) => {
     if (!showFeitas && t.feita) return false;
-    return applyTarefaFilter(t, filter);
+    return applyLembreteFilter(t, filter);
   });
 
   // Group by projetoId
   const projetoMap = new Map(projetos.map((p) => [p.id, p]));
-  const grouped = new Map<string, Tarefa[]>();
+  const grouped = new Map<string, Lembrete[]>();
   for (const t of filtered) {
     const list = grouped.get(t.projetoId) ?? [];
     list.push(t);
@@ -122,9 +122,9 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
   const groups = Array.from(grouped.entries())
     .map(([projetoId, ts]) => ({
       projeto: projetoMap.get(projetoId),
-      tarefas: ts,
+      lembretes: ts,
     }))
-    .filter((g): g is { projeto: Projeto; tarefas: Tarefa[] } => !!g.projeto)
+    .filter((g): g is { projeto: Projeto; lembretes: Lembrete[] } => !!g.projeto)
     .sort((a, b) => {
       const pa = STATUS_PRIORITY[a.projeto.status] ?? 99;
       const pb = STATUS_PRIORITY[b.projeto.status] ?? 99;
@@ -132,13 +132,13 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
       return a.projeto.titulo.localeCompare(b.projeto.titulo);
     });
 
-  async function toggleFeita(t: Tarefa) {
+  async function toggleFeita(t: Lembrete) {
     const novoFeita = !t.feita;
     // Optimista: flipa já localmente.
     setItems((prev) => prev.map((x) => (x.id === t.id ? { ...x, feita: novoFeita } : x)));
     setBusy(t.id);
-    const res = await safeJsonPost("/api/tarefas/edit", {
-      tarefaId: t.id,
+    const res = await safeJsonPost("/api/lembretes/edit", {
+      lembreteId: t.id,
       patch: { feita: novoFeita },
     });
     setBusy(null);
@@ -151,7 +151,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
     startTransition(() => router.refresh());
   }
 
-  async function deleteTarefa(id: string) {
+  async function deleteLembrete(id: string) {
     const ok = await confirm({
       title: "Apagar lembrete?",
       description: "Esta acção remove o lembrete. Não pode ser desfeita.",
@@ -163,10 +163,10 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
     const removida = items.find((t) => t.id === id);
     setItems((prev) => prev.filter((t) => t.id !== id));
     setBusy(id);
-    const res = await safeDelete(`/api/tarefas/${encodeURIComponent(id)}`);
+    const res = await safeDelete(`/api/lembretes/${encodeURIComponent(id)}`);
     setBusy(null);
     if (!res.ok) {
-      // Revert: repõe a tarefa.
+      // Revert: repõe o lembrete.
       if (removida) setItems((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removida]));
       toast({ title: "Erro a apagar lembrete", description: res.error, variant: "destructive" });
       return;
@@ -192,8 +192,8 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
     );
   }
 
-  // Sort tarefas inside each group: vencidas first, then hoje, then by prazo, then sem prazo
-  function sortTarefas(arr: Tarefa[]): Tarefa[] {
+  // Sort lembretes inside each group: vencidas first, then hoje, then by prazo, then sem prazo
+  function sortLembretes(arr: Lembrete[]): Lembrete[] {
     return [...arr].sort((a, b) => {
       const sa = prazoStatus(a.prazo);
       const sb = prazoStatus(b.prazo);
@@ -208,8 +208,8 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
 
   return (
     <div>
-      {groups.map(({ projeto, tarefas: ts }) => {
-        const sorted = sortTarefas(ts);
+      {groups.map(({ projeto, lembretes: ts }) => {
+        const sorted = sortLembretes(ts);
 
         return (
           <div key={projeto.id} className="task-group">
@@ -244,7 +244,7 @@ export function TarefasPorProjeto({ tarefas, projetos, filter, showFeitas }: Pro
                   )}
                   <button
                     type="button"
-                    onClick={() => deleteTarefa(t.id)}
+                    onClick={() => deleteLembrete(t.id)}
                     disabled={isBusy}
                     aria-label="Apagar lembrete"
                     className="icon-mini opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 focus-visible:opacity-100 transition-opacity"

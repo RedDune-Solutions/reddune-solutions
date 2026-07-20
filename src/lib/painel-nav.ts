@@ -42,7 +42,7 @@ const CAT_ORDER: Record<PainelCategoria, number> = {
 export const PAINEL_NAV_DEFAULT: PainelNavItem[] = [
   // Principal — trabalho do dia-a-dia.
   { href: "/painel", label: "Visão geral", Icon: LayoutDashboard, exact: true, category: "principal" },
-  { href: "/painel/tarefas", label: "Lembretes", Icon: ListChecks, category: "principal" },
+  { href: "/painel/lembretes", label: "Lembretes", Icon: ListChecks, category: "principal" },
   { href: "/painel/projetos", label: "Projectos", Icon: FolderKanban, category: "principal" },
   { href: "/painel/clientes", label: "Clientes", Icon: Users, category: "principal" },
   { href: "/painel/leads", label: "Leads", Icon: Inbox, category: "principal" },

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { deleteProjeto, getProjetoById } from "@/lib/mongodb/projetos";
-import { deleteTarefasByProjeto } from "@/lib/mongodb/tarefas";
+import { deleteLembretesByProjeto } from "@/lib/mongodb/lembretes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 import { deleteManagedBlobs } from "@/lib/blob";
 import { getSandboxesByProjeto, deleteSandboxesByProjeto } from "@/lib/mongodb/portal-sandbox";
@@ -42,7 +42,7 @@ export async function DELETE(
       console.error("Falha a limpar blobs/sandboxes do projeto (delete continua):", err);
     }
 
-    await deleteTarefasByProjeto(id);
+    await deleteLembretesByProjeto(id);
     const ok = await deleteProjeto(id);
     if (!ok) {
       return NextResponse.json({ error: "Projeto não encontrado" }, { status: 404 });
@@ -62,7 +62,7 @@ export async function DELETE(
     });
 
     revalidatePath("/painel/projetos");
-    revalidatePath("/painel/tarefas");
+    revalidatePath("/painel/lembretes");
     revalidatePath("/painel/calendario");
     revalidatePath("/painel/dividas");
     revalidatePath("/painel");

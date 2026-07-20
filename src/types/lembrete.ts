@@ -1,4 +1,4 @@
-export interface Tarefa {
+export interface Lembrete {
   id: string;
   projetoId: string;
   titulo: string;

@@ -33,11 +33,11 @@ function formatValor(v: number | null): string | null {
 }
 
 /**
- * TarefaCard — Oasis v5 `.tarefa`. Project summary card: meta (categoria · tipo),
+ * ProjetoCard — Oasis v5 (ex-`.tarefa`). Project summary card: meta (categoria · tipo),
  * title, client, next-action rail, footer (due + valor). Keeps the inline status
  * control so quick status changes still work from card views.
  */
-export function TarefaCard({ projeto, className }: Props) {
+export function ProjetoCard({ projeto, className }: Props) {
   const prazo = formatDate(projeto.prazo);
   const overdue =
     !!projeto.prazo &&
@@ -51,7 +51,7 @@ export function TarefaCard({ projeto, className }: Props) {
   const valor = formatValor(projeto.valorEstimado);
 
   return (
-    <Link href={`/painel/projetos/${projeto.id}`} className={cn("tarefa", className)}>
+    <Link href={`/painel/projetos/${projeto.id}`} className={cn("projeto-card", className)}>
       <div>
         <div className="row1">
           <div style={{ flex: 1, minWidth: 0 }}>

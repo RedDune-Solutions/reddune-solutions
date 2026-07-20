@@ -4,13 +4,13 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Tarefa } from "@/types/tarefa";
+import type { Lembrete } from "@/types/lembrete";
 import { safeJsonPost, safeDelete } from "@/lib/safe-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Props = {
-  tarefas: Tarefa[];
+  lembretes: Lembrete[];
   projetoId: string;
 };
 
@@ -22,14 +22,14 @@ function fmtData(iso: string): string {
   }
 }
 
-export function TarefaChecklist({ tarefas, projetoId }: Props) {
+export function LembreteChecklist({ lembretes, projetoId }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
   const [, startTransition] = useTransition();
   // Estado local optimista — reconciliado com as props quando o
   // router.refresh() traz dados novos do servidor.
-  const [items, setItems] = useState<Tarefa[]>(tarefas);
+  const [items, setItems] = useState<Lembrete[]>(lembretes);
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novoPrazo, setNovoPrazo] = useState("");
@@ -38,8 +38,8 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
   const [showInput, setShowInput] = useState(false);
 
   useEffect(() => {
-    setItems(tarefas);
-  }, [tarefas]);
+    setItems(lembretes);
+  }, [lembretes]);
 
   function setBusyId(id: string, on: boolean) {
     setBusy((prev) => {
@@ -50,45 +50,45 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     });
   }
 
-  async function toggleFeita(tarefa: Tarefa) {
-    const novoFeita = !tarefa.feita;
+  async function toggleFeita(lembrete: Lembrete) {
+    const novoFeita = !lembrete.feita;
     // Optimista: flipa já localmente.
-    setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, feita: novoFeita } : t)));
-    setBusyId(tarefa.id, true);
-    const res = await safeJsonPost("/api/tarefas/edit", {
-      tarefaId: tarefa.id,
+    setItems((prev) => prev.map((t) => (t.id === lembrete.id ? { ...t, feita: novoFeita } : t)));
+    setBusyId(lembrete.id, true);
+    const res = await safeJsonPost("/api/lembretes/edit", {
+      lembreteId: lembrete.id,
       patch: { feita: novoFeita },
     });
-    setBusyId(tarefa.id, false);
+    setBusyId(lembrete.id, false);
     if (!res.ok) {
       // Revert.
-      setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, feita: tarefa.feita } : t)));
+      setItems((prev) => prev.map((t) => (t.id === lembrete.id ? { ...t, feita: lembrete.feita } : t)));
       toast({ title: "Erro a actualizar lembrete", description: res.error, variant: "destructive" });
       return;
     }
     startTransition(() => router.refresh());
   }
 
-  async function updatePrazo(tarefa: Tarefa, prazo: string | null) {
-    const prazoAnterior = tarefa.prazo;
+  async function updatePrazo(lembrete: Lembrete, prazo: string | null) {
+    const prazoAnterior = lembrete.prazo;
     // Optimista: actualiza já localmente.
-    setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, prazo } : t)));
-    setBusyId(tarefa.id, true);
-    const res = await safeJsonPost("/api/tarefas/edit", {
-      tarefaId: tarefa.id,
+    setItems((prev) => prev.map((t) => (t.id === lembrete.id ? { ...t, prazo } : t)));
+    setBusyId(lembrete.id, true);
+    const res = await safeJsonPost("/api/lembretes/edit", {
+      lembreteId: lembrete.id,
       patch: { prazo },
     });
-    setBusyId(tarefa.id, false);
+    setBusyId(lembrete.id, false);
     if (!res.ok) {
       // Revert.
-      setItems((prev) => prev.map((t) => (t.id === tarefa.id ? { ...t, prazo: prazoAnterior } : t)));
+      setItems((prev) => prev.map((t) => (t.id === lembrete.id ? { ...t, prazo: prazoAnterior } : t)));
       toast({ title: "Erro a actualizar prazo", description: res.error, variant: "destructive" });
       return;
     }
     startTransition(() => router.refresh());
   }
 
-  async function deletarTarefa(id: string) {
+  async function deletarLembrete(id: string) {
     const ok = await confirm({
       title: "Apagar lembrete?",
       description: "Esta acção remove o lembrete. Não pode ser desfeita.",
@@ -100,10 +100,10 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     const removida = items.find((t) => t.id === id);
     setItems((prev) => prev.filter((t) => t.id !== id));
     setBusyId(id, true);
-    const res = await safeDelete(`/api/tarefas/${encodeURIComponent(id)}`);
+    const res = await safeDelete(`/api/lembretes/${encodeURIComponent(id)}`);
     setBusyId(id, false);
     if (!res.ok) {
-      // Revert: repõe a tarefa.
+      // Revert: repõe o lembrete.
       if (removida) setItems((prev) => (prev.some((t) => t.id === id) ? prev : [...prev, removida]));
       toast({ title: "Erro a apagar lembrete", description: res.error, variant: "destructive" });
       return;
@@ -111,12 +111,12 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
     startTransition(() => router.refresh());
   }
 
-  async function adicionarTarefa(e: React.FormEvent) {
+  async function adicionarLembrete(e: React.FormEvent) {
     e.preventDefault();
     const titulo = novoTitulo.trim();
     if (!titulo) return;
     setAdding(true);
-    const res = await safeJsonPost("/api/tarefas/upsert", {
+    const res = await safeJsonPost("/api/lembretes/upsert", {
       projetoId,
       titulo,
       feita: false,
@@ -149,20 +149,20 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
         </p>
       )}
 
-      {[...pendentes, ...feitas].map((tarefa) => (
-        <TarefaItem
-          key={tarefa.id}
-          tarefa={tarefa}
-          onToggle={() => toggleFeita(tarefa)}
-          onDelete={() => deletarTarefa(tarefa.id)}
-          onPrazo={(p) => updatePrazo(tarefa, p)}
-          disabled={busy.has(tarefa.id)}
+      {[...pendentes, ...feitas].map((lembrete) => (
+        <LembreteItem
+          key={lembrete.id}
+          lembrete={lembrete}
+          onToggle={() => toggleFeita(lembrete)}
+          onDelete={() => deletarLembrete(lembrete.id)}
+          onPrazo={(p) => updatePrazo(lembrete, p)}
+          disabled={busy.has(lembrete.id)}
         />
       ))}
 
       {showInput ? (
         <form
-          onSubmit={adicionarTarefa}
+          onSubmit={adicionarLembrete}
           style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4 }}
         >
           <input
@@ -221,40 +221,40 @@ export function TarefaChecklist({ tarefas, projetoId }: Props) {
   );
 }
 
-function TarefaItem({
-  tarefa,
+function LembreteItem({
+  lembrete,
   onToggle,
   onDelete,
   onPrazo,
   disabled,
 }: {
-  tarefa: Tarefa;
+  lembrete: Lembrete;
   onToggle: () => void;
   onDelete: () => void;
   onPrazo: (prazo: string | null) => void;
   disabled: boolean;
 }) {
   const [editingPrazo, setEditingPrazo] = useState(false);
-  const [valorPrazo, setValorPrazo] = useState(tarefa.prazo ?? "");
+  const [valorPrazo, setValorPrazo] = useState(lembrete.prazo ?? "");
 
   function commit() {
     setEditingPrazo(false);
     const v = valorPrazo.trim() || null;
-    if (v !== (tarefa.prazo ?? null)) onPrazo(v);
+    if (v !== (lembrete.prazo ?? null)) onPrazo(v);
   }
 
   return (
-    <div className={cn("trow", tarefa.feita && "done")}>
+    <div className={cn("trow", lembrete.feita && "done")}>
       <button
         type="button"
         className="check"
         onClick={onToggle}
         disabled={disabled}
-        aria-label={tarefa.feita ? "Marcar como não feito" : "Marcar como feito"}
+        aria-label={lembrete.feita ? "Marcar como não feito" : "Marcar como feito"}
       >
-        {tarefa.feita && <Check aria-hidden="true" />}
+        {lembrete.feita && <Check aria-hidden="true" />}
       </button>
-      <span className="t-title">{tarefa.titulo}</span>
+      <span className="t-title">{lembrete.titulo}</span>
 
       {editingPrazo ? (
         <input
@@ -266,10 +266,10 @@ function TarefaItem({
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === "Enter") commit();
-            if (e.key === "Escape") { setValorPrazo(tarefa.prazo ?? ""); setEditingPrazo(false); }
+            if (e.key === "Escape") { setValorPrazo(lembrete.prazo ?? ""); setEditingPrazo(false); }
           }}
         />
-      ) : tarefa.prazo ? (
+      ) : lembrete.prazo ? (
         <button
           type="button"
           className="t-time"
@@ -277,8 +277,8 @@ function TarefaItem({
           onClick={() => setEditingPrazo(true)}
           title="Editar data"
         >
-          {fmtData(tarefa.prazo)}
-          {tarefa.prazoHora ? ` · ${tarefa.prazoHora}` : ""}
+          {fmtData(lembrete.prazo)}
+          {lembrete.prazoHora ? ` · ${lembrete.prazoHora}` : ""}
         </button>
       ) : (
         <button

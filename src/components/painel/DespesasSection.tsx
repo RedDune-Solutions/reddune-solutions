@@ -36,7 +36,7 @@ function fmtEuro(v: number): string {
 /**
  * DespesasSection — card "Despesas recentes" da visão geral: últimas despesas
  * manuais com apagar (optimista). Registar é só pelo botão "Novo" da Topbar
- * (NovoMenu → Nova despesa) — uma entrada única, como projectos/clientes/tarefas.
+ * (NovoMenu → Nova despesa) — uma entrada única, como projectos/clientes/lembretes.
  * Só mostra as manuais; o log completo (com os gastos de linhas de projecto)
  * vive nos relatórios — ver GastosLog.
  */

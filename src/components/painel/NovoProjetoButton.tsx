@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { TarefaForm } from "./TarefaForm";
+import { ProjetoForm } from "./ProjetoForm";
 import type { Projeto } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
 
@@ -26,7 +26,7 @@ type Props = {
   hideTrigger?: boolean;
 };
 
-export function NovaTarefaButton({
+export function NovoProjetoButton({
   projeto,
   clientes = [],
   label,
@@ -64,7 +64,7 @@ export function NovaTarefaButton({
             {isEdit ? "Actualiza os campos deste projeto." : "Cria um projeto novo."}
           </SheetDescription>
         </SheetHeader>
-        <TarefaForm
+        <ProjetoForm
           projeto={projeto}
           clientes={clientes}
           onSaved={() => setOpen(false)}

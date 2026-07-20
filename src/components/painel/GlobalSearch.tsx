@@ -16,7 +16,7 @@ type GroupKey = keyof ProcurarResultados;
 const GROUPS: { key: GroupKey; label: string; Icon: typeof FolderKanban }[] = [
   { key: "projetos", label: "Projectos", Icon: FolderKanban },
   { key: "clientes", label: "Clientes", Icon: Users },
-  { key: "tarefas", label: "Lembretes", Icon: ListChecks },
+  { key: "lembretes", label: "Lembretes", Icon: ListChecks },
 ];
 
 const MIN_CHARS = 2;
@@ -120,7 +120,7 @@ export function GlobalSearch({ defaultValue }: Props) {
   }, [open]);
 
   const flat: ProcurarResultado[] = useMemo(
-    () => (results ? [...results.projetos, ...results.clientes, ...results.tarefas] : []),
+    () => (results ? [...results.projetos, ...results.clientes, ...results.lembretes] : []),
     [results]
   );
 
@@ -171,7 +171,7 @@ export function GlobalSearch({ defaultValue }: Props) {
   const offsets: Record<GroupKey, number> = {
     projetos: 0,
     clientes: results?.projetos.length ?? 0,
-    tarefas: (results?.projetos.length ?? 0) + (results?.clientes.length ?? 0),
+    lembretes: (results?.projetos.length ?? 0) + (results?.clientes.length ?? 0),
   };
 
   // w-fit: o wrapper encolhe para a largura da caixa (320px) para o

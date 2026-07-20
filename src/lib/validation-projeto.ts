@@ -61,7 +61,7 @@ export const projetoSchema = z.object({
 
 export const projetoInputSchema = projetoSchema.partial({ id: true });
 
-export const tarefaSchema = z.object({
+export const lembreteSchema = z.object({
   id: z.string().min(1).max(128),
   projetoId: z.string().min(1).max(128),
   titulo: z.string().min(1).max(300),
@@ -76,7 +76,7 @@ export const tarefaSchema = z.object({
   criadoEm: z.string(),
 });
 
-export const tarefaInputSchema = tarefaSchema.partial({ id: true, criadoEm: true });
+export const lembreteInputSchema = lembreteSchema.partial({ id: true, criadoEm: true });
 
 export const clienteSchema = z.object({
   id: z.string().min(1).max(128),
@@ -92,5 +92,5 @@ export const clienteSchema = z.object({
 export const clienteInputSchema = clienteSchema.partial({ id: true, criadoEm: true });
 
 export type ProjetoInput = z.infer<typeof projetoInputSchema>;
-export type TarefaInput = z.infer<typeof tarefaInputSchema>;
+export type LembreteInput = z.infer<typeof lembreteInputSchema>;
 export type ClienteInput = z.infer<typeof clienteInputSchema>;

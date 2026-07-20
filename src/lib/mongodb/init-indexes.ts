@@ -30,8 +30,8 @@ async function doInit(): Promise<void> {
     db.collection("portal_sandboxes").createIndex({ id: 1 }, { unique: true }),
     db.collection("portal_sandboxes").createIndex({ projetoId: 1, criadoEm: -1 }),
 
-    db.collection("tarefas").createIndex({ id: 1 }, { unique: true }),
-    db.collection("tarefas").createIndex({ projetoId: 1 }),
+    db.collection("lembretes").createIndex({ id: 1 }, { unique: true }),
+    db.collection("lembretes").createIndex({ projetoId: 1 }),
 
     db.collection("clientes").createIndex({ id: 1 }, { unique: true }),
     db.collection("clientes").createIndex(

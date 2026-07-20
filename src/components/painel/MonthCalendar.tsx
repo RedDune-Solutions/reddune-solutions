@@ -8,17 +8,17 @@ import {
   todayLisbonDate,
 } from "@/lib/dates";
 import type { Projeto } from "@/types/projeto";
-import type { Tarefa } from "@/types/tarefa";
+import type { Lembrete } from "@/types/lembrete";
 
 type CalendarEntry =
   | { kind: "projeto"; item: Projeto }
-  | { kind: "tarefa"; item: Tarefa };
+  | { kind: "lembrete"; item: Lembrete };
 
 type Props = {
   year: number;
   monthIndex: number;
   projetos: Projeto[];
-  tarefas?: Tarefa[];
+  lembretes?: Lembrete[];
 };
 
 const DAYS_HEADER = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -27,7 +27,7 @@ function isoDate(year: number, monthIndex: number, day: number): string {
   return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Props) {
+export function MonthCalendar({ year, monthIndex, projetos, lembretes = [] }: Props) {
   // "Hoje" no fuso de Portugal (não no do servidor Vercel, que corre em UTC).
   const hojeLisboa = todayLisbonDate();
   const totalDays = daysInMonth(year, monthIndex);
@@ -51,12 +51,12 @@ export function MonthCalendar({ year, monthIndex, projetos, tarefas = [] }: Prop
     addToDay(d.getDate(), { kind: "projeto", item: p });
   }
 
-  for (const t of tarefas) {
+  for (const t of lembretes) {
     if (!t.prazo) continue;
     const d = parseIsoDate(t.prazo);
     if (!d) continue;
     if (d.getFullYear() !== year || d.getMonth() !== monthIndex) continue;
-    addToDay(d.getDate(), { kind: "tarefa", item: t });
+    addToDay(d.getDate(), { kind: "lembrete", item: t });
   }
 
   // day: dia do mês corrente; outDay: dia do mês adjacente (célula .out)

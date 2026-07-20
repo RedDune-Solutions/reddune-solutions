@@ -8,9 +8,9 @@ import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { RdLoaderFirstPaint } from "@/components/ui/rd-loader-first-paint";
 import { ensureIndexes } from "@/lib/mongodb/init-indexes";
 import { getProjetosResumo } from "@/lib/mongodb/projetos";
-import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllLembretes } from "@/lib/mongodb/lembretes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
-import { isProjetoAtivo, TAREFAS_VISIVEIS_STATUSES } from "@/types/projeto";
+import { isProjetoAtivo, LEMBRETES_VISIVEIS_STATUSES } from "@/types/projeto";
 import "./painel.css";
 
 // Painel usa Poppins (display) + Inter (body) — igual ao mockup Oasis v5.
@@ -34,14 +34,14 @@ export const metadata = {
 };
 
 // Contagens p/ badges da sidebar. Cache curto (20s) — antes corria 3 scans de
-// colecção INTEIRA (projetos+tarefas+pagamentos) em CADA navegação no painel.
+// colecção INTEIRA (projetos+lembretes+pagamentos) em CADA navegação no painel.
 // Badges podem ficar até 20s desatualizados, aceitável para contadores.
 // Apenas LÊ dados (read-only) — não altera nada.
 const getSidebarCounts = unstable_cache(
   async (): Promise<Record<string, number>> => {
-    const [projetos, tarefas, pagamentos] = await Promise.all([
+    const [projetos, lembretes, pagamentos] = await Promise.all([
       getProjetosResumo(),
-      getAllTarefas(),
+      getAllLembretes(),
       getAllPagamentos(),
     ]);
     const pagoPorProjeto = new Map<string, number>();
@@ -55,18 +55,18 @@ const getSidebarCounts = unstable_cache(
         (pagoPorProjeto.get(p.id) ?? 0) < p.valorEstimado
     ).length;
 
-    // Tarefas pendentes dos projetos VISÍVEIS em /painel/tarefas — mesmo conjunto
+    // Lembretes pendentes dos projetos VISÍVEIS em /painel/lembretes — mesmo conjunto
     // que a página lista, para o badge bater certo com o título "N abertas".
     const projetoStatus = new Map(projetos.map((p) => [p.id, p.status]));
-    const visiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
-    const tarefasPendentes = tarefas.filter(
+    const visiveis = new Set<string>(LEMBRETES_VISIVEIS_STATUSES);
+    const lembretesPendentes = lembretes.filter(
       (t) => !t.feita && visiveis.has(projetoStatus.get(t.projetoId) ?? "")
     ).length;
     // "Activo" = fonte única isProjetoAtivo (igual ao título de /painel/projetos).
     const projetosActivos = projetos.filter((p) => isProjetoAtivo(p.status)).length;
 
     return {
-      "/painel/tarefas": tarefasPendentes,
+      "/painel/lembretes": lembretesPendentes,
       "/painel/projetos": projetosActivos,
       "/painel/dividas": dividasCount,
     };

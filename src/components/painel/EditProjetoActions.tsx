@@ -27,7 +27,7 @@ type Props = {
   projeto: Projeto;
 };
 
-export function EditTarefaActions({ projeto }: Props) {
+export function EditProjetoActions({ projeto }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();

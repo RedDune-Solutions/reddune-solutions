@@ -1,59 +1,59 @@
 import Link from "next/link";
-import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllLembretes } from "@/lib/mongodb/lembretes";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { Topbar } from "@/components/painel/Topbar";
-import { TarefasPorProjeto } from "@/components/painel/TarefasPorProjeto";
-import { NovaTarefaGlobalButton } from "@/components/painel/NovaTarefaGlobalButton";
-import { TAREFAS_VISIVEIS_STATUSES } from "@/types/projeto";
+import { LembretesPorProjeto } from "@/components/painel/LembretesPorProjeto";
+import { NovoLembreteGlobalButton } from "@/components/painel/NovoLembreteGlobalButton";
+import { LEMBRETES_VISIVEIS_STATUSES } from "@/types/projeto";
 import { requirePainelSession } from "@/lib/painel-auth";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type TarefaFilter = "todas" | "hoje" | "semana" | "vencidas";
+type LembreteFilter = "todas" | "hoje" | "semana" | "vencidas";
 
 type SearchParams = Promise<{ filter?: string; feitas?: string }>;
 
-const FILTER_LABELS: Record<TarefaFilter, string> = {
+const FILTER_LABELS: Record<LembreteFilter, string> = {
   todas: "Todos",
   hoje: "Hoje",
   semana: "Semana",
   vencidas: "Vencidos",
 };
 
-export default async function TarefasPage({
+export default async function LembretesPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   await requirePainelSession();
 
-  const [allTarefasRaw, allProjetos, params] = await Promise.all([
-    getAllTarefas(),
+  const [allLembretesRaw, allProjetos, params] = await Promise.all([
+    getAllLembretes(),
     getAllProjetos(),
     searchParams,
   ]);
 
   // Lembretes de projectos em QUALQUER estado (incluindo fechados) — mesmo
-  // conjunto que o NovaTarefaGlobalButton oferece (TAREFAS_VISIVEIS_STATUSES).
-  const visiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
+  // conjunto que o NovoLembreteGlobalButton oferece (LEMBRETES_VISIVEIS_STATUSES).
+  const visiveis = new Set<string>(LEMBRETES_VISIVEIS_STATUSES);
   const openIds = new Set(allProjetos.filter((p) => visiveis.has(p.status)).map((p) => p.id));
-  const allTarefas = allTarefasRaw.filter((t) => openIds.has(t.projetoId));
+  const allLembretes = allLembretesRaw.filter((t) => openIds.has(t.projetoId));
 
-  const filter: TarefaFilter =
+  const filter: LembreteFilter =
     params.filter === "hoje" || params.filter === "semana" || params.filter === "vencidas"
-      ? (params.filter as TarefaFilter)
+      ? (params.filter as LembreteFilter)
       : "todas";
 
   const showFeitas = params.feitas === "1";
 
   // Build URL helper preserving feitas state
-  const buildUrl = (f: TarefaFilter) => {
+  const buildUrl = (f: LembreteFilter) => {
     const sp = new URLSearchParams();
     if (f !== "todas") sp.set("filter", f);
     if (showFeitas) sp.set("feitas", "1");
     const qs = sp.toString();
-    return qs ? `/painel/tarefas?${qs}` : "/painel/tarefas";
+    return qs ? `/painel/lembretes?${qs}` : "/painel/lembretes";
   };
 
   const toggleFeitasUrl = (() => {
@@ -61,15 +61,15 @@ export default async function TarefasPage({
     if (filter !== "todas") sp.set("filter", filter);
     if (!showFeitas) sp.set("feitas", "1");
     const qs = sp.toString();
-    return qs ? `/painel/tarefas?${qs}` : "/painel/tarefas";
+    return qs ? `/painel/lembretes?${qs}` : "/painel/lembretes";
   })();
 
-  const pendentes = allTarefas.filter((t) => !t.feita).length;
+  const pendentes = allLembretes.filter((t) => !t.feita).length;
   // As tabs contam sobre o MESMO conjunto que a lista mostra (feitas escondidas
   // por defeito) — senão "Vencidas 5" abria uma lista quase vazia e "Todas"
   // contradizia o título "N abertas".
-  const base = showFeitas ? allTarefas : allTarefas.filter((t) => !t.feita);
-  const counts: Record<TarefaFilter, number> = {
+  const base = showFeitas ? allLembretes : allLembretes.filter((t) => !t.feita);
+  const counts: Record<LembreteFilter, number> = {
     todas: base.length,
     hoje: 0,
     semana: 0,
@@ -98,14 +98,14 @@ export default async function TarefasPage({
         actions={
           <>
             <div className="view-tabs">
-              {(Object.keys(FILTER_LABELS) as TarefaFilter[]).map((f) => (
+              {(Object.keys(FILTER_LABELS) as LembreteFilter[]).map((f) => (
                 <Link key={f} href={buildUrl(f)} className={filter === f ? "on" : undefined}>
                   {FILTER_LABELS[f]}
                   {counts[f] > 0 && <span className="num">{counts[f]}</span>}
                 </Link>
               ))}
             </div>
-            <NovaTarefaGlobalButton projetos={allProjetos} />
+            <NovoLembreteGlobalButton projetos={allProjetos} />
           </>
         }
       />
@@ -116,8 +116,8 @@ export default async function TarefasPage({
         </Link>
       </div>
 
-      <TarefasPorProjeto
-        tarefas={allTarefas}
+      <LembretesPorProjeto
+        lembretes={allLembretes}
         projetos={allProjetos}
         filter={filter}
         showFeitas={showFeitas}

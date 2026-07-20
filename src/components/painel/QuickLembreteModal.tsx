@@ -31,7 +31,7 @@ type Props = {
   projetos: Projeto[];
 };
 
-export function QuickTarefaModal({
+export function QuickLembreteModal({
   open,
   onOpenChange,
   defaultPrazo,
@@ -65,7 +65,7 @@ export function QuickTarefaModal({
     }
     setSaving(true);
     setError(null);
-    const res = await safeJsonPost("/api/tarefas/upsert", {
+    const res = await safeJsonPost("/api/lembretes/upsert", {
       projetoId,
       titulo: titulo.trim(),
       feita: false,

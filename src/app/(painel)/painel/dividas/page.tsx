@@ -168,7 +168,7 @@ export default async function DividasPage({
                           href={`mailto:${email}?subject=${encodeURIComponent("Pagamento pendente · " + p.titulo)}`}
                         >
                           <Mail className="ic" style={{ width: 13, height: 13 }} aria-hidden="true" />
-                          Lembrete
+                          Cobrar por email
                         </a>
                       )}
                       <Link className="btn-ghost" href={`/painel/projetos/${p.id}`}>

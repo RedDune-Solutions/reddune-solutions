@@ -15,7 +15,7 @@ import {
 import { getAllProjetos } from "@/lib/mongodb/projetos";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getAllPagamentos } from "@/lib/mongodb/pagamentos";
-import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllLembretes } from "@/lib/mongodb/lembretes";
 import { getAllDespesas } from "@/lib/mongodb/despesas";
 import { getRecentAuditEntries, type AuditEntry } from "@/lib/mongodb/mutation-audit";
 import { collectGastos, sumGastosInMonth } from "@/lib/gastos";
@@ -23,7 +23,7 @@ import { requirePainelSession } from "@/lib/painel-auth";
 import { Topbar } from "@/components/painel/Topbar";
 import { NovoMenu } from "@/components/painel/NovoMenu";
 import { DespesasSection } from "@/components/painel/DespesasSection";
-import { STATUS_GROUPS, TAREFAS_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
+import { STATUS_GROUPS, LEMBRETES_VISIVEIS_STATUSES, type Projeto } from "@/types/projeto";
 import {
   formatRelativeDay,
   isOverdue,
@@ -40,7 +40,8 @@ export const dynamic = "force-dynamic";
 const COLL_LABEL: Record<string, string> = {
   projetos: "Projecto",
   clientes: "Cliente",
-  tarefas: "Lembrete",
+  lembretes: "Lembrete",
+  tarefas: "Lembrete", // legado — entradas de audit anteriores ao rename da colecção
   pagamentos: "Pagamento",
   products: "Produto",
   portfolio: "Trabalho",
@@ -95,7 +96,8 @@ function auditIcon(e: AuditEntry): LucideIcon {
   switch (e.collection) {
     case "clientes":
       return UserPlus;
-    case "tarefas":
+    case "lembretes":
+    case "tarefas": // legado — audit antigo
       return ListChecks;
     case "pagamentos":
       return Euro;
@@ -110,7 +112,7 @@ function auditIcon(e: AuditEntry): LucideIcon {
   }
 }
 
-// ---------- Hero "O teu dia" (tarefas + prazos de projecto accionáveis) ----------
+// ---------- Hero "O teu dia" (lembretes + prazos de projecto accionáveis) ----------
 
 type Foco = "hoje" | "semana";
 
@@ -123,7 +125,7 @@ type HeroItem = {
   overdue: boolean;
   /** Vencida ou com prazo hoje (conta para o "Tens N coisas para hoje"). */
   hoje: boolean;
-  pill: string; // rótulo do .pill-late quando overdue ("atrasada"/"atrasado")
+  pill: string; // rótulo do .pill-late quando overdue ("atrasado")
   color: string;
   sortKey: number;
 };
@@ -163,11 +165,11 @@ export default async function PainelOverviewPage({
 }) {
   await requirePainelSession();
 
-  const [projetos, clientes, pagamentos, tarefas, despesas, audit, params] = await Promise.all([
+  const [projetos, clientes, pagamentos, lembretes, despesas, audit, params] = await Promise.all([
     getAllProjetos(),
     getAllClientes(),
     getAllPagamentos(),
-    getAllTarefas(),
+    getAllLembretes(),
     getAllDespesas(),
     getRecentAuditEntries(6),
     searchParams,
@@ -230,7 +232,7 @@ export default async function PainelOverviewPage({
       STATUS_GROUPS.aguarda.includes(p.status)
   );
 
-  // Hero "O teu dia": tarefas não feitas + prazos de projecto — atrasados e de
+  // Hero "O teu dia": lembretes não feitas + prazos de projecto — atrasados e de
   // hoje; a vista Semana acrescenta os próximos 7 dias.
   const isHoje = (prazo: string | null): boolean =>
     isOverdue(prazo, hojeLisboa) || isToday(prazo, hojeLisboa);
@@ -240,13 +242,13 @@ export default async function PainelOverviewPage({
   };
 
   const projetoById = new Map<string, Projeto>(projetos.map((p) => [p.id, p]));
-  const tarefasVisiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
+  const lembretesVisiveis = new Set<string>(LEMBRETES_VISIVEIS_STATUSES);
 
   const heroAll: HeroItem[] = [];
-  for (const t of tarefas) {
+  for (const t of lembretes) {
     if (t.feita || !inScope(t.prazo)) continue;
     const proj = projetoById.get(t.projetoId);
-    if (!proj || !tarefasVisiveis.has(proj.status)) continue;
+    if (!proj || !lembretesVisiveis.has(proj.status)) continue;
     heroAll.push({
       key: `t-${t.id}`,
       href: `/painel/projetos/${proj.id}`,
@@ -255,7 +257,7 @@ export default async function PainelOverviewPage({
       time: heroTime(t.prazo, t.prazoHora, hojeLisboa),
       overdue: isOverdue(t.prazo, hojeLisboa),
       hoje: isHoje(t.prazo),
-      pill: "atrasada",
+      pill: "atrasado",
       color: heroDotColor(t.prazo, hojeLisboa),
       sortKey: heroSortKey(t.prazo, t.prazoHora),
     });

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { requirePainelSession } from "@/lib/painel-auth";
 import { getAllProjetos } from "@/lib/mongodb/projetos";
-import { getAllTarefas } from "@/lib/mongodb/tarefas";
+import { getAllLembretes } from "@/lib/mongodb/lembretes";
 import { Topbar } from "@/components/painel/Topbar";
 import { MonthCalendar } from "@/components/painel/MonthCalendar";
 import { WeekCalendar } from "@/components/painel/WeekCalendar";
@@ -10,7 +10,7 @@ import { DayCalendar } from "@/components/painel/DayCalendar";
 import { CalendarViewToggle } from "@/components/painel/CalendarViewToggle";
 import { monthKey, parseMonthKey, parseIsoDate, isToday, isWithinNextDays, todayLisbonDate } from "@/lib/dates";
 import { STATUS_GROUPS, type Projeto } from "@/types/projeto";
-import type { Tarefa } from "@/types/tarefa";
+import type { Lembrete } from "@/types/lembrete";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +63,9 @@ export default async function CalendarioPage({
 }) {
   await requirePainelSession();
 
-  const [projetos, tarefas, params] = await Promise.all([
+  const [projetos, lembretes, params] = await Promise.all([
     getAllProjetos(),
-    getAllTarefas(),
+    getAllLembretes(),
     searchParams,
   ]);
 
@@ -146,30 +146,30 @@ export default async function CalendarioPage({
               year={target.year}
               monthIndex={target.monthIndex}
               projetos={projetos}
-              tarefas={tarefas}
+              lembretes={lembretes}
             />
           </div>
-          <AgendaSide projetos={projetos} tarefas={tarefas} />
+          <AgendaSide projetos={projetos} lembretes={lembretes} />
         </div>
       )}
       {view === "semana" && (
-        <WeekCalendar projetos={projetos} tarefas={tarefas} weekStart={weekStart} />
+        <WeekCalendar projetos={projetos} lembretes={lembretes} weekStart={weekStart} />
       )}
       {view === "dia" && (
-        <DayCalendar projetos={projetos} tarefas={tarefas} day={focusDate} />
+        <DayCalendar projetos={projetos} lembretes={lembretes} day={focusDate} />
       )}
     </>
   );
 }
 
-// `accionavel`: entrada em estado accionável (tarefa não-feita / projecto não
+// `accionavel`: entrada em estado accionável (lembrete não-feita / projecto não
 // fechado nem cancelado). O cartão "Hoje" da agenda mostra só accionáveis, para
 // alinhar com o widget "Hoje" do dashboard (páginel/page.tsx), que só conta
 // projectos activos. A grelha mensal (MonthCalendar) mantém tudo, de propósito,
 // porque mostra o mês completo tal como está na base de dados.
 type AgendaEntry = { id: string; href: string; label: string; sub: string | null; date: Date; accionavel: boolean };
 
-function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
+function buildAgenda(projetos: Projeto[], lembretes: Lembrete[]) {
   // "Hoje" no fuso de Portugal (o servidor Vercel corre em UTC).
   const now = todayLisbonDate();
   const entries: AgendaEntry[] = [];
@@ -179,7 +179,7 @@ function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
     const accionavel = !STATUS_GROUPS.arquivo.includes(p.status);
     entries.push({ id: `p-${p.id}`, href: `/painel/projetos/${p.id}`, label: p.titulo, sub: p.clienteNome ?? null, date: d, accionavel });
   }
-  for (const t of tarefas) {
+  for (const t of lembretes) {
     const d = parseIsoDate(t.prazo ?? null);
     if (!d) continue;
     entries.push({ id: `t-${t.id}`, href: `/painel/projetos/${t.projetoId}`, label: t.titulo, sub: "Lembrete", date: d, accionavel: !t.feita });
@@ -194,8 +194,8 @@ function buildAgenda(projetos: Projeto[], tarefas: Tarefa[]) {
   return { hoje, proximos };
 }
 
-function AgendaSide({ projetos, tarefas }: { projetos: Projeto[]; tarefas: Tarefa[] }) {
-  const { hoje, proximos } = buildAgenda(projetos, tarefas);
+function AgendaSide({ projetos, lembretes }: { projetos: Projeto[]; lembretes: Lembrete[] }) {
+  const { hoje, proximos } = buildAgenda(projetos, lembretes);
   const fmtDay = (d: Date) =>
     d.toLocaleDateString("pt-PT", { weekday: "short", day: "2-digit", month: "short" });
 

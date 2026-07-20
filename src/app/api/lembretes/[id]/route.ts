@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { deleteTarefa, getTarefaProjetoId } from "@/lib/mongodb/tarefas";
+import { deleteLembrete, getLembreteProjetoId } from "@/lib/mongodb/lembretes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
 
 export const dynamic = "force-dynamic";
@@ -21,21 +21,21 @@ export async function DELETE(
   }
 
   // Lê o projetoId antes de apagar para revalidar a página do projeto.
-  const projetoId = await getTarefaProjetoId(id);
+  const projetoId = await getLembreteProjetoId(id);
 
-  const ok = await deleteTarefa(id);
+  const ok = await deleteLembrete(id);
   if (!ok) {
     return NextResponse.json({ error: "Lembrete não encontrado" }, { status: 404 });
   }
 
   await logMutation({
-    collection: "tarefas",
+    collection: "lembretes",
     entityId: id,
     op: "delete",
     userEmail: session.user.email ?? null,
   });
 
-  revalidatePath("/painel/tarefas");
+  revalidatePath("/painel/lembretes");
   revalidatePath("/painel/calendario");
   revalidatePath("/painel");
   if (projetoId) revalidatePath(`/painel/projetos/${projetoId}`);

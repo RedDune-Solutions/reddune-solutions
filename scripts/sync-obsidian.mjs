@@ -11,7 +11,10 @@
  * Variáveis de ambiente esperadas (carrega de scripts/.env via dotenv ou via shell):
  *   OBSIDIAN_VAULT_PATH  Caminho absoluto para o vault Obsidian
  *   SITE_URL             URL base do site (ex: http://localhost:9002 ou https://reddune.solutions)
- *   SYNC_SECRET          Token Bearer (mesmo que está em /api/tarefas no servidor)
+ *   SYNC_SECRET          Token Bearer (mesmo que está em /api/lembretes no servidor)
+ *
+ * LEGADO: as pastas do vault e o endpoint mudaram desde que isto foi escrito
+ * (o endpoint actual não aceita POST). Mantido como referência; não corre.
  *   DRY_RUN              "1" para apenas mostrar payload sem POST
  */
 
@@ -360,7 +363,7 @@ async function main() {
   }
 
   // ── POST tarefas ──────────────────────────────────────────────────────────
-  const endpoint = `${SITE_URL.replace(/\/$/, "")}/api/tarefas`;
+  const endpoint = `${SITE_URL.replace(/\/$/, "")}/api/lembretes`;
   console.log(`[sync-obsidian] POST ${endpoint}`);
 
   const response = await fetch(endpoint, {

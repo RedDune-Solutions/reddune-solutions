@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, FolderKanban, UserPlus, ListChecks, Receipt } from "lucide-react";
-import { NovaTarefaButton } from "./NovaTarefaButton";
+import { NovoProjetoButton } from "./NovoProjetoButton";
 import { NovoClienteButton } from "./NovoClienteButton";
-import { NovaTarefaGlobalButton } from "./NovaTarefaGlobalButton";
+import { NovoLembreteGlobalButton } from "./NovoLembreteGlobalButton";
 import { DespesaFormSheet } from "./DespesaFormSheet";
 import type { Projeto } from "@/types/projeto";
 import type { Cliente } from "@/types/cliente";
@@ -25,7 +25,7 @@ export function NovoMenu({ projetos, clientes }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [projetoOpen, setProjetoOpen] = useState(false);
   const [clienteOpen, setClienteOpen] = useState(false);
-  const [tarefaOpen, setTarefaOpen] = useState(false);
+  const [lembreteOpen, setLembreteOpen] = useState(false);
   const [despesaOpen, setDespesaOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +84,7 @@ export function NovoMenu({ projetos, clientes }: Props) {
             <UserPlus className="ic" aria-hidden="true" />
             Novo cliente
           </button>
-          <button type="button" role="menuitem" onClick={() => pick(setTarefaOpen)}>
+          <button type="button" role="menuitem" onClick={() => pick(setLembreteOpen)}>
             <ListChecks className="ic" aria-hidden="true" />
             Novo lembrete
           </button>
@@ -96,9 +96,9 @@ export function NovoMenu({ projetos, clientes }: Props) {
       )}
 
       {/* Sheets existentes em modo controlado, sem trigger próprio */}
-      <NovaTarefaButton clientes={clientes} open={projetoOpen} onOpenChange={setProjetoOpen} hideTrigger />
+      <NovoProjetoButton clientes={clientes} open={projetoOpen} onOpenChange={setProjetoOpen} hideTrigger />
       <NovoClienteButton open={clienteOpen} onOpenChange={setClienteOpen} hideTrigger />
-      <NovaTarefaGlobalButton projetos={projetos} open={tarefaOpen} onOpenChange={setTarefaOpen} hideTrigger />
+      <NovoLembreteGlobalButton projetos={projetos} open={lembreteOpen} onOpenChange={setLembreteOpen} hideTrigger />
       <DespesaFormSheet projetos={projetoOptions} open={despesaOpen} onOpenChange={setDespesaOpen} hideTrigger />
     </div>
   );

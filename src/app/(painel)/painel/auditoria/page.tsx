@@ -23,6 +23,8 @@ const COLL_META: Record<
 > = {
   projetos: { label: "Projecto", create: "criado", update: "editado", delete: "apagado" },
   clientes: { label: "Cliente", create: "criado", update: "editado", delete: "apagado" },
+  lembretes: { label: "Lembrete", create: "criado", update: "editado", delete: "apagado" },
+  // legado — entradas de audit anteriores ao rename da colecção tarefas→lembretes
   tarefas: { label: "Lembrete", create: "criado", update: "editado", delete: "apagado" },
   pagamentos: { label: "Pagamento", create: "registado", update: "editado", delete: "apagado" },
   products: { label: "Produto", create: "criado", update: "editado", delete: "apagado" },

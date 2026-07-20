@@ -5,12 +5,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { parseIsoDate, startOfDay } from "@/lib/dates";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
-import type { Tarefa } from "@/types/tarefa";
-import { QuickTarefaModal } from "./QuickTarefaModal";
+import type { Lembrete } from "@/types/lembrete";
+import { QuickLembreteModal } from "./QuickLembreteModal";
 
 type Props = {
   projetos: Projeto[];
-  tarefas: Tarefa[];
+  lembretes: Lembrete[];
   weekStart: Date;
 };
 
@@ -39,7 +39,7 @@ function sameDay(a: Date, b: Date): boolean {
   return startOfDay(a).getTime() === startOfDay(b).getTime();
 }
 
-export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
+export function WeekCalendar({ projetos, lembretes, weekStart }: Props) {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickPrazo, setQuickPrazo] = useState<string | null>(null);
   const [quickHora, setQuickHora] = useState<string | null>(null);
@@ -57,8 +57,8 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
   const hours: number[] = [];
   for (let h = HOUR_START; h < HOUR_END; h++) hours.push(h);
 
-  function tarefasFor(day: Date) {
-    return tarefas.filter((t) => {
+  function lembretesFor(day: Date) {
+    return lembretes.filter((t) => {
       const d = parseIsoDate(t.prazo);
       return d && sameDay(d, day);
     });
@@ -108,7 +108,7 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
           <div className="px-2 py-1 text-[10px] font-mono text-ink-mute">Dia inteiro</div>
           {days.map((d, i) => {
             const ps = projetosFor(d);
-            const tsNoHora = tarefasFor(d).filter((t) => !t.prazoHora);
+            const tsNoHora = lembretesFor(d).filter((t) => !t.prazoHora);
             return (
               <div key={i} className="border-l border-dune-deep/10 p-1 min-h-[36px]">
                 {ps.map((p) => (
@@ -148,7 +148,7 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
                 {String(h).padStart(2, "0")}:00
               </div>
               {days.map((d, di) => {
-                const slotTarefas = tarefasFor(d).filter((t) => {
+                const slotLembretes = lembretesFor(d).filter((t) => {
                   if (!t.prazoHora) return false;
                   const hour = parseInt(t.prazoHora.slice(0, 2), 10);
                   return hour === h;
@@ -161,7 +161,7 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
                     className="border-l border-dune-deep/10 p-1 min-h-[40px] text-left hover:bg-ember/5 transition-colors"
                   >
                     <div>
-                      {slotTarefas.map((t) => (
+                      {slotLembretes.map((t) => (
                         <Link
                           key={t.id}
                           href={`/painel/projetos/${t.projetoId}`}
@@ -181,7 +181,7 @@ export function WeekCalendar({ projetos, tarefas, weekStart }: Props) {
         </div>
       </div>
 
-      <QuickTarefaModal
+      <QuickLembreteModal
         open={quickOpen}
         onOpenChange={setQuickOpen}
         defaultPrazo={quickPrazo}

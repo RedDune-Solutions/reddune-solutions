@@ -12,15 +12,15 @@ import {
 } from "lucide-react";
 import { requirePainelSession } from "@/lib/painel-auth";
 import { getProjetoById } from "@/lib/mongodb/projetos";
-import { getTarefasByProjeto } from "@/lib/mongodb/tarefas";
+import { getLembretesByProjeto } from "@/lib/mongodb/lembretes";
 import { getAllClientes } from "@/lib/mongodb/clientes";
 import { getPagamentosByProjeto } from "@/lib/mongodb/pagamentos";
 import { getDespesasByProjeto } from "@/lib/mongodb/despesas";
 import { PagamentosSection } from "@/components/painel/PagamentosSection";
 import { CustosCard } from "@/components/painel/CustosCard";
-import { TarefaRowMenu } from "@/components/painel/TarefaRowMenu";
-import { TarefaChecklist } from "@/components/painel/TarefaChecklist";
-import { TarefaForm } from "@/components/painel/TarefaForm";
+import { ProjetoRowMenu } from "@/components/painel/ProjetoRowMenu";
+import { LembreteChecklist } from "@/components/painel/LembreteChecklist";
+import { ProjetoForm } from "@/components/painel/ProjetoForm";
 import { ArquivosCard } from "@/components/painel/ArquivosCard";
 import { PortalSection } from "@/components/painel/PortalSection";
 import { getComentariosByProjeto } from "@/lib/mongodb/portal";
@@ -51,10 +51,10 @@ function formatDate(iso: string | null): string {
 export default async function ProjetoDetalhePage({ params }: { params: Params }) {
   await requirePainelSession();
   const { id } = await params;
-  const [projeto, tarefas, clientes, pagamentos, comentarios, sandboxes, despesas] =
+  const [projeto, lembretes, clientes, pagamentos, comentarios, sandboxes, despesas] =
     await Promise.all([
       getProjetoById(id),
-      getTarefasByProjeto(id),
+      getLembretesByProjeto(id),
       getAllClientes(),
       getPagamentosByProjeto(id),
       getComentariosByProjeto(id),
@@ -64,8 +64,8 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
 
   if (!projeto) notFound();
 
-  const totalTarefas = tarefas.length;
-  const tarefasFeitas = tarefas.filter((t) => t.feita).length;
+  const totalLembretes = lembretes.length;
+  const lembretesFeitas = lembretes.filter((t) => t.feita).length;
   const totalPago = pagamentos.reduce((s, p) => s + p.valor, 0);
   const gastoEmpresa = gastoEmpresaDoProjeto(projeto, despesas);
 
@@ -77,7 +77,7 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
           <ArrowLeft className="ic" aria-hidden="true" />
           Voltar a projectos
         </Link>
-        <TarefaRowMenu projeto={projeto} variant="icon-btn" />
+        <ProjetoRowMenu projeto={projeto} variant="icon-btn" />
       </div>
 
       {/* Hero escuro — ficha do projecto: estado, dinheiro, progresso de pagamento */}
@@ -92,7 +92,7 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
               <Pencil className="ic" aria-hidden="true" />
               Editar projecto
             </div>
-            <TarefaForm projeto={projeto} clientes={clientes} />
+            <ProjetoForm projeto={projeto} clientes={clientes} />
           </section>
 
           {/* Ficheiros / Orçamentos */}
@@ -117,18 +117,18 @@ export default async function ProjetoDetalhePage({ params }: { params: Params })
             />
           </div>
 
-          {/* Checklist de tarefas */}
+          {/* Checklist de lembretes */}
           <section className="card">
             <div className="card-label">
               <ListChecks className="ic" aria-hidden="true" />
               Lembretes
-              {totalTarefas > 0 && (
+              {totalLembretes > 0 && (
                 <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-mute)" }}>
-                  {tarefasFeitas}/{totalTarefas}
+                  {lembretesFeitas}/{totalLembretes}
                 </span>
               )}
             </div>
-            <TarefaChecklist tarefas={tarefas} projetoId={projeto.id} />
+            <LembreteChecklist lembretes={lembretes} projetoId={projeto.id} />
           </section>
 
           {/* Pagamentos */}

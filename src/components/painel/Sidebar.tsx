@@ -24,7 +24,7 @@ import {
 
 type Props = {
   user: { name?: string | null; email?: string | null };
-  /** Optional real counts keyed by href (e.g. tarefas pendentes, projetos, dívidas). */
+  /** Optional real counts keyed by href (e.g. lembretes pendentes, projetos, dívidas). */
   counts?: Record<string, number>;
   /** Estado recolhido (72px) — controlado pelo PainelShell via .app.collapsed. */
   collapsed?: boolean;

@@ -21,7 +21,7 @@ type Props = {
   variant?: "default" | "icon-btn";
 };
 
-export function TarefaRowMenu({ projeto, variant = "default" }: Props) {
+export function ProjetoRowMenu({ projeto, variant = "default" }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();

@@ -5,12 +5,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { parseIsoDate, startOfDay } from "@/lib/dates";
 import type { Projeto, ProjetoStatus } from "@/types/projeto";
-import type { Tarefa } from "@/types/tarefa";
-import { QuickTarefaModal } from "./QuickTarefaModal";
+import type { Lembrete } from "@/types/lembrete";
+import { QuickLembreteModal } from "./QuickLembreteModal";
 
 type Props = {
   projetos: Projeto[];
-  tarefas: Tarefa[];
+  lembretes: Lembrete[];
   day: Date;
 };
 
@@ -38,7 +38,7 @@ function sameDay(a: Date, b: Date): boolean {
   return startOfDay(a).getTime() === startOfDay(b).getTime();
 }
 
-export function DayCalendar({ projetos, tarefas, day }: Props) {
+export function DayCalendar({ projetos, lembretes, day }: Props) {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickPrazo, setQuickPrazo] = useState<string | null>(null);
   const [quickHora, setQuickHora] = useState<string | null>(null);
@@ -53,11 +53,11 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
     const d = parseIsoDate(p.prazo);
     return d && sameDay(d, day);
   });
-  const dayTarefas = tarefas.filter((t) => {
+  const dayLembretes = lembretes.filter((t) => {
     const d = parseIsoDate(t.prazo);
     return d && sameDay(d, day);
   });
-  const semHora = dayTarefas.filter((t) => !t.prazoHora);
+  const semHora = dayLembretes.filter((t) => !t.prazoHora);
 
   function openQuick(hour: number, minute: number) {
     setQuickPrazo(isoFromDate(day));
@@ -103,7 +103,7 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
 
         <div className="cal" style={{ padding: 0, overflow: "hidden" }}>
           {slots.map(({ hour, minute }, idx) => {
-            const slotTarefas = dayTarefas.filter((t) => {
+            const slotLembretes = dayLembretes.filter((t) => {
               if (!t.prazoHora) return false;
               const [h, m] = t.prazoHora.split(":").map((x) => parseInt(x, 10));
               return h === hour && (minute === 0 ? m < 30 : m >= 30);
@@ -119,7 +119,7 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
                   {String(hour).padStart(2, "0")}:{String(minute).padStart(2, "0")}
                 </div>
                 <div className="px-2 py-2 min-h-[40px]">
-                  {slotTarefas.map((t) => (
+                  {slotLembretes.map((t) => (
                     <Link
                       key={t.id}
                       href={`/painel/projetos/${t.projetoId}`}
@@ -137,7 +137,7 @@ export function DayCalendar({ projetos, tarefas, day }: Props) {
         </div>
       </div>
 
-      <QuickTarefaModal
+      <QuickLembreteModal
         open={quickOpen}
         onOpenChange={setQuickOpen}
         defaultPrazo={quickPrazo}
