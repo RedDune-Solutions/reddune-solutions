@@ -32,16 +32,10 @@ export const PROJETO_STATUS_FLUXO: ProjetoStatus[] = [
   "fechado",
 ];
 
-// Estados de projeto cujos cartões de tarefas são visíveis em /painel/tarefas.
-// Tem de cobrir TODOS os estados em que o NovaTarefaGlobalButton permite criar
-// tarefas — caso contrário trabalho criado fica invisível. Ver STATUS_GROUPS
-// abaixo: ativo + proximo + aguarda + pronto.
-export const TAREFAS_VISIVEIS_STATUSES: ProjetoStatus[] = [
-  "em-curso",
-  "proximo",
-  "aguardando",
-  "terminado",
-];
+// Lembretes são visíveis para projectos em QUALQUER estado — um lembrete nunca
+// desaparece por o projecto fechar (follow-ups, garantias, ideias). O selector
+// do NovaTarefaGlobalButton oferece o mesmo conjunto que a página mostra.
+export const TAREFAS_VISIVEIS_STATUSES: ProjetoStatus[] = [...PROJETO_STATUS];
 
 // Fonte ÚNICA de "projecto activo" — usada pelo badge da sidebar/bottomnav E
 // pelo título de /painel/projetos, para os números baterem certo (antes o badge

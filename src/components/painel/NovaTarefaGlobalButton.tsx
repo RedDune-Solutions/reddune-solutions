@@ -33,9 +33,8 @@ type Props = {
   hideTrigger?: boolean;
 };
 
-// Mostra no selector apenas projetos cujas tarefas são visíveis em
-// /painel/tarefas (não arquivados/fechados). Partilhado com o filtro da página
-// para que nenhuma tarefa criada fique invisível.
+// Selector oferece o mesmo conjunto de projetos cujos lembretes são visíveis
+// em /painel/tarefas — hoje TODOS os estados, incluindo fechados e ideias.
 const ACTIVE_STATUSES = TAREFAS_VISIVEIS_STATUSES;
 
 export function NovaTarefaGlobalButton({
@@ -127,7 +126,7 @@ export function NovaTarefaGlobalButton({
               <SelectContent>
                 {activeProjetos.length === 0 ? (
                   <SelectItem value="__none" disabled>
-                    Sem projetos activos
+                    Sem projetos
                   </SelectItem>
                 ) : (
                   activeProjetos.map((p) => (

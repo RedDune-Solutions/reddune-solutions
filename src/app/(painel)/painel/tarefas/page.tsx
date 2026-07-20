@@ -34,8 +34,8 @@ export default async function TarefasPage({
     searchParams,
   ]);
 
-  // Só tarefas de projetos em estados onde se podem criar tarefas (mesmo
-  // conjunto que o NovaTarefaGlobalButton oferece — ver TAREFAS_VISIVEIS_STATUSES).
+  // Lembretes de projectos em QUALQUER estado (incluindo fechados) — mesmo
+  // conjunto que o NovaTarefaGlobalButton oferece (TAREFAS_VISIVEIS_STATUSES).
   const visiveis = new Set<string>(TAREFAS_VISIVEIS_STATUSES);
   const openIds = new Set(allProjetos.filter((p) => visiveis.has(p.status)).map((p) => p.id));
   const allTarefas = allTarefasRaw.filter((t) => openIds.has(t.projetoId));
