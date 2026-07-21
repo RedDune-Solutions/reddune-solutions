@@ -4,6 +4,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { patchLembrete, getLembreteProjetoId } from "@/lib/mongodb/lembretes";
 import { logMutation } from "@/lib/mongodb/mutation-audit";
+import type { Lembrete } from "@/types/lembrete";
 
 export const dynamic = "force-dynamic";
 
@@ -40,18 +41,29 @@ export async function POST(request: Request) {
     );
   }
 
+  const patch: Partial<Lembrete> = { ...parsed.data.patch };
+
   // Limpar a data tem de limpar também a hora — senão a prazoHora antiga fica
   // órfã e "ressuscita" quando se define uma data nova (aparece no calendário
   // a uma hora que o utilizador nunca escolheu para essa data).
-  if (parsed.data.patch.prazo === null) {
-    parsed.data.patch.prazoHora = null;
+  if (patch.prazo === null) {
+    patch.prazoHora = null;
+  }
+
+  // Carimbo de conclusão só no servidor: o zod schema não aceita feitaEm do
+  // cliente, por isso o valor é sempre deste bloco. Desmarcar limpa o carimbo
+  // para o lembrete não aparecer como "resolvido há pouco" no /api/brief.
+  if (patch.feita === true) {
+    patch.feitaEm = new Date().toISOString();
+  } else if (patch.feita === false) {
+    patch.feitaEm = null;
   }
 
   // Lê o projetoId antes do patch para revalidar a página do projeto (o patch
   // nunca altera o projetoId, por isso o valor lido continua válido).
   const projetoId = await getLembreteProjetoId(parsed.data.lembreteId);
 
-  const ok = await patchLembrete(parsed.data.lembreteId, parsed.data.patch);
+  const ok = await patchLembrete(parsed.data.lembreteId, patch);
   if (!ok) {
     return NextResponse.json({ error: "Lembrete não encontrado" }, { status: 404 });
   }
@@ -61,7 +73,7 @@ export async function POST(request: Request) {
     entityId: parsed.data.lembreteId,
     op: "update",
     userEmail: session.user.email ?? null,
-    after: parsed.data.patch,
+    after: patch,
   });
 
   revalidatePath("/painel/lembretes");

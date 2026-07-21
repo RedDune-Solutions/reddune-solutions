@@ -22,6 +22,29 @@ export async function getAllLembretes(): Promise<Lembrete[]> {
     .toArray();
 }
 
+/**
+ * Lembretes para o resumo matinal (/api/brief): todos os pendentes + os
+ * concluídos desde `cutoffIso` (secção "Resolvido"). Concluídos sem feitaEm
+ * (anteriores ao carimbo, 2026-07-21) ficam de fora — degradação segura.
+ * O $exists exclui 36 docs órfãos de uma importação antiga de PROJECTOS que
+ * vivem nesta colecção sem projetoId (a UI também nunca os mostra).
+ */
+export async function getLembretesParaBrief(cutoffIso: string): Promise<Lembrete[]> {
+  const db = await getDb();
+  return db
+    .collection<Lembrete>(COLLECTION)
+    .find(
+      {
+        projetoId: { $exists: true },
+        $or: [{ feita: { $ne: true } }, { feitaEm: { $gte: cutoffIso } }],
+      },
+      { projection: { _id: 0 } }
+    )
+    .sort({ prazo: 1, ordem: 1 })
+    .limit(200)
+    .toArray();
+}
+
 /** Lê apenas o projetoId de um lembrete (para revalidar a página do projeto). */
 export async function getLembreteProjetoId(id: string): Promise<string | null> {
   const db = await getDb();

@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "./client";
 import type { Projeto, ProjetoArquivo, ProjetoLink } from "@/types/projeto";
+import { PROJETO_STATUS_FLUXO } from "@/types/projeto";
 
 const COLLECTION = "projetos";
 
@@ -46,6 +47,57 @@ export async function getProjetosByCliente(clienteId: string): Promise<Projeto[]
     .collection<Projeto>(COLLECTION)
     .find({ clienteId }, { projection: { _id: 0 } })
     .toArray();
+}
+
+export type ProjetoBrief = Pick<
+  Projeto,
+  | "id"
+  | "ref"
+  | "titulo"
+  | "clienteNome"
+  | "status"
+  | "proximaAccao"
+  | "prazo"
+  | "garantiaAte"
+>;
+
+const BRIEF_PROJECTION = {
+  _id: 0,
+  id: 1,
+  ref: 1,
+  titulo: 1,
+  clienteNome: 1,
+  status: 1,
+  proximaAccao: 1,
+  prazo: 1,
+  garantiaAte: 1,
+} as const;
+
+/**
+ * Projectos para o resumo matinal (/api/brief): só o fluxo activo (sem ideias
+ * nem fechados) e só campos leves não sensíveis — sem valores, linhas ou bodyMd.
+ */
+export async function getProjetosParaBrief(): Promise<ProjetoBrief[]> {
+  const db = await getDb();
+  const ativos = PROJETO_STATUS_FLUXO.filter((s) => s !== "fechado");
+  return db
+    .collection<Projeto>(COLLECTION)
+    .find({ status: { $in: ativos } }, { projection: BRIEF_PROJECTION })
+    .limit(100)
+    .toArray() as Promise<ProjetoBrief[]>;
+}
+
+/**
+ * Contexto leve (título/ref/status) dos projectos dos lembretes do brief —
+ * inclui fechados e ideias, porque lembretes são visíveis em qualquer estado.
+ */
+export async function getProjetosBriefByIds(ids: string[]): Promise<ProjetoBrief[]> {
+  if (ids.length === 0) return [];
+  const db = await getDb();
+  return db
+    .collection<Projeto>(COLLECTION)
+    .find({ id: { $in: ids } }, { projection: BRIEF_PROJECTION })
+    .toArray() as Promise<ProjetoBrief[]>;
 }
 
 export type ProjetoResumo = Pick<
