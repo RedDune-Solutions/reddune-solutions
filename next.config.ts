@@ -81,6 +81,16 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
         ],
       },
+      // Rotas privadas/API: nunca indexar. O robots.txt evita o crawl (excepto
+      // /api — ver src/app/robots.ts), mas só o noindex garante exclusão do
+      // índice quando há links externos. Não afecta o fetcher do Resumo
+      // Matinal: X-Robots-Tag dirige-se a indexadores, não bloqueia o fetch.
+      ...["/api/:path*", "/painel/:path*", "/entrar", "/p/:path*"].map(
+        (source) => ({
+          source,
+          headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        })
+      ),
     ];
   },
 
