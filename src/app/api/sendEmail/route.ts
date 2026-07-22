@@ -11,6 +11,11 @@ export const dynamic = "force-dynamic";
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
+// Cap global partilhado (todos os IPs juntos), além do limite por-IP: backstop
+// contra flood distribuído de leads + push aos devices do admin.
+const RATE_LIMIT_GLOBAL_MAX = 300;
+const RATE_LIMIT_GLOBAL_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 // Formulário de contacto do site público. Já NÃO envia email — grava a
 // submissão como lead em `/painel/leads` e notifica por push. Defesa de spam
 // (tudo self-hosted): honeypot + rate-limit + blocklist de IP (+ Turnstile
@@ -85,6 +90,17 @@ export async function POST(request: Request) {
   }
 
   const { name, email, subject, message } = result.data;
+
+  // Cap global diário (além do per-IP): trava um flood distribuído de leads +
+  // push. Estoirado → mesmo 200 silencioso do honeypot, sem dar sinal a bots.
+  const globalRl = await rateLimitDistributed(
+    "sendEmail:global:day",
+    RATE_LIMIT_GLOBAL_MAX,
+    RATE_LIMIT_GLOBAL_WINDOW_MS
+  );
+  if (!globalRl.allowed) {
+    return Response.json({ id: "ok" });
+  }
 
   try {
     const now = new Date().toISOString();

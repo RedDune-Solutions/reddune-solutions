@@ -26,12 +26,29 @@ function tokenValido(candidato: string | null): boolean {
   return timingSafeEqual(a, b);
 }
 
-// Header Authorization preferido; query ?token= como fallback (nem todos os
-// fetchers de tarefas agendadas deixam definir headers).
+// Auth SÓ por header — nunca via query string (o token vazaria em logs de
+// acesso e no Referer). O caller do Resumo Matinal (tarefa cowork) chama por
+// curl com `Authorization: Bearer`; `X-Brief-Token` fica como alternativa para
+// fetchers que reservem o header Authorization.
 function extrairToken(request: Request): string | null {
   const auth = request.headers.get("authorization");
   if (auth?.startsWith("Bearer ")) return auth.slice("Bearer ".length).trim();
-  return new URL(request.url).searchParams.get("token");
+  const custom = request.headers.get("x-brief-token");
+  if (custom) return custom.trim();
+  return null;
+}
+
+// Sanitização leve dos campos de texto livre antes de os devolver ao LLM
+// externo do Resumo Matinal: remove caracteres de controlo (inclui \n, \r, \t)
+// e colapsa espaços. Parte do texto (ex.: clienteNome) pode vir influenciada
+// pelo cliente via portal — reduz a superfície de prompt-injection de 2ª ordem.
+// Não altera a estrutura do JSON, só limpa os valores string.
+function sanitizeBriefText(s: string | null | undefined): string | null {
+  if (s == null) return null;
+  return s
+    .replace(/\p{Cc}/gu, " ")
+    .replace(/ {2,}/g, " ")
+    .trim();
 }
 
 export async function GET(request: Request) {
@@ -69,14 +86,15 @@ export async function GET(request: Request) {
         generatedAt: agora.toISOString(),
         // `?? null` em todos os opcionais: docs antigos têm campos em falta
         // (undefined), e o JSON.stringify omitia a chave — contrato instável
-        // para o consumidor do resumo.
+        // para o consumidor do resumo. Campos de texto livre passam por
+        // sanitizeBriefText (limpa control chars; não muda a estrutura).
         projects: projetos.map((p) => ({
           id: p.id,
           ref: p.ref ?? null,
-          name: p.titulo,
-          client: p.clienteNome ?? null,
+          name: sanitizeBriefText(p.titulo),
+          client: sanitizeBriefText(p.clienteNome),
           status: p.status,
-          nextAction: p.proximaAccao ?? null,
+          nextAction: sanitizeBriefText(p.proximaAccao),
           due: p.prazo ?? null,
           warrantyUntil: p.garantiaAte ?? null,
           url: `${base}/painel/projetos/${p.id}`,
@@ -85,14 +103,14 @@ export async function GET(request: Request) {
           const projeto = porId.get(l.projetoId);
           return {
             id: l.id,
-            title: l.titulo,
+            title: sanitizeBriefText(l.titulo),
             due: l.prazo ?? null,
             dueTime: l.prazoHora ?? null,
             done: l.feita === true,
             completedAt: l.feitaEm ?? null,
-            note: l.notas ?? null,
+            note: sanitizeBriefText(l.notas),
             projectId: l.projetoId,
-            projectName: projeto?.titulo ?? null,
+            projectName: sanitizeBriefText(projeto?.titulo),
             projectRef: projeto?.ref ?? null,
             projectStatus: projeto?.status ?? null,
             url: projeto
